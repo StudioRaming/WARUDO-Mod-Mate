@@ -7,6 +7,7 @@ namespace StudioRaming.WarudoBatchBuilder
     {
         private readonly float[] toolWidths = new float[3];
         private float measuredListHeight;
+        private Rect listViewportRect;
         private float measuredListTop;
         private float measuredFooterHeight = WbbSize.ControlLarge;
         private float listHeightLayout = WbbSize.Package.EmbeddedListHeight;
@@ -142,6 +143,13 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void DrawList()
         {
+            if (Event.current.type == EventType.ScrollWheel && visual.Count > 0 && listViewportRect.Contains(Event.current.mousePosition))
+            {
+                scroll.y = Mathf.Clamp(scroll.y + Event.current.delta.y * RowHeight * 3f, 0f, Mathf.Max(0f, visual.Count * RowHeight - measuredListHeight));
+                Event.current.Use();
+                if (host != null)
+                    host.RequestRepaint();
+            }
             Rect top = GUILayoutUtility.GetRect(0f, 0f, GUILayout.ExpandWidth(true));
             if (Event.current.type == EventType.Repaint && top.y > 0f && Mathf.Abs(top.y - measuredListTop) > 1f)
             {
@@ -195,7 +203,8 @@ namespace StudioRaming.WarudoBatchBuilder
             EditorGUILayout.EndScrollView();
             if (Event.current.type == EventType.Repaint)
             {
-                float height = GUILayoutUtility.GetLastRect().height;
+                listViewportRect = GUILayoutUtility.GetLastRect();
+                float height = listViewportRect.height;
                 if (height > 1f && Mathf.Abs(height - measuredListHeight) > 1f)
                 {
                     measuredListHeight = height;
