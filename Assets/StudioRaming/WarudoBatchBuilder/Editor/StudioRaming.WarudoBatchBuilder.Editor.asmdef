@@ -1,0 +1,18 @@
+{
+  "name": "StudioRaming.WarudoBatchBuilder.Editor",
+  "rootNamespace": "StudioRaming.WarudoBatchBuilder",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    { "name": "app.warudo.modtool", "expression": "0.14.3", "define": "WBB_WARUDO_SDK" }
+  ],
+  "noEngineReferences": false
+}
