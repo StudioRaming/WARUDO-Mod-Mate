@@ -7,6 +7,24 @@ namespace StudioRaming.WarudoBatchBuilder
         private static readonly Dictionary<string, string[]> UiTexts = new Dictionary<string, string[]>
         {
             {
+                "Ui.Help.Manual",
+                new[]
+                {
+                    "사용 가이드 · 화면별 설명",
+                    "User guide · workflows",
+                    "使い方ガイド・画面の説明"
+                }
+            },
+            {
+                "Ui.HeightSplitter.tip",
+                new[]
+                {
+                    "드래그해서 위 프리팹 목록과 아래 영역의 높이를 조절합니다. 두 번 클릭하면 자동 높이로 돌아갑니다.",
+                    "Drag to resize the prefab list and the lower area. Double-click to restore automatic height.",
+                    "ドラッグで上のプリファブ一覧と下の領域の高さを調整します。ダブルクリックで自動の高さに戻します。"
+                }
+            },
+            {
                 "Ui.HeaderSubtitle",
                 new[]
                 {

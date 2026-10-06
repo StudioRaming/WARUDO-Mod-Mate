@@ -130,11 +130,11 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             }
 
-            if (evt.type == EventType.MouseDown && evt.button == 0 && rect.Contains(evt.mousePosition) && !actionRect.Contains(evt.mousePosition) && !(thumbButton.width > 0f && thumbButton.Contains(evt.mousePosition)))
+            if (sourceListAcceptsPointer && evt.type == EventType.MouseDown && evt.button == 0 && rect.Contains(evt.mousePosition) && !actionRect.Contains(evt.mousePosition) && !(thumbButton.width > 0f && thumbButton.Contains(evt.mousePosition)))
             {
                 HandleClick(itemIndex, item, evt);
             }
-            else if (evt.type == EventType.ContextClick && rect.Contains(evt.mousePosition))
+            else if (sourceListAcceptsPointer && evt.type == EventType.ContextClick && rect.Contains(evt.mousePosition))
             {
                 if (!item.isScene && !isSelected)
                     SelectOnly(itemIndex);

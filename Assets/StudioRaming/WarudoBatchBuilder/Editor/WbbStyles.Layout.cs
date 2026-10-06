@@ -55,6 +55,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private static void ShowHelpMenu()
         {
             var menu = new GenericMenu();
+            menu.AddItem(new GUIContent(L("Ui.Help.Manual")), false, WbbDiagnostics.OpenManual);
             menu.AddItem(new GUIContent(L("Ui.Help.About")), false, WbbDiagnostics.ShowAbout);
             menu.AddItem(new GUIContent(L("Ui.Help.CopyDiagnostics")), false, WbbDiagnostics.CopyToClipboard);
             menu.AddSeparator("");

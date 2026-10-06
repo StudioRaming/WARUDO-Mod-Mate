@@ -30,6 +30,12 @@ namespace StudioRaming.WarudoBatchBuilder
             Application.OpenURL(WbbProduct.RepositoryUrl);
         }
 
+        public static void OpenManual()
+        {
+            string anchor = WbbLang.Current == WbbLanguage.Korean ? "한국어" : WbbLang.Current == WbbLanguage.Japanese ? "日本語" : "english";
+            Application.OpenURL(WbbProduct.ManualUrl + "#" + System.Uri.EscapeDataString(anchor));
+        }
+
         public static void OpenDownloads()
         {
             Application.OpenURL(WbbProduct.DownloadUrl);

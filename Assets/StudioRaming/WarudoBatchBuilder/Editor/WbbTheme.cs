@@ -430,6 +430,7 @@ namespace StudioRaming.WarudoBatchBuilder
             public const float TreeMaxWidth = 420f;
             public const float TreeNarrowRatio = 0.45f;
             public const float SplitterWidth = 4f;
+            public const float HeightSplitterSize = 8f;
             public const float SplitterLineLeft = 1.5f;
             public const float TreeToggleWidth = 30f;
             public const float SearchMinWidth = 90f;

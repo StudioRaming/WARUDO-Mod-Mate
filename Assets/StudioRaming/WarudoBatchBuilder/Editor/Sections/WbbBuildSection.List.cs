@@ -6,55 +6,61 @@ namespace StudioRaming.WarudoBatchBuilder
     public partial class WbbBuildSection
     {
         private GUIContent groupTip;
+        private Rect sourceListViewportRect;
+        private bool sourceListAcceptsPointer;
         private void DrawList()
         {
+            sourceListAcceptsPointer = sourceListViewportRect.width > 0f && sourceListViewportRect.Contains(Event.current.mousePosition);
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(listViewportHeightLayout));
-            if (units.Count == 0)
+            using (new EditorGUI.DisabledScope((Event.current.isMouse || Event.current.type == EventType.ContextClick) && !sourceListAcceptsPointer))
             {
-                if (emptyKind == EmptyNoMatch)
+                if (units.Count == 0)
                 {
-                    GUILayout.Space(WbbSize.SpaceLarge);
-                    GUILayout.Label(emptyMessage, WbbStyles.GuideBody);
-                }
-                else if (WbbStyles.EmptyState(emptyTitle, emptyMessage, emptyActionLabel))
-                {
-                    RequestEmptyAction();
-                }
-
-                Rect probe = GUILayoutUtility.GetRect(0f, 0f, GUILayout.ExpandWidth(true));
-                MeasureWidth(probe.width);
-            }
-            else
-            {
-                Rect area = GUILayoutUtility.GetRect(0f, Mathf.Max(1f, totalHeight), GUILayout.ExpandWidth(true));
-                MeasureWidth(area.width);
-                bool tracking = Event.current.type == EventType.MouseMove;
-                int hoverCandidate = -1;
-                for (int u = firstUnit; u <= lastUnit && u < units.Count; u++)
-                {
-                    Unit unit = units[u];
-                    var r = new Rect(area.x, area.y + unit.y, area.width, unit.height);
-                    if (unit.group < 0 || unit.group >= groups.Count)
-                        continue;
-                    Group g = groups[unit.group];
-                    switch (unit.kind)
+                    if (emptyKind == EmptyNoMatch)
                     {
-                        case UnitHeader:
-                            DrawGroupHeader(r, g);
-                            break;
-                        case UnitRow:
-                            DrawRow(g.members[unit.start], r, tracking, ref hoverCandidate);
-                            break;
-                        default:
-                            DrawCardRow(g, unit.start, unit.count, r, tracking, ref hoverCandidate);
-                            break;
+                        GUILayout.Space(WbbSize.SpaceLarge);
+                        GUILayout.Label(emptyMessage, WbbStyles.GuideBody);
                     }
-                }
+                    else if (WbbStyles.EmptyState(emptyTitle, emptyMessage, emptyActionLabel))
+                    {
+                        RequestEmptyAction();
+                    }
 
-                if (tracking && hoverCandidate != hoverIndex)
+                    Rect probe = GUILayoutUtility.GetRect(0f, 0f, GUILayout.ExpandWidth(true));
+                    MeasureWidth(probe.width);
+                }
+                else
                 {
-                    hoverIndex = hoverCandidate;
-                    RequestRepaint();
+                    Rect area = GUILayoutUtility.GetRect(0f, Mathf.Max(1f, totalHeight), GUILayout.ExpandWidth(true));
+                    MeasureWidth(area.width);
+                    bool tracking = Event.current.type == EventType.MouseMove;
+                    int hoverCandidate = -1;
+                    for (int u = firstUnit; u <= lastUnit && u < units.Count; u++)
+                    {
+                        Unit unit = units[u];
+                        var r = new Rect(area.x, area.y + unit.y, area.width, unit.height);
+                        if (unit.group < 0 || unit.group >= groups.Count)
+                            continue;
+                        Group g = groups[unit.group];
+                        switch (unit.kind)
+                        {
+                            case UnitHeader:
+                                DrawGroupHeader(r, g);
+                                break;
+                            case UnitRow:
+                                DrawRow(g.members[unit.start], r, tracking, ref hoverCandidate);
+                                break;
+                            default:
+                                DrawCardRow(g, unit.start, unit.count, r, tracking, ref hoverCandidate);
+                                break;
+                        }
+                    }
+
+                    if (tracking && hoverCandidate != hoverIndex)
+                    {
+                        hoverIndex = hoverCandidate;
+                        RequestRepaint();
+                    }
                 }
             }
 
@@ -62,6 +68,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (Event.current.type == EventType.Repaint)
             {
                 Rect viewport = GUILayoutUtility.GetLastRect();
+                sourceListViewportRect = viewport;
                 if (viewport.height > 10f && Mathf.Abs(viewport.height - measuredViewport) > 1f)
                 {
                     measuredViewport = viewport.height;
@@ -312,11 +319,11 @@ namespace StudioRaming.WarudoBatchBuilder
                 OpenItemMenu(item);
             }
 
-            if (evt.type == EventType.MouseDown && evt.button == 0 && inner.Contains(evt.mousePosition) && !checkRect.Contains(evt.mousePosition) && !actionRect.Contains(evt.mousePosition) && !menuRect.Contains(evt.mousePosition))
+            if (sourceListAcceptsPointer && evt.type == EventType.MouseDown && evt.button == 0 && inner.Contains(evt.mousePosition) && !checkRect.Contains(evt.mousePosition) && !actionRect.Contains(evt.mousePosition) && !menuRect.Contains(evt.mousePosition))
             {
                 HandleClick(itemIndex, item, evt);
             }
-            else if (evt.type == EventType.ContextClick && inner.Contains(evt.mousePosition))
+            else if (sourceListAcceptsPointer && evt.type == EventType.ContextClick && inner.Contains(evt.mousePosition))
             {
                 if (!item.isScene && !isSelected)
                     SelectOnly(itemIndex);

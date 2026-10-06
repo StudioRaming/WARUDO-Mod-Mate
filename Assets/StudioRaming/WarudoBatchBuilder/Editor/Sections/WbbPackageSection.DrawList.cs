@@ -150,6 +150,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (host != null)
                     host.RequestRepaint();
             }
+
             Rect top = GUILayoutUtility.GetRect(0f, 0f, GUILayout.ExpandWidth(true));
             if (Event.current.type == EventType.Repaint && top.y > 0f && Mathf.Abs(top.y - measuredListTop) > 1f)
             {

@@ -73,6 +73,9 @@ namespace StudioRaming.WarudoBatchBuilder
             float windowHeight = host != null ? host.position.height : WbbSize.Window.MinHeight;
             if (windowHeight <= 0f)
                 windowHeight = WbbSize.Window.MinHeight;
+            float manualHeight = EditorPrefs.GetFloat(HeightSplitterPrefKey(), -1f);
+            if (manualHeight >= 0f)
+                return Mathf.Clamp(manualHeight, WbbSize.Build.RowHeight * 2f, MaximumManualListHeight());
             float reserved = WbbSize.Header.Height + WbbSize.Tabs.Height + WbbSize.SpaceEdge * 2f + WbbSize.EmptyStateHeight + WbbSize.ControlSmall * 4f + WbbSize.Control * 4f + WbbSize.RunButton + WbbSize.Section.HeaderHeight;
             if (settingsOpen)
                 reserved += WbbSize.Control * 2f;
@@ -86,6 +89,20 @@ namespace StudioRaming.WarudoBatchBuilder
                 return Mathf.Clamp(available * 0.2f, minimum, WbbSize.Build.RowHeight * 3f);
             float maximum = WbbSize.Build.CardHeight * 3f;
             return Mathf.Clamp(available, minimum, maximum);
+        }
+
+        private string HeightSplitterPrefKey()
+        {
+            return Pfx + "SourceListHeight." + (IsPackageMode ? "Package" : "Build");
+        }
+
+        private float MaximumManualListHeight()
+        {
+            float height = host != null ? host.position.height : WbbSize.Window.MinHeight;
+            float lowerReserve = WbbSize.Header.Height + WbbSize.Tabs.Height + WbbSize.SpaceEdge * 2f + WbbSize.Section.HeaderHeight * 2f + WbbSize.Control * 8f + WbbSize.RunButton + WbbSize.Build.RowHeight * 2f;
+            if (advancedOpen)
+                lowerReserve += WbbSize.ControlLarge * 3f;
+            return Mathf.Max(WbbSize.Build.RowHeight * 2f, height - lowerReserve);
         }
 
         private float ListWidthWithTree(float windowWidth)

@@ -9,6 +9,11 @@ namespace StudioRaming.WarudoBatchBuilder
         private Vector2 packageBodyScroll;
         private float measuredPackageBodyTop;
         private bool packageBodyLayout;
+        private Rect heightSplitterRect;
+        private bool draggingHeightSplitter;
+        private int capturedHeightSplitterId;
+        private float heightDragStartY;
+        private float heightDragStartValue;
         private const float MaxTreeWidth = WbbSize.Build.TreeMaxWidth;
         private bool dbFailedLayout;
         private bool suggestLayout;
@@ -103,6 +108,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 DrawToolbar();
                 DrawBanners();
                 DrawList();
+                DrawHeightSplitter();
                 using (new EditorGUI.DisabledScope(busyLayout))
                 {
                     DrawSettingsCard();
@@ -216,6 +222,61 @@ namespace StudioRaming.WarudoBatchBuilder
                 draggingSplitter = false;
                 EditorPrefs.SetFloat(Pfx + "TreeWidth", treeWidth);
                 evt.Use();
+            }
+        }
+
+        private void DrawHeightSplitter()
+        {
+            Rect rect = GUILayoutUtility.GetRect(0f, WbbSize.Build.HeightSplitterSize, GUILayout.ExpandWidth(true));
+            int id = GUIUtility.GetControlID("WARUDO Mod Mate height splitter".GetHashCode(), FocusType.Passive, rect);
+            Event evt = Event.current;
+            if (evt.type == EventType.Repaint)
+            {
+                heightSplitterRect = rect;
+                Color color = rect.Contains(evt.mousePosition) || draggingHeightSplitter ? WbbTheme.P.BorderMark : WbbTheme.P.BorderSubtle;
+                EditorGUI.DrawRect(new Rect(rect.x, rect.center.y, rect.width, WbbSize.Line), color);
+                float gripWidth = WbbSize.IconButtonWide * 2f;
+                EditorGUI.DrawRect(new Rect(rect.center.x - gripWidth * .5f, rect.center.y - WbbSize.Line * 2f, gripWidth, WbbSize.Line), color);
+            }
+
+            EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeVertical);
+            GUI.Label(rect, new GUIContent("", L("Ui.HeightSplitter.tip")), GUIStyle.none);
+            switch (evt.type)
+            {
+                case EventType.MouseDown:
+                    if (evt.button != 0 || !rect.Contains(evt.mousePosition) || !GUI.enabled || GUIUtility.hotControl != 0)
+                        break;
+                    if (evt.clickCount == 2)
+                    {
+                        EditorPrefs.SetFloat(HeightSplitterPrefKey(), -1f);
+                        RequestRepaint();
+                        evt.Use();
+                        break;
+                    }
+
+                    draggingHeightSplitter = true;
+                    heightDragStartY = evt.mousePosition.y;
+                    heightDragStartValue = listViewportHeightLayout;
+                    GUIUtility.hotControl = id;
+                    capturedHeightSplitterId = id;
+                    evt.Use();
+                    break;
+                case EventType.MouseDrag:
+                    if (!draggingHeightSplitter || GUIUtility.hotControl != capturedHeightSplitterId)
+                        break;
+                    float next = Mathf.Clamp(heightDragStartValue + evt.mousePosition.y - heightDragStartY, WbbSize.Build.RowHeight * 2f, MaximumManualListHeight());
+                    EditorPrefs.SetFloat(HeightSplitterPrefKey(), next);
+                    RequestRepaint();
+                    evt.Use();
+                    break;
+                case EventType.MouseUp:
+                    if (!draggingHeightSplitter || GUIUtility.hotControl != capturedHeightSplitterId)
+                        break;
+                    draggingHeightSplitter = false;
+                    GUIUtility.hotControl = 0;
+                    capturedHeightSplitterId = 0;
+                    evt.Use();
+                    break;
             }
         }
 
