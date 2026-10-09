@@ -340,6 +340,7 @@ namespace StudioRaming.WarudoBatchBuilder
                             throw new IOException("The copy in the Failed folder has a different size.");
                         entry.failedPath = failedPath;
                         Save();
+                        PruneFailedOutputs();
                     }
 
                     if (backupPresent)
@@ -427,6 +428,60 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbUtil.LogWarning("Could not remove the output backup " + path + ": " + e.Message);
                 return false;
+            }
+        }
+
+        // Failed builds keep their output here so nothing is lost, but the folder is only Mod Mate's own and would
+        // grow forever. The newest few stay; older entries go, and only entries directly inside this folder.
+        public const int KeepFailedOutputs = 3;
+        private static void PruneFailedOutputs()
+        {
+            try
+            {
+                string root = FailedOutputDirectory;
+                if (!Directory.Exists(root))
+                    return;
+                var protectedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (current != null)
+                {
+                    for (int i = 0; i < current.outputs.Count; i++)
+                    {
+                        if (!string.IsNullOrEmpty(current.outputs[i].failedPath))
+                            protectedPaths.Add(WbbUtil.NormalizePath(current.outputs[i].failedPath));
+                    }
+                }
+
+                var entries = new List<FileSystemInfo>(new DirectoryInfo(root).GetFileSystemInfos());
+                entries.Sort((a, b) => b.CreationTimeUtc.CompareTo(a.CreationTimeUtc));
+                int kept = 0;
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    FileSystemInfo info = entries[i];
+                    if (kept < KeepFailedOutputs || protectedPaths.Contains(WbbUtil.NormalizePath(info.FullName)))
+                    {
+                        kept++;
+                        continue;
+                    }
+
+                    // A link could lead out of the folder; it is left alone.
+                    if ((info.Attributes & FileAttributes.ReparsePoint) != 0 || !IsUnder(info.FullName, root))
+                        continue;
+                    try
+                    {
+                        if (info is DirectoryInfo)
+                            ((DirectoryInfo)info).Delete(true);
+                        else
+                            info.Delete();
+                    }
+                    catch (Exception e)
+                    {
+                        WbbUtil.LogWarning("Could not remove an old failed build output " + info.FullName + ": " + e.Message);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                WbbUtil.LogWarning("Could not tidy the Failed outputs folder: " + e.Message);
             }
         }
 

@@ -79,7 +79,7 @@ Unity Hub에서 **2021.3.45f2** 프로젝트를 엽니다. 기존 작업 프로�
 
 ### 3. SDK 모드 빌드 설정 준비
 
-SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 제작이 차단됩니다. **Warudo → New Mod**로 SDK의 기본 모드 설정을 준비하세요. 상세 절차는 [공식 첫 모드 제작 안내](https://docs.warudo.app/docs/modding/creating-your-first-mod)에 있습니다. Mod Mate는 빌드할 때 이 설정을 사용하고 작업 뒤 원래 설정으로 복원합니다.
+SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 제작이 차단됩니다. **Warudo → New Mod**로 SDK의 기본 모드 설정을 준비하세요(빌드 탭의 **빌드 설정 만들기** 버튼으로도 만들 수 있습니다). 상세 절차는 [공식 첫 모드 제작 안내](https://docs.warudo.app/docs/modding/creating-your-first-mod)에 있습니다. Mod Mate는 빌드할 때 이 설정을 사용하고 작업 뒤 원래 설정으로 복원합니다.
 
 ## 처음 써 보기: 큐브 하나 빌드
 
@@ -130,6 +130,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 - 기본은 **런타임 스크립트 자동 수집**입니다. 프리팹과 참조가 실제로 사용하는 소스를 계산합니다. Editor 전용 코드와 WARUDO가 제공하는 타입은 중복 포함하지 않습니다.
 - **스크립트 폴더 직접 지정**은 필요한 소스를 수동으로 관리할 때 사용하는 고급 옵션입니다. 단순 프리팹 테스트부터 성공시킨 뒤 사용하세요.
+- **런타임 코드 컴파일**: 스크립트 폴더의 일반 스크립트(하위 폴더 포함)와 어셈블리 정의(.asmdef) 중 Unity가 플레이어용으로 컴파일하는 것은 Mod Mate가 직접 DLL로 컴파일해 모드에 넣습니다. UMod 이 느슨한 스크립트를 컴파일하면 Warudo.Core 같은 어셈블리와 타입이 맞지 않아 실패하기 때문입니다. Editor 폴더의 스크립트와 Editor 전용·테스트 어셈블리는 제외합니다. 폴더 밖에 있는 코드를 쓰면 컴파일 오류로 알려 주니 그 스크립트를 폴더 안으로 옮기세요. WARUDO가 제공하지 않는 어셈블리를 참조하면 사전 점검이 막고, 코드 보안 검사가 거부하면 거부된 API 목록을 결과에 보여 줍니다.
 - **VRChat 전용 컴포넌트 빼고 굽기**는 빌드용 복사본의 VRChat 전용 요소를 정리하는 옵션입니다. 원본 프리팹은 보존합니다. WARUDO 물리를 자동으로 설정하는 옵션은 아닙니다.
 - 외부 DLL, 동적 로딩, 모든 타사 플러그인이 자동으로 호환되는 것은 아닙니다. 오류가 나면 해당 모듈의 WARUDO 지원을 확인하세요.
 
@@ -235,6 +236,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 | 캐릭터가 보이지 않거나 마젠타 | Unity와 WARUDO의 렌더 파이프라인·셰이더 | Built-in/URP 일치 및 셰이더 호환 확인 |
 | 자동 수집 스크립트가 실패 | 해당 스크립트의 컴파일 오류·외부 의존성 | 작은 대상부터 시험하고 필요한 의존성의 WARUDO 지원 확인 |
 | 중단 뒤 원본 또는 출력 복구 안내 | 현재 작업이 완전히 끝났는지·복구 메시지 | 안내된 폴더/백업을 확인. 메시지와 로그를 보관하고 문의 |
+| 빌드 도중 Unity가 스크립트를 다시 컴파일해 멈춤 | 빌드 탭 상단 안내·빌드 이력의 항목 메시지 | 설정은 자동 복원됩니다. 스크립트 편집이 끝난 뒤 해당 항목만 다시 빌드 |
 
 ## 자주 묻는 질문
 
@@ -325,7 +327,7 @@ If Auto Refresh is disabled, use **Assets → Refresh** and wait for script comp
 
 ### Prepare export settings
 
-An SDK installation may not yet have mod export settings. Prepare them through **Warudo → New Mod**; see the [official first-mod tutorial](https://docs.warudo.app/docs/modding/creating-your-first-mod). Mod Mate temporarily uses these settings and restores them after a build.
+An SDK installation may not yet have mod export settings. Prepare them through **Warudo → New Mod** or the **Create settings** button on the Build tab; see the [official first-mod tutorial](https://docs.warudo.app/docs/modding/creating-your-first-mod). Mod Mate temporarily uses these settings and restores them after a build.
 
 ## First build: one cube
 
@@ -370,6 +372,7 @@ Advanced settings include description, manual script folders and leaving out VRC
 
 - Automatic runtime-script collection follows used sources and references. Editor-only code and WARUDO-provided types are excluded.
 - Manual folders are an advanced source-management option. Start with a simple working prefab.
+- Runtime code compile: the plain scripts of the script folder (subfolders included) and the assembly definitions (.asmdef) that Unity compiles for the player are compiled by Mod Mate into DLLs and packed into the mod. UMod compiling loose scripts fails against assemblies such as Warudo.Core because the Unity types do not match. Scripts in Editor folders and Editor-only or test assemblies stay out. Code outside the folder is reported as a compile error, so move that script into the folder. Preflight blocks references to assemblies that WARUDO does not provide, and when the code security check rejects a mod, the rejected APIs are listed in the result.
 - Leaving out VRChat-only components cleans the build copy and preserves the original; it does not set up WARUDO physics.
 - Arbitrary DLLs, dynamic loading and third-party plugins are not automatically made compatible.
 
@@ -471,6 +474,7 @@ Failed-rebuild preparation reduces duplicates. Use CSV export to retain records.
 | Invisible or magenta result | Match pipelines and verify shader compatibility |
 | Source collection fails | Inspect source errors and external dependencies; test a smaller target |
 | Recovery notice | Wait for completion, retain the message/log and inspect the reported backup location |
+| Build stopped by a script recompile | The note at the top of the Build tab and the item message in History | Settings are restored automatically; build that item again after script edits finish |
 
 ## FAQ, updates and support
 
@@ -557,7 +561,7 @@ Auto Refresh を無効にしたプロジェクトでは **Assets → Refresh** �
 
 ### ビルド設定を準備
 
-SDK があっても MOD のビルド設定が未作成の場合があります。**Warudo → New Mod** で準備してください。[公式の最初の MOD 手順](https://docs.warudo.app/docs/modding/creating-your-first-mod)に詳しい説明があります。Mod Mate はビルド時にこの設定を使い、終了後に元の設定へ戻します。
+SDK があっても MOD のビルド設定が未作成の場合があります。**Warudo → New Mod** かビルドタブの「**ビルド設定を作成**」ボタンで準備してください。[公式の最初の MOD 手順](https://docs.warudo.app/docs/modding/creating-your-first-mod)に詳しい説明があります。Mod Mate はビルド時にこの設定を使い、終了後に元の設定へ戻します。
 
 ## 最初のビルド
 
@@ -604,6 +608,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 
 - 既定のランタイムスクリプト自動収集は使用ソースと参照を調べ、Editor 専用コードと WARUDO 提供型を除外します。
 - 手動フォルダーは高度なソース管理用です。まず単純なプリファブで成功を確認してください。
+- ランタイムコードのコンパイル: スクリプトフォルダーの通常のスクリプト（サブフォルダー含む）と、Unity がプレイヤー用にコンパイルするアセンブリ定義（.asmdef）は、Mod Mate が DLL にコンパイルして MOD に入れます。UMod が個別のスクリプトをコンパイルすると Warudo.Core などのアセンブリと型が合わず失敗するためです。Editor フォルダーのスクリプトと Editor 専用・テスト用アセンブリは除外されます。フォルダー外のコードを使うとコンパイルエラーで知らせるので、そのスクリプトをフォルダー内へ移動してください。WARUDO が提供しないアセンブリへの参照は事前確認でブロックされ、コードセキュリティチェックが拒否した場合は拒否された API が結果に表示されます。
 - VRChat 専用コンポーネントの除外はビルド用コピーを整理します。原本は保ちますが、WARUDO の物理設定は作りません。
 - 外部 DLL、動的ロード、任意のサードパーティープラグインの互換性は自動保証されません。
 
@@ -705,6 +710,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 | 見えない・マゼンタ | パイプラインとシェーダーの互換性を確認 |
 | 自動収集失敗 | ソースエラー・外部依存を確認し、小さい対象で試す |
 | 復元の案内 | 完了を待ち、説明とログを保管してバックアップ場所を確認 |
+| スクリプトの再コンパイルでビルドが停止 | ビルドタブ上部の案内とビルド履歴の項目メッセージ | 設定は自動で復元されます。スクリプト編集が終わってから該当項目だけ再ビルド |
 
 ## FAQ更新問い合わせ
 

@@ -358,24 +358,6 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
-                "Safety.AsmdefScripts",
-                new[]
-                {
-                    "스크립트 폴더의 스크립트 {0}개가 어셈블리 정의(.asmdef)에 속해 있습니다.",
-                    "{0} script(s) in the script folder belong to an assembly definition (.asmdef).",
-                    "スクリプトフォルダのスクリプト {0} 個がアセンブリ定義（.asmdef）に属しています。"
-                }
-            },
-            {
-                "Safety.AsmdefScripts.hint",
-                new[]
-                {
-                    "이런 스크립트는 모드에 들어가지 않아 스크립트 없는 모드가 만들어집니다. .asmdef 가 없는 폴더로 옮기세요. 예: {0}",
-                    "Such scripts are not packed, so the mod would be built without them. Move them to a folder without an .asmdef. e.g. {0}",
-                    "このようなスクリプトは MOD に入らず、スクリプトのない MOD ができます。.asmdef のないフォルダへ移動してください。例: {0}"
-                }
-            },
-            {
                 "Safety.DllInScriptFolder",
                 new[]
                 {

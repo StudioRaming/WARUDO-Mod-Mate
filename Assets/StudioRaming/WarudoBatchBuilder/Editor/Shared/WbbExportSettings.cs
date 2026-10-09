@@ -150,7 +150,14 @@ namespace StudioRaming.WarudoBatchBuilder
             return cachedUtilType;
         }
 
-        private static System.Type FindType(string qualified, string fullName)
+        internal static System.Type EngineServiceType()
+        {
+            if (cachedEngineServiceType == null)
+                cachedEngineServiceType = FindType(null, BuildEngineServiceTypeName);
+            return cachedEngineServiceType;
+        }
+
+        internal static System.Type FindType(string qualified, string fullName)
         {
             try
             {

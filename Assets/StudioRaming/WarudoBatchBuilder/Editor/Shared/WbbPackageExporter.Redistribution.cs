@@ -114,7 +114,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (riskIncluded != null)
                     return riskIncluded;
                 riskIncluded = new HashSet<string>(StringComparer.Ordinal);
-                string raw = EditorPrefs.GetString(RiskIncludedKey, "");
+                string raw = WbbPrefs.GetString(RiskIncludedKey, "");
                 if (!string.IsNullOrEmpty(raw))
                 {
                     string[] parts = raw.Split(';');
@@ -142,7 +142,7 @@ namespace StudioRaming.WarudoBatchBuilder
             bool changed = on ? RiskIncluded.Add(guid) : RiskIncluded.Remove(guid);
             if (!changed)
                 return;
-            EditorPrefs.SetString(RiskIncludedKey, string.Join(";", new List<string>(RiskIncluded).ToArray()));
+            WbbPrefs.SetString(RiskIncludedKey, string.Join(";", new List<string>(RiskIncluded).ToArray()));
         }
 
         public static int RiskReincludedCount
@@ -159,7 +159,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (count == 0)
                 return 0;
             RiskIncluded.Clear();
-            EditorPrefs.SetString(RiskIncludedKey, "");
+            WbbPrefs.SetString(RiskIncludedKey, "");
             return count;
         }
 

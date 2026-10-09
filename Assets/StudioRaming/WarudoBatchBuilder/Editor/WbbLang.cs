@@ -20,6 +20,7 @@ namespace StudioRaming.WarudoBatchBuilder
             Merge(CommonTexts);
             Merge(BuildTexts);
             Merge(AutoScriptTexts);
+            Merge(AsmdefTexts);
             Merge(BuildListTexts);
             Merge(LibraryTexts);
             Merge(HistoryTexts);

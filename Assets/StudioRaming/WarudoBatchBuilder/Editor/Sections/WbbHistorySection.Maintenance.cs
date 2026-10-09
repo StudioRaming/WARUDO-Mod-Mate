@@ -7,7 +7,7 @@ namespace StudioRaming.WarudoBatchBuilder
     {
         private void ExportCsv()
         {
-            string defaultName = "WarudoBatchBuilder_History_" + System.DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
+            string defaultName = "WarudoModMate_History_" + System.DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + ".csv";
             string path = EditorUtility.SaveFilePanel(L("History.ExportTitle"), "", defaultName, "csv");
             if (string.IsNullOrEmpty(path))
                 return;

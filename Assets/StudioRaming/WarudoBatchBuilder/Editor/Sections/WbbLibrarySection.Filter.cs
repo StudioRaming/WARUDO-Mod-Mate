@@ -230,7 +230,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 pathsOpen = pendingPathsOpen == 1;
                 pendingPathsOpen = -1;
-                EditorPrefs.SetBool(Pfx + "PathsOpen", pathsOpen);
+                WbbPrefs.SetBool(Pfx + "PathsOpen", pathsOpen);
             }
 
             if (pendingForceRescan)

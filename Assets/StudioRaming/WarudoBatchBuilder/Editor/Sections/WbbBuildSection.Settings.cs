@@ -129,7 +129,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (editedVersion != currentVersion)
             {
                 job.modVersion = editedVersion;
-                EditorPrefs.SetString(Pfx + "Version", editedVersion);
+                WbbPrefs.SetString(Pfx + "Version", editedVersion);
                 preflightDirty = true;
             }
 
@@ -140,7 +140,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (editedOutput != currentOutput)
             {
                 job.outputDirectory = editedOutput;
-                EditorPrefs.SetString(OutputDirKey(CurrentType), editedOutput);
+                WbbPrefs.SetString(OutputDirKey(CurrentType), editedOutput);
                 namesDirty = true;
                 preflightDirty = true;
             }
@@ -165,7 +165,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (useFolder != job.useFolderNamePrefix)
             {
                 job.useFolderNamePrefix = useFolder;
-                EditorPrefs.SetBool(Pfx + "UseFolderPrefix", useFolder);
+                WbbPrefs.SetBool(Pfx + "UseFolderPrefix", useFolder);
                 ClearRebuildNameOverrides();
                 namesDirty = true;
                 RequestRepaint();
@@ -176,7 +176,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (appendDate != job.appendDateSuffix)
             {
                 job.appendDateSuffix = appendDate;
-                EditorPrefs.SetBool(Pfx + "AppendDate", appendDate);
+                WbbPrefs.SetBool(Pfx + "AppendDate", appendDate);
                 ClearRebuildNameOverrides();
                 namesDirty = true;
                 RequestRepaint();
@@ -187,7 +187,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (overwrite != job.overwriteExisting)
             {
                 job.overwriteExisting = overwrite;
-                EditorPrefs.SetBool(Pfx + "Overwrite", overwrite);
+                WbbPrefs.SetBool(Pfx + "Overwrite", overwrite);
                 ClearRebuildNameOverrides();
                 namesDirty = true;
                 RequestRepaint();
@@ -223,7 +223,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 LabeledText("Build.NamePrefix", job.namePrefix, delegate (string v)
                 {
                     job.namePrefix = v;
-                    EditorPrefs.SetString(Pfx + "NamePrefix", v);
+                    WbbPrefs.SetString(Pfx + "NamePrefix", v);
                     ClearRebuildNameOverrides();
                     namesDirty = true;
                 });
@@ -235,7 +235,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 LabeledText("Build.Description", job.modDescription, delegate (string v)
                 {
                     job.modDescription = v;
-                    EditorPrefs.SetString(Pfx + "Description", v);
+                    WbbPrefs.SetString(Pfx + "Description", v);
                 });
                 bool manualScripts = WbbStyles.ToggleLeft(LC("Build.ManualScripts"), job.manualScriptFolder);
                 if (manualScripts != job.manualScriptFolder)
@@ -253,7 +253,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (strip != job.stripVrcComponents)
                 {
                     job.stripVrcComponents = strip;
-                    EditorPrefs.SetBool(Pfx + "StripVrc", strip);
+                    WbbPrefs.SetBool(Pfx + "StripVrc", strip);
                     preflightDirty = true;
                 }
             }
@@ -302,7 +302,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (edited != current)
             {
                 job.modAuthor = edited;
-                EditorPrefs.SetString(Pfx + "Author", edited);
+                WbbPrefs.SetString(Pfx + "Author", edited);
                 preflightDirty = true;
             }
         }
@@ -463,9 +463,9 @@ namespace StudioRaming.WarudoBatchBuilder
         private void ChangeType(int typeIndex)
         {
             job.exportType = typeIndex;
-            EditorPrefs.SetInt(Pfx + "Type", typeIndex);
+            WbbPrefs.SetInt(Pfx + "Type", typeIndex);
             var type = (WbbExportType)typeIndex;
-            job.outputDirectory = EditorPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            job.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
             ClearRebuildNameOverrides();
             namesDirty = true;
             preflightDirty = true;
@@ -538,7 +538,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.id = stored.id;
             job.name = name;
             activeJobId = stored.id;
-            EditorPrefs.SetString(Pfx + "ActiveJob", activeJobId);
+            WbbPrefs.SetString(Pfx + "ActiveJob", activeJobId);
             presetNameInput = "";
             SetStatus(L("Build.PresetApplied", name), MessageType.Info);
             RequestRepaint();
@@ -569,7 +569,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.manualNameGuids = stored.manualNameGuids != null ? new List<string>(stored.manualNameGuids) : new List<string>();
             job.manualNames = stored.manualNames != null ? new List<string>(stored.manualNames) : new List<string>();
             SaveManualNames();
-            job.outputDirectory = string.IsNullOrEmpty(stored.outputDirectory) ? EditorPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType)) : stored.outputDirectory;
+            job.outputDirectory = string.IsNullOrEmpty(stored.outputDirectory) ? WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType)) : stored.outputDirectory;
             WbbListSettings.AddHidden(stored.excludedPrefabGuids);
             string scope = WbbUtil.ResolveFolder(stored.prefabFolderGuid, stored.prefabFolderPath);
             if (WbbUtil.IsValidProjectFolder(scope))
@@ -598,7 +598,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 activeJobId = "";
                 job.id = "";
                 job.name = "";
-                EditorPrefs.SetString(Pfx + "ActiveJob", "");
+                WbbPrefs.SetString(Pfx + "ActiveJob", "");
             }
 
             RequestRepaint();

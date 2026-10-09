@@ -25,6 +25,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private string statusCloseTip = "";
         private int pendingDbAction;
         private string pendingRestoreSettings;
+        private bool pendingCreateSettings;
         private bool pendingTreeToggle;
         private float listViewportHeightLayout = WbbSize.Build.CardHeight * 2f;
         public void OnGUI()
@@ -43,7 +44,7 @@ namespace StudioRaming.WarudoBatchBuilder
                     else
                     {
                         treeVisible = !treeVisible;
-                        EditorPrefs.SetBool(Pfx + "TreeVisible", treeVisible);
+                        WbbPrefs.SetBool(Pfx + "TreeVisible", treeVisible);
                     }
                 }
 
@@ -220,7 +221,7 @@ namespace StudioRaming.WarudoBatchBuilder
             else if (evt.type == EventType.MouseUp && draggingSplitter)
             {
                 draggingSplitter = false;
-                EditorPrefs.SetFloat(Pfx + "TreeWidth", treeWidth);
+                WbbPrefs.SetFloat(Pfx + "TreeWidth", treeWidth);
                 evt.Use();
             }
         }
@@ -248,7 +249,7 @@ namespace StudioRaming.WarudoBatchBuilder
                         break;
                     if (evt.clickCount == 2)
                     {
-                        EditorPrefs.SetFloat(HeightSplitterPrefKey(), -1f);
+                        WbbPrefs.SetFloat(HeightSplitterPrefKey(), -1f);
                         RequestRepaint();
                         evt.Use();
                         break;
@@ -265,7 +266,7 @@ namespace StudioRaming.WarudoBatchBuilder
                     if (!draggingHeightSplitter || GUIUtility.hotControl != capturedHeightSplitterId)
                         break;
                     float next = Mathf.Clamp(heightDragStartValue + evt.mousePosition.y - heightDragStartY, WbbSize.Build.RowHeight * 2f, MaximumManualListHeight());
-                    EditorPrefs.SetFloat(HeightSplitterPrefKey(), next);
+                    WbbPrefs.SetFloat(HeightSplitterPrefKey(), next);
                     RequestRepaint();
                     evt.Use();
                     break;
@@ -371,7 +372,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 menu.AddItem(new GUIContent(L("Common.Sort") + "/" + sortNames[s]), sortMode == s, delegate
                 {
                     sortMode = Mathf.Clamp(captured, SortName, SortState);
-                    EditorPrefs.SetInt(Pfx + "Sort", sortMode);
+                    WbbPrefs.SetInt(Pfx + "Sort", sortMode);
                     filterDirty = true;
                     RequestRepaint();
                 });
@@ -523,6 +524,17 @@ namespace StudioRaming.WarudoBatchBuilder
                 string err;
                 bool ok = WbbExportSettingsGuard.Restore(backup, out err);
                 SetStatus(ok ? L("Safety.SettingsRestored") : L("Safety.SettingsRestoreFailed", err), ok ? MessageType.Info : MessageType.Error);
+                preflightDirty = true;
+                RequestRepaint();
+            }
+
+            if (pendingCreateSettings)
+            {
+                pendingCreateSettings = false;
+                string createdPath;
+                string createError;
+                bool created = WbbExportSettingsCreator.TryCreate(out createdPath, out createError);
+                SetStatus(created ? L("Safety.SettingsCreated", createdPath) : L("Safety.SettingsCreateFailed", createError), created ? MessageType.Info : MessageType.Error);
                 preflightDirty = true;
                 RequestRepaint();
             }

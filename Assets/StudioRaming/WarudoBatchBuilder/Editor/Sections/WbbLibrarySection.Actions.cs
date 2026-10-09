@@ -87,7 +87,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (t < 0 || t >= TypeCount || string.IsNullOrEmpty(path))
                 return;
             paths[t] = path;
-            EditorPrefs.SetString(OutputDirKey((WbbExportType)t), path);
+            WbbPrefs.SetString(OutputDirKey((WbbExportType)t), path);
             pathEditedAt = -1d;
             pendingForceRescan = true;
             if (host != null)

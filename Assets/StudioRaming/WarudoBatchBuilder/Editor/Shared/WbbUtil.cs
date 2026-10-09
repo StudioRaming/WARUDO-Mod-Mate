@@ -164,10 +164,11 @@ namespace StudioRaming.WarudoBatchBuilder
             else
                 prefix = prefabFolderName == null ? "" : prefabFolderName.Trim();
             string core = string.IsNullOrEmpty(prefix) ? prefabName : prefix + "_" + prefabName;
-            if (job != null && job.appendDateSuffix)
-                core += DateSuffix();
+            // The time suffix already starts with the date, so both options together add it once.
             if (job != null && !job.overwriteExisting)
                 core += TimeSuffix();
+            else if (job != null && job.appendDateSuffix)
+                core += DateSuffix();
             return SanitizeModName(core);
         }
 

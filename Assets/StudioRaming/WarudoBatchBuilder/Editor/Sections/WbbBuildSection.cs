@@ -327,6 +327,9 @@ namespace StudioRaming.WarudoBatchBuilder
 
             itemsDirty = true;
             pendingRescan = true;
+            string stopped = WbbRunnerNotice.Peek();
+            if (stopped.Length > 0 && string.IsNullOrEmpty(statusMessage) && !IsBusy)
+                SetStatus(stopped, MessageType.Warning);
         }
 
         public void OnDisable()

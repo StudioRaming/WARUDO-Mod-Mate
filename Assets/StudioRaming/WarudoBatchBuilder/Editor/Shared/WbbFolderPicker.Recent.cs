@@ -9,7 +9,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             var list = new List<string>();
             string key = RecentPrefKey(recentKey);
-            string raw = EditorPrefs.GetString(key, "");
+            string raw = WbbPrefs.GetString(key, "");
             if (string.IsNullOrEmpty(raw))
                 return list;
             string[] guids = raw.Split(';');
@@ -31,7 +31,7 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             if (keptGuids.Count != guids.Length)
-                EditorPrefs.SetString(key, string.Join(";", keptGuids.ToArray()));
+                WbbPrefs.SetString(key, string.Join(";", keptGuids.ToArray()));
             return list;
         }
 
@@ -44,7 +44,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (string.IsNullOrEmpty(guid))
                 return;
             string key = RecentPrefKey(recentKey);
-            string raw = EditorPrefs.GetString(key, "");
+            string raw = WbbPrefs.GetString(key, "");
             var guids = new List<string>();
             guids.Add(guid);
             if (!string.IsNullOrEmpty(raw))
@@ -62,12 +62,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             }
 
-            EditorPrefs.SetString(key, string.Join(";", guids.ToArray()));
+            WbbPrefs.SetString(key, string.Join(";", guids.ToArray()));
         }
 
         public static void ClearRecent(string recentKey)
         {
-            EditorPrefs.DeleteKey(RecentPrefKey(recentKey));
+            WbbPrefs.DeleteKey(RecentPrefKey(recentKey));
         }
 
         private static string RecentPrefKey(string recentKey)

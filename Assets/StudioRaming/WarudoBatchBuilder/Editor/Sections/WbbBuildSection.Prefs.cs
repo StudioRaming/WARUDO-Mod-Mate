@@ -29,41 +29,41 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void LoadPrefs()
         {
-            activeJobId = EditorPrefs.GetString(Pfx + "ActiveJob", "");
+            activeJobId = WbbPrefs.GetString(Pfx + "ActiveJob", "");
             WbbJob active = WbbDatabase.GetJob(activeJobId);
             job.id = active != null ? active.id : "";
             job.name = active != null ? active.name : "";
-            job.prefabFolderGuid = EditorPrefs.GetString(Pfx + "PrefabGuid", "");
-            job.prefabFolderPath = EditorPrefs.GetString(Pfx + "PrefabPath", "");
-            job.exportType = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "Type", job.exportType), 0, TypeCount - 1);
-            job.modVersion = EditorPrefs.GetString(Pfx + "Version", "1.0.0");
-            job.modAuthor = EditorPrefs.GetString(Pfx + "Author", "");
-            job.modDescription = EditorPrefs.GetString(Pfx + "Description", "");
-            job.outputDirectory = EditorPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType));
-            job.appendDateSuffix = EditorPrefs.GetBool(Pfx + "AppendDate", false);
-            job.overwriteExisting = EditorPrefs.GetBool(Pfx + "Overwrite", true);
-            job.outputMode = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "OutputMode", 0), 0, OutputModeCount - 1);
-            job.stripVrcComponents = EditorPrefs.GetBool(Pfx + "StripVrc", true);
+            job.prefabFolderGuid = WbbPrefs.GetString(Pfx + "PrefabGuid", "");
+            job.prefabFolderPath = WbbPrefs.GetString(Pfx + "PrefabPath", "");
+            job.exportType = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "Type", job.exportType), 0, TypeCount - 1);
+            job.modVersion = WbbPrefs.GetString(Pfx + "Version", "1.0.0");
+            job.modAuthor = WbbPrefs.GetString(Pfx + "Author", "");
+            job.modDescription = WbbPrefs.GetString(Pfx + "Description", "");
+            job.outputDirectory = WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType));
+            job.appendDateSuffix = WbbPrefs.GetBool(Pfx + "AppendDate", false);
+            job.overwriteExisting = WbbPrefs.GetBool(Pfx + "Overwrite", true);
+            job.outputMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "OutputMode", 0), 0, OutputModeCount - 1);
+            job.stripVrcComponents = WbbPrefs.GetBool(Pfx + "StripVrc", true);
             job.manualScriptFolder = WbbListSettings.ManualScriptFolder;
             LoadManualNames();
             LoadScriptFolders(job);
-            job.useFolderNamePrefix = EditorPrefs.GetBool(Pfx + "UseFolderPrefix", true);
-            job.namePrefix = EditorPrefs.GetString(Pfx + "NamePrefix", "");
+            job.useFolderNamePrefix = WbbPrefs.GetBool(Pfx + "UseFolderPrefix", true);
+            job.namePrefix = WbbPrefs.GetString(Pfx + "NamePrefix", "");
             job.recurseSubFolders = true;
             SyncHiddenToJob();
-            view = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "View", ViewList), ViewGrid, ViewList);
-            sortMode = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "Sort", SortName), SortName, SortState);
-            showHidden = EditorPrefs.GetBool(Pfx + "ShowHidden", false);
-            treeWidth = Mathf.Clamp(EditorPrefs.GetFloat(Pfx + "TreeWidth", treeWidth), MinTreeWidth, MaxTreeWidth);
-            treeVisible = EditorPrefs.GetBool(Pfx + "TreeVisible", true);
-            settingsOpen = EditorPrefs.GetBool(Pfx + "SettingsOpen", false);
-            advancedOpen = EditorPrefs.GetBool(Pfx + "AdvancedOpen", false);
+            view = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "View", ViewList), ViewGrid, ViewList);
+            sortMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "Sort", SortName), SortName, SortState);
+            showHidden = WbbPrefs.GetBool(Pfx + "ShowHidden", false);
+            treeWidth = Mathf.Clamp(WbbPrefs.GetFloat(Pfx + "TreeWidth", treeWidth), MinTreeWidth, MaxTreeWidth);
+            treeVisible = WbbPrefs.GetBool(Pfx + "TreeVisible", true);
+            settingsOpen = WbbPrefs.GetBool(Pfx + "SettingsOpen", false);
+            advancedOpen = WbbPrefs.GetBool(Pfx + "AdvancedOpen", false);
             string scope = WbbUtil.ResolveFolder(job.prefabFolderGuid, job.prefabFolderPath);
             scopeFolder = WbbUtil.IsValidProjectFolder(scope) ? scope : "Assets";
             job.prefabFolderPath = scopeFolder;
             job.prefabFolderGuid = WbbUtil.FolderGuid(scopeFolder);
             collapsed.Clear();
-            string raw = EditorPrefs.GetString(Pfx + "Collapsed", "");
+            string raw = WbbPrefs.GetString(Pfx + "Collapsed", "");
             if (!string.IsNullOrEmpty(raw))
             {
                 string[] parts = raw.Split('\n');
@@ -75,35 +75,35 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void SavePrefs()
         {
-            EditorPrefs.SetString(Pfx + "ActiveJob", activeJobId == null ? "" : activeJobId);
+            WbbPrefs.SetString(Pfx + "ActiveJob", activeJobId == null ? "" : activeJobId);
             SaveScriptFolders(job);
             WbbListSettings.ManualScriptFolder = job.manualScriptFolder;
-            EditorPrefs.SetString(Pfx + "PrefabGuid", job.prefabFolderGuid == null ? "" : job.prefabFolderGuid);
-            EditorPrefs.SetString(Pfx + "PrefabPath", job.prefabFolderPath == null ? "" : job.prefabFolderPath);
-            EditorPrefs.SetInt(Pfx + "Type", Mathf.Clamp(job.exportType, 0, TypeCount - 1));
-            EditorPrefs.SetString(Pfx + "Version", job.modVersion == null ? "" : job.modVersion);
-            EditorPrefs.SetString(Pfx + "Author", job.modAuthor == null ? "" : job.modAuthor);
-            EditorPrefs.SetString(Pfx + "Description", job.modDescription == null ? "" : job.modDescription);
+            WbbPrefs.SetString(Pfx + "PrefabGuid", job.prefabFolderGuid == null ? "" : job.prefabFolderGuid);
+            WbbPrefs.SetString(Pfx + "PrefabPath", job.prefabFolderPath == null ? "" : job.prefabFolderPath);
+            WbbPrefs.SetInt(Pfx + "Type", Mathf.Clamp(job.exportType, 0, TypeCount - 1));
+            WbbPrefs.SetString(Pfx + "Version", job.modVersion == null ? "" : job.modVersion);
+            WbbPrefs.SetString(Pfx + "Author", job.modAuthor == null ? "" : job.modAuthor);
+            WbbPrefs.SetString(Pfx + "Description", job.modDescription == null ? "" : job.modDescription);
             if (!string.IsNullOrEmpty(job.outputDirectory))
-                EditorPrefs.SetString(OutputDirKey(CurrentType), job.outputDirectory);
-            EditorPrefs.SetBool(Pfx + "AppendDate", job.appendDateSuffix);
-            EditorPrefs.SetBool(Pfx + "Overwrite", job.overwriteExisting);
-            EditorPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
-            EditorPrefs.SetBool(Pfx + "StripVrc", job.stripVrcComponents);
-            EditorPrefs.SetBool(Pfx + "UseFolderPrefix", job.useFolderNamePrefix);
-            EditorPrefs.SetString(Pfx + "NamePrefix", job.namePrefix == null ? "" : job.namePrefix);
-            EditorPrefs.SetInt(Pfx + "View", view);
-            EditorPrefs.SetInt(Pfx + "Sort", sortMode);
-            EditorPrefs.SetBool(Pfx + "ShowHidden", showHidden);
-            EditorPrefs.SetBool(Pfx + "TreeVisible", treeVisible);
-            EditorPrefs.SetBool(Pfx + "SettingsOpen", settingsOpen);
-            EditorPrefs.SetBool(Pfx + "AdvancedOpen", advancedOpen);
+                WbbPrefs.SetString(OutputDirKey(CurrentType), job.outputDirectory);
+            WbbPrefs.SetBool(Pfx + "AppendDate", job.appendDateSuffix);
+            WbbPrefs.SetBool(Pfx + "Overwrite", job.overwriteExisting);
+            WbbPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
+            WbbPrefs.SetBool(Pfx + "StripVrc", job.stripVrcComponents);
+            WbbPrefs.SetBool(Pfx + "UseFolderPrefix", job.useFolderNamePrefix);
+            WbbPrefs.SetString(Pfx + "NamePrefix", job.namePrefix == null ? "" : job.namePrefix);
+            WbbPrefs.SetInt(Pfx + "View", view);
+            WbbPrefs.SetInt(Pfx + "Sort", sortMode);
+            WbbPrefs.SetBool(Pfx + "ShowHidden", showHidden);
+            WbbPrefs.SetBool(Pfx + "TreeVisible", treeVisible);
+            WbbPrefs.SetBool(Pfx + "SettingsOpen", settingsOpen);
+            WbbPrefs.SetBool(Pfx + "AdvancedOpen", advancedOpen);
             SaveCollapsed();
         }
 
         private void SaveCollapsed()
         {
-            EditorPrefs.SetString(Pfx + "Collapsed", string.Join("\n", new List<string>(collapsed).ToArray()));
+            WbbPrefs.SetString(Pfx + "Collapsed", string.Join("\n", new List<string>(collapsed).ToArray()));
         }
 
         public void FlushPrefs()
@@ -116,11 +116,11 @@ namespace StudioRaming.WarudoBatchBuilder
             var saved = new WbbJob();
             saved.exportType = (int)type;
             saved.outputMode = (int)WbbOutputMode.WarudoMod;
-            saved.modVersion = EditorPrefs.GetString(Pfx + "Version", "1.0.0");
-            saved.modAuthor = EditorPrefs.GetString(Pfx + "Author", "");
-            saved.modDescription = EditorPrefs.GetString(Pfx + "Description", "");
-            saved.outputDirectory = EditorPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
-            saved.stripVrcComponents = EditorPrefs.GetBool(Pfx + "StripVrc", true);
+            saved.modVersion = WbbPrefs.GetString(Pfx + "Version", "1.0.0");
+            saved.modAuthor = WbbPrefs.GetString(Pfx + "Author", "");
+            saved.modDescription = WbbPrefs.GetString(Pfx + "Description", "");
+            saved.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            saved.stripVrcComponents = WbbPrefs.GetBool(Pfx + "StripVrc", true);
             saved.manualScriptFolder = WbbListSettings.ManualScriptFolder;
             LoadScriptFolders(saved);
             return saved;
@@ -175,7 +175,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 store.names = new List<string>(job.manualNames);
             try
             {
-                EditorPrefs.SetString(Pfx + "ManualNames", JsonUtility.ToJson(store));
+                WbbPrefs.SetString(Pfx + "ManualNames", JsonUtility.ToJson(store));
             }
             catch (System.Exception e)
             {
@@ -187,7 +187,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             job.manualNameGuids = new List<string>();
             job.manualNames = new List<string>();
-            string json = EditorPrefs.GetString(Pfx + "ManualNames", "");
+            string json = WbbPrefs.GetString(Pfx + "ManualNames", "");
             if (string.IsNullOrEmpty(json))
                 return;
             try

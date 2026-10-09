@@ -10,6 +10,10 @@ namespace StudioRaming.WarudoBatchBuilder
     {
         public const int MaxLines = 3;
         public const int MaxLineLength = 240;
+        // Every error line of the capture window, kept for the code security report (UMod logs those to the console only).
+        public const int MaxErrorLines = 200;
+        private const string SecurityMarker = "failed security verification";
+        private readonly List<string> errorLines = new List<string>();
         private readonly List<string> errors = new List<string>();
         private readonly List<string> silentFailures = new List<string>();
         private bool attached;
@@ -59,7 +63,68 @@ namespace StudioRaming.WarudoBatchBuilder
             if (WbbBuildLog.IsSilentFailureLine(condition))
                 AddLimited(silentFailures, condition);
             if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert)
+            {
                 AddLimited(errors, condition);
+                AddErrorLines(condition);
+            }
+        }
+
+        public bool SawSecurityFailure
+        {
+            get
+            {
+                for (int i = 0; i < errorLines.Count; i++)
+                {
+                    if (errorLines[i].IndexOf(SecurityMarker, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        // The rejected members, one per line. UMod logs "... failed security verification" first, then one line per
+        // rule that was broken, then a summary. Without that first line the whole window is returned.
+        public List<string> SecurityEntries()
+        {
+            int start = 0;
+            for (int i = 0; i < errorLines.Count; i++)
+            {
+                if (errorLines[i].IndexOf(SecurityMarker, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    start = i + 1;
+                    break;
+                }
+            }
+
+            var entries = new List<string>();
+            for (int i = start; i < errorLines.Count; i++)
+            {
+                string line = errorLines[i];
+                if (line.IndexOf("Code security validation failed", StringComparison.OrdinalIgnoreCase) >= 0 || line.IndexOf("BUILD FAILED", StringComparison.Ordinal) >= 0)
+                    continue;
+                if (!entries.Contains(line))
+                    entries.Add(line);
+            }
+
+            return entries;
+        }
+
+        private void AddErrorLines(string condition)
+        {
+            string[] lines = condition.Split('\n');
+            for (int i = 0; i < lines.Length && errorLines.Count < MaxErrorLines; i++)
+            {
+                string line = lines[i].Trim();
+                int close = line.IndexOf("]: ", StringComparison.Ordinal);
+                if (line.StartsWith("[", StringComparison.Ordinal) && close > 0 && close < 80)
+                    line = line.Substring(close + 3).Trim();
+                if (line.Length == 0)
+                    continue;
+                if (line.Length > 400)
+                    line = line.Substring(0, 399) + "…";
+                errorLines.Add(line);
+            }
         }
 
         private static void AddLimited(List<string> target, string text)
@@ -79,7 +144,13 @@ namespace StudioRaming.WarudoBatchBuilder
             "Failed to run asset batch processor",
             "Failed to run asset processor",
             "UMod module compilation",
+            // UMod only warns when the project file is missing and then builds the mod without scripts.
+            "Failed to locate script project file",
         };
+        // UMod writes its log through a buffered writer: the tail (where a failure reason usually is) can still be
+        // unwritten when the build call returns. The copy is made at once; RefreshUModLog copies it again when the
+        // file grew since, which the runner does while it verifies the item and when the item ends.
+        private static readonly Dictionary<string, long> CopiedSourceLength = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         public static string LibraryDirectory
         {
             get
@@ -128,6 +199,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (File.GetLastWriteTimeUtc(source) < notBeforeUtc)
                     return "";
                 string destination = LogsDirectory + "/" + recordId + ".log";
+                long copiedLength;
                 using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 using (var output = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.Read))
                 {
@@ -141,8 +213,10 @@ namespace StudioRaming.WarudoBatchBuilder
                     if (!bom && read > 0)
                         output.Write(start, 0, read);
                     input.CopyTo(output);
+                    copiedLength = input.Length;
                 }
 
+                CopiedSourceLength[destination] = copiedLength;
                 Prune();
                 return WbbUtil.NormalizePath(destination);
             }
@@ -150,6 +224,56 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbUtil.LogWarning("Could not keep a copy of the UMod build log: " + e.Message);
                 return "";
+            }
+        }
+
+        // Copies the UMod log again when it grew since the kept copy was made. Returns true when the kept copy changed
+        // (the caller then re-adds anything it had appended to the old copy).
+        public static bool RefreshUModLog(string recordId, DateTime notBeforeUtc, ref string keptPath)
+        {
+            if (string.IsNullOrEmpty(recordId))
+                return false;
+            try
+            {
+                string source = WbbExportSettings.UModLogLocation();
+                if (string.IsNullOrEmpty(source) || !File.Exists(source))
+                    return false;
+                string destination = LogsDirectory + "/" + recordId + ".log";
+                long copied;
+                if (!string.IsNullOrEmpty(keptPath) && CopiedSourceLength.TryGetValue(destination, out copied) && new FileInfo(source).Length <= copied)
+                    return false;
+                string path = CopyUModLog(recordId, notBeforeUtc);
+                if (string.IsNullOrEmpty(path))
+                    return false;
+                keptPath = path;
+                return true;
+            }
+            catch (Exception e)
+            {
+                WbbUtil.LogWarning("Could not refresh the kept UMod build log: " + e.Message);
+                return false;
+            }
+        }
+
+        // Adds lines to the end of a kept build log. The log is a plain text file that UMod wrote, so this never
+        // rewrites it and writes no BOM in the middle of it.
+        public static void AppendSection(string logPath, string header, IList<string> lines)
+        {
+            if (string.IsNullOrEmpty(logPath) || lines == null || lines.Count == 0)
+                return;
+            try
+            {
+                if (!File.Exists(logPath))
+                    return;
+                var text = new StringBuilder();
+                text.Append(Environment.NewLine).Append("[WarudoBatchBuilder] ").Append(header).Append(Environment.NewLine);
+                for (int i = 0; i < lines.Count; i++)
+                    text.Append("\t").Append(lines[i]).Append(Environment.NewLine);
+                File.AppendAllText(logPath, text.ToString(), new UTF8Encoding(false));
+            }
+            catch (Exception e)
+            {
+                WbbUtil.LogWarning("Could not add the security report to " + logPath + ": " + e.Message);
             }
         }
 

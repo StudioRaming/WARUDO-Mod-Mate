@@ -73,7 +73,7 @@ namespace StudioRaming.WarudoBatchBuilder
             float windowHeight = host != null ? host.position.height : WbbSize.Window.MinHeight;
             if (windowHeight <= 0f)
                 windowHeight = WbbSize.Window.MinHeight;
-            float manualHeight = EditorPrefs.GetFloat(HeightSplitterPrefKey(), -1f);
+            float manualHeight = WbbPrefs.GetFloat(HeightSplitterPrefKey(), -1f);
             if (manualHeight >= 0f)
                 return Mathf.Clamp(manualHeight, WbbSize.Build.RowHeight * 2f, MaximumManualListHeight());
             float reserved = WbbSize.Header.Height + WbbSize.Tabs.Height + WbbSize.SpaceEdge * 2f + WbbSize.EmptyStateHeight + WbbSize.ControlSmall * 4f + WbbSize.Control * 4f + WbbSize.RunButton + WbbSize.Section.HeaderHeight;
@@ -136,21 +136,21 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 settingsOpen = pendingSettingsOpen == 1;
                 pendingSettingsOpen = -1;
-                EditorPrefs.SetBool(Pfx + "SettingsOpen", settingsOpen);
+                WbbPrefs.SetBool(Pfx + "SettingsOpen", settingsOpen);
             }
 
             if (pendingAdvancedOpen >= 0)
             {
                 advancedOpen = pendingAdvancedOpen == 1;
                 pendingAdvancedOpen = -1;
-                EditorPrefs.SetBool(Pfx + "AdvancedOpen", advancedOpen);
+                WbbPrefs.SetBool(Pfx + "AdvancedOpen", advancedOpen);
             }
 
             if (pendingView >= 0)
             {
                 view = Mathf.Clamp(pendingView, ViewGrid, ViewList);
                 pendingView = -1;
-                EditorPrefs.SetInt(Pfx + "View", view);
+                WbbPrefs.SetInt(Pfx + "View", view);
                 scroll = Vector2.zero;
                 hoverIndex = -1;
             }
@@ -159,7 +159,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 showHidden = pendingShowHidden == 1;
                 pendingShowHidden = -1;
-                EditorPrefs.SetBool(Pfx + "ShowHidden", showHidden);
+                WbbPrefs.SetBool(Pfx + "ShowHidden", showHidden);
                 itemsDirty = true;
             }
 
@@ -227,8 +227,8 @@ namespace StudioRaming.WarudoBatchBuilder
                     scopeFolder = folder;
                     job.prefabFolderPath = folder;
                     job.prefabFolderGuid = WbbUtil.FolderGuid(folder);
-                    EditorPrefs.SetString(Pfx + "PrefabPath", job.prefabFolderPath);
-                    EditorPrefs.SetString(Pfx + "PrefabGuid", job.prefabFolderGuid);
+                    WbbPrefs.SetString(Pfx + "PrefabPath", job.prefabFolderPath);
+                    WbbPrefs.SetString(Pfx + "PrefabGuid", job.prefabFolderGuid);
                     if (folderTree != null)
                         folderTree.RevealPath(folder);
                     scroll = Vector2.zero;

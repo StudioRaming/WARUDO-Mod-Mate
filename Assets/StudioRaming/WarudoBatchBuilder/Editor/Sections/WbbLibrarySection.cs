@@ -138,22 +138,22 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int t = 0; t < TypeCount; t++)
             {
                 var type = (WbbExportType)t;
-                paths[t] = EditorPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
-                typeEnabled[t] = EditorPrefs.GetBool(Pfx + "Type" + t, true);
+                paths[t] = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+                typeEnabled[t] = WbbPrefs.GetBool(Pfx + "Type" + t, true);
                 pathErrors[t] = "";
             }
 
-            sortMode = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "Sort", 0), 0, 2);
-            pathsOpen = EditorPrefs.GetBool(Pfx + "PathsOpen", false);
+            sortMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "Sort", 0), 0, 2);
+            pathsOpen = WbbPrefs.GetBool(Pfx + "PathsOpen", false);
             RescanNow();
         }
 
         public void OnDisable()
         {
             for (int t = 0; t < TypeCount; t++)
-                EditorPrefs.SetBool(Pfx + "Type" + t, typeEnabled[t]);
-            EditorPrefs.SetInt(Pfx + "Sort", sortMode);
-            EditorPrefs.SetBool(Pfx + "PathsOpen", pathsOpen);
+                WbbPrefs.SetBool(Pfx + "Type" + t, typeEnabled[t]);
+            WbbPrefs.SetInt(Pfx + "Sort", sortMode);
+            WbbPrefs.SetBool(Pfx + "PathsOpen", pathsOpen);
         }
 
         public void Refresh()

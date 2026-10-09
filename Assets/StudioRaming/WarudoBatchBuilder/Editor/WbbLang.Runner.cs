@@ -505,9 +505,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "Runner.NoExportSettings.hint",
                 new[]
                 {
-                    "Warudo 메뉴의 New Mod 로 새 모드를 한 번 만들면 생깁니다. 파일은 Assets 폴더 안의 ExportSettings.asset 입니다.",
-                    "It is created when you make a new mod once with Warudo > New Mod. The file is ExportSettings.asset inside the Assets folder.",
-                    "Warudo メニューの New Mod で新しい MOD を一度作成すると作られます。ファイルは Assets フォルダ内の ExportSettings.asset です。"
+                    "빌드 탭의 '빌드 설정 만들기' 를 누르면 Assets 폴더에 ExportSettings.asset 과 모드 한 개를 SDK 의 방식으로 만듭니다. Warudo 메뉴의 New Mod 로도 만들 수 있습니다.",
+                    "Press 'Create settings' in the Build tab: it creates ExportSettings.asset in the Assets folder with one mod, the way the SDK does. Warudo > New Mod works too.",
+                    "ビルドタブの「ビルド設定を作成」を押すと、Assets フォルダに ExportSettings.asset と MOD を 1 つ SDK の方法で作成します。Warudo メニューの New Mod でも作れます。"
                 }
             },
             {

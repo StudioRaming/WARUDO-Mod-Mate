@@ -347,7 +347,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (next != typeEnabled[t])
                 {
                     typeEnabled[t] = next;
-                    EditorPrefs.SetBool(Pfx + "Type" + t, next);
+                    WbbPrefs.SetBool(Pfx + "Type" + t, next);
                     filterDirty = true;
                     if (host != null)
                         host.RequestRepaint();
@@ -369,7 +369,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (next != statusEnabled[s])
                 {
                     statusEnabled[s] = next;
-                    EditorPrefs.SetBool(Pfx + "State" + s, next);
+                    WbbPrefs.SetBool(Pfx + "State" + s, next);
                     filterDirty = true;
                     if (host != null)
                         host.RequestRepaint();
@@ -401,7 +401,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (nextGroup != groupMode)
             {
                 groupMode = Mathf.Clamp(nextGroup, 0, 2);
-                EditorPrefs.SetInt(Pfx + "Group", groupMode);
+                WbbPrefs.SetInt(Pfx + "Group", groupMode);
                 filterDirty = true;
                 if (host != null)
                     host.RequestRepaint();

@@ -19,6 +19,9 @@ namespace StudioRaming.WarudoBatchBuilder
         public string[] compilerTexts = new string[0];
         public string[] references = new string[0];
         public string[] defines = new string[0];
+        // Assemblies defined by an .asmdef that the prefab needs. Their sources are not flattened into `sources`;
+        // Mod Mate compiles each of them into its own DLL (see WbbRuntimeUnitCompiler).
+        public string[] asmdefAssemblies = new string[0];
         public readonly HashSet<string> providedTypes = new HashSet<string>(StringComparer.Ordinal);
         public static WbbRuntimeScriptPlan Collect(string prefabPath)
         {
@@ -104,6 +107,17 @@ namespace StudioRaming.WarudoBatchBuilder
             return collector.Finish();
         }
 
+        // The SDK's automatic-source adapter. The SDK package 0.14.3 does not ship it; without it Mod Mate compiles the
+        // collected sources itself (see WbbRuntimeUnitCompiler), so a missing adapter is no longer a failed build.
+        public static bool AdapterAvailable
+        {
+            get
+            {
+                var adapter = Type.GetType("UModEngineModuleScriptProcessor, Assembly-CSharp-Editor");
+                return adapter != null && adapter.GetMethod("BeginAutoScripts") != null;
+            }
+        }
+
         public IDisposable BeginBuild(string modFolder)
         {
             var adapter = Type.GetType("UModEngineModuleScriptProcessor, Assembly-CSharp-Editor");
@@ -126,6 +140,8 @@ namespace StudioRaming.WarudoBatchBuilder
             private readonly HashSet<string> usedAssemblies = new HashSet<string>(StringComparer.Ordinal);
             private readonly HashSet<string> requiredTypes = new HashSet<string>(StringComparer.Ordinal);
             private readonly HashSet<string> nativeAssemblies = new HashSet<string>(StringComparer.Ordinal);
+            private readonly HashSet<string> asmdefAssemblies = new HashSet<string>(StringComparer.Ordinal);
+            private readonly Dictionary<string, bool> asmdefKnown = new Dictionary<string, bool>(StringComparer.Ordinal);
             public Collector()
             {
                 assemblies = CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies).ToDictionary(a => a.name, StringComparer.Ordinal);
@@ -149,11 +165,25 @@ namespace StudioRaming.WarudoBatchBuilder
                     throw new InvalidOperationException("WARUDO does not provide this DLL-only type: " + assembly + ":" + name);
                 }
 
+                if (IsAsmdef(assembly))
+                {
+                    asmdefAssemblies.Add(assembly);
+                    return;
+                }
+
                 var compilation = Compilation(info);
                 var type = compilation.GetTypeByMetadataName(name);
                 if (type == null || type.DeclaringSyntaxReferences.Length == 0)
                     throw new InvalidOperationException("Cannot locate runtime source for " + assembly + ":" + name);
                 RequireSymbol(type);
+            }
+
+            private bool IsAsmdef(string assembly)
+            {
+                bool known;
+                if (!asmdefKnown.TryGetValue(assembly, out known))
+                    asmdefKnown[assembly] = known = WbbAsmdefAnalysis.IsAsmdefAssembly(assembly);
+                return known;
             }
 
             private void RequireSymbol(ITypeSymbol type)
@@ -195,6 +225,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (named.DeclaringSyntaxReferences.Length == 0)
                 {
                     Require(assembly, name);
+                    return;
+                }
+
+                if (assemblies.ContainsKey(assembly) && IsAsmdef(assembly))
+                {
+                    asmdefAssemblies.Add(assembly);
                     return;
                 }
 
@@ -314,6 +350,7 @@ namespace StudioRaming.WarudoBatchBuilder
                         nativeQueue.Enqueue(dependency);
                 }
 
+                plan.asmdefAssemblies = asmdefAssemblies.OrderBy(n => n, StringComparer.Ordinal).ToArray();
                 plan.references = refs.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToArray();
                 plan.defines = defines.OrderBy(d => d, StringComparer.Ordinal).ToArray();
                 return plan;

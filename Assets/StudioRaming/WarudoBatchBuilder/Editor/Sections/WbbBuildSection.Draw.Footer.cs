@@ -237,6 +237,14 @@ namespace StudioRaming.WarudoBatchBuilder
                         RequestRepaint();
                     }
                 }
+                else if (ex != null && (ex.code == WbbPreflightCodes.SettingsMissing || ex.code == WbbPreflightCodes.SettingsNoProfile))
+                {
+                    if (WbbStyles.Button(LC("Safety.CreateSettings"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.RestoreSettingsButton), GUILayout.Height(WbbSize.Control)))
+                    {
+                        pendingCreateSettings = true;
+                        RequestRepaint();
+                    }
+                }
                 else if (ex != null && ex.code == WbbPreflightCodes.WarudoNotFound)
                 {
                     if (WbbStyles.Button(LC("Build.OutputPick"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.OutputPickButton), GUILayout.Height(WbbSize.Control)))

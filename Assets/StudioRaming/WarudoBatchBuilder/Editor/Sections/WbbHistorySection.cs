@@ -176,10 +176,10 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             WbbDatabase.EnsureLoaded();
             for (int t = 0; t < TypeCount; t++)
-                typeEnabled[t] = EditorPrefs.GetBool(Pfx + "Type" + t, true);
+                typeEnabled[t] = WbbPrefs.GetBool(Pfx + "Type" + t, true);
             for (int s = 0; s < StatusCount; s++)
-                statusEnabled[s] = EditorPrefs.GetBool(Pfx + "State" + s, true);
-            groupMode = Mathf.Clamp(EditorPrefs.GetInt(Pfx + "Group", GroupByDate), 0, 2);
+                statusEnabled[s] = WbbPrefs.GetBool(Pfx + "State" + s, true);
+            groupMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "Group", GroupByDate), 0, 2);
             search = "";
             RebuildRows(true);
         }
@@ -187,10 +187,10 @@ namespace StudioRaming.WarudoBatchBuilder
         public void OnDisable()
         {
             for (int t = 0; t < TypeCount; t++)
-                EditorPrefs.SetBool(Pfx + "Type" + t, typeEnabled[t]);
+                WbbPrefs.SetBool(Pfx + "Type" + t, typeEnabled[t]);
             for (int s = 0; s < StatusCount; s++)
-                EditorPrefs.SetBool(Pfx + "State" + s, statusEnabled[s]);
-            EditorPrefs.SetInt(Pfx + "Group", groupMode);
+                WbbPrefs.SetBool(Pfx + "State" + s, statusEnabled[s]);
+            WbbPrefs.SetInt(Pfx + "Group", groupMode);
         }
 
         public void Refresh()

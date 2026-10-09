@@ -168,9 +168,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 EditorUtility.ClearProgressBar();
             }
 
-            prependScene = EditorPrefs.GetBool(WbbQuickBuild.PrependScenePrefKey, false);
-            appendDate = EditorPrefs.GetBool(WbbQuickBuild.AppendDatePrefKey, false);
-            autoNumber = EditorPrefs.GetBool(WbbQuickBuild.AutoNumberPrefKey, false);
+            prependScene = WbbPrefs.GetBool(WbbQuickBuild.PrependScenePrefKey, false);
+            appendDate = WbbPrefs.GetBool(WbbQuickBuild.AppendDatePrefKey, false);
+            autoNumber = WbbPrefs.GetBool(WbbQuickBuild.AutoNumberPrefKey, false);
             ReloadSettings();
             UpdateTitle();
             pendingCapture = true;
@@ -479,21 +479,21 @@ namespace StudioRaming.WarudoBatchBuilder
             if (nextScene != prependScene)
             {
                 prependScene = nextScene;
-                EditorPrefs.SetBool(WbbQuickBuild.PrependScenePrefKey, prependScene);
+                WbbPrefs.SetBool(WbbQuickBuild.PrependScenePrefKey, prependScene);
                 validationDirty = true;
             }
 
             if (nextDate != appendDate)
             {
                 appendDate = nextDate;
-                EditorPrefs.SetBool(WbbQuickBuild.AppendDatePrefKey, appendDate);
+                WbbPrefs.SetBool(WbbQuickBuild.AppendDatePrefKey, appendDate);
                 validationDirty = true;
             }
 
             if (nextNumber != autoNumber)
             {
                 autoNumber = nextNumber;
-                EditorPrefs.SetBool(WbbQuickBuild.AutoNumberPrefKey, autoNumber);
+                WbbPrefs.SetBool(WbbQuickBuild.AutoNumberPrefKey, autoNumber);
                 validationDirty = true;
             }
 

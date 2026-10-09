@@ -105,7 +105,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (mode != job.outputMode)
                 {
                     job.outputMode = Mathf.Clamp(mode, 0, OutputModeCount - 1);
-                    EditorPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
+                    WbbPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
                     preflightDirty = true;
                     runContent = null;
                     runContentCount = -1;

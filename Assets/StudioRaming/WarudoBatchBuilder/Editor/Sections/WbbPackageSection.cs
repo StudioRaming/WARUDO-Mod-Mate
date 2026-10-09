@@ -191,13 +191,13 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             LoadExcluded();
             LoadCollapsed();
-            outputDir = EditorPrefs.GetString(OutputDirKey, "");
+            outputDir = WbbPrefs.GetString(OutputDirKey, "");
             if (string.IsNullOrEmpty(outputDir))
                 outputDir = DefaultOutputDir();
-            gather.textures = EditorPrefs.GetBool(GatherTexKey, false);
-            gather.materials = EditorPrefs.GetBool(GatherMatKey, false);
-            gather.models = EditorPrefs.GetBool(GatherFbxKey, false);
-            gather.prefabs = EditorPrefs.GetBool(GatherPrefabKey, false);
+            gather.textures = WbbPrefs.GetBool(GatherTexKey, false);
+            gather.materials = WbbPrefs.GetBool(GatherMatKey, false);
+            gather.models = WbbPrefs.GetBool(GatherFbxKey, false);
+            gather.prefabs = WbbPrefs.GetBool(GatherPrefabKey, false);
             LoadTargets();
             pendingValidate = true;
             pendingCollect = true;
@@ -209,7 +209,7 @@ namespace StudioRaming.WarudoBatchBuilder
             SaveExcluded();
             SaveCollapsed();
             SaveTargets();
-            EditorPrefs.SetString(OutputDirKey, outputDir == null ? "" : outputDir);
+            WbbPrefs.SetString(OutputDirKey, outputDir == null ? "" : outputDir);
             SaveGather();
         }
 

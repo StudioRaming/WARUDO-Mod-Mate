@@ -507,22 +507,22 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static void OnBeforeAssemblyReload()
         {
-            AbortQuietly();
+            AbortQuietly(L("Runner.AbortReload"));
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
-            AbortQuietly();
+            AbortQuietly(L("Runner.AbortPlayMode"));
         }
 
-        private static void AbortQuietly()
+        private static void AbortQuietly(string reason)
         {
             if (!IsRunning)
                 return;
             quietFinish = true;
             try
             {
-                runner.AbortAndRestore();
+                runner.AbortAndRestore(reason);
             }
             catch (System.Exception e)
             {
@@ -566,7 +566,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static void SavePendingCleanup()
         {
-            EditorPrefs.SetString(PendingCleanupKey, tempFolder + "|" + string.Join(";", tempGuids.ToArray()));
+            WbbPrefs.SetString(PendingCleanupKey, tempFolder + "|" + string.Join(";", tempGuids.ToArray()));
         }
 
         private static void CleanupTemp()
@@ -619,7 +619,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             }
 
-            EditorPrefs.DeleteKey(PendingCleanupKey);
+            WbbPrefs.DeleteKey(PendingCleanupKey);
         }
 
         private static bool IsOurTempFolder(string folder)
@@ -633,7 +633,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static void CleanupAfterCrash()
         {
-            string pending = EditorPrefs.GetString(PendingCleanupKey, "");
+            string pending = WbbPrefs.GetString(PendingCleanupKey, "", false);
             if (string.IsNullOrEmpty(pending) || IsRunning || WbbBuildRunner.AnyRunning)
                 return;
             int split = pending.IndexOf('|');

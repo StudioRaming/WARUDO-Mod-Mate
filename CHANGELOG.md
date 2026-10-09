@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased
+
+Mod runtime code
+
+- Mod Mate now compiles the mod's runtime code itself and hands the DLLs to UMod, instead of letting UMod compile loose scripts. Each assembly definition (.asmdef) becomes one DLL, and the plain scripts of a manual script folder (subfolders included) become one more DLL, `WbbRuntimeScripts`. The compile uses Unity's AssemblyBuilder with the engine module references (`UseEngineModules`), the project's own references for everything the folder uses, and C# 7.3 first; sources that need a newer language level (the compiler's "feature not available in C# 7.3" error, CS8370) are compiled again at Unity's default level, as UMod's route accepted them. That fallback is remembered per unit contents, so another mod of the same batch with an assembly of the same name is compiled on its own.
+- Why: UMod compiles loose scripts against the monolithic UnityEngine.dll, while Warudo.Core, Warudo.Plugins.Core and Unity.InputSystem are built against the module assemblies, so any member typed with a Unity type that reaches the mod through them failed with CS0012 (Transform, Animator, Vector2 ...). Adding module references to UMod's compile is not possible (CS0433), so the compile has to happen here.
+- The DLLs are written outside Assets (nothing is imported, Unity does not reload), registered with UMod for the duration of one build, and removed afterwards. Every .cs source is left out of UMod's own compile: in a manual script folder all scripts below the folder (including the sources of editor-only, test or define-filtered assemblies that are not compiled), in automatic mode all scripts that come in as dependencies of the prefab. The unit compile folders are named after the assembly; a name that is not a plain folder name is refused, and a compile folder is only deleted when it is inside Mod Mate's own Library folder. UMod's code security check runs on the DLLs like on any other script. Prefab MonoBehaviours link to the DLL by type name.
+- Only assemblies Unity compiles for the player count. Editor-only and test assemblies, scripts in Editor folders and assemblies whose define constraints are not met stay out; preflight lists skipped assembly definitions.
+- Code in a plain folder (no .asmdef) that uses a project script outside the mod folder (Assembly-CSharp) is a compile error, as the assembly it comes from never reaches WARUDO. UMod's own route used to accept it and the mod then failed in WARUDO. A "type or name not found" error of the plain scripts now says that the script may live outside the folder and has to be moved into it.
+- Automatic collection does not compile the assembly definitions of Unity packages (registry, git, built-in) into the mod: an assembly the mod depends on that is neither in the project's own code nor provided by WARUDO is reported as a missing reference. Embedded and local packages count as the project's own code.
+- Automatic collection: types from assembly definitions are no longer flattened into the sources handed to the automatic-source adapter. The SDK package 0.14.3 does not ship that adapter, so every automatic build used to fail with "The UMod automatic-source adapter is unavailable". Without the adapter the collected sources are compiled by Mod Mate as `WbbRuntimeScripts` like above, and a prefab without custom scripts builds without any script step. With an SDK that has the adapter, a prefab that needs only plain project scripts still uses it, as before.
+- A mod no longer needs the project's generated .csproj for its scripts: UMod only reads it for the loose scripts it compiles itself, and none are left. If UMod does still skip scripts because the project file is missing ("Failed to locate script project file"), the build is now reported as failed instead of finishing without scripts.
+
+Preflight and messages
+
+- The old block on every script folder that holds an .asmdef is gone. Preflight now blocks a runtime assembly that references an assembly WARUDO does not provide and that is not part of the folder, a declared precompiled DLL WARUDO lacks, and an assembly whose name collides with one of WARUDO's own. After compiling, the real references of each DLL are checked against WARUDO's assemblies and against editor-only or project-only assemblies, and a compile error names the source file (relative to the project) and line.
+- A missing build settings file or a settings file without a mod now offers a "Create settings" button on the Build tab. It runs the SDK's own LoadOrCreate and CreateNewExportProfile calls, the same ones its Export Settings window uses. The message names that action instead of only pointing at Warudo > New Mod.
+- A code security rejection shows the rejected APIs from the UMod report in the item message (first 12, with a count) and adds the full list to the kept build log. The kept UMod build log is copied right after the build and copied again when the item is verified and when it ends, if it grew in between, so the end of the log is no longer cut off and the window is not blocked while UMod's log writer catches up.
+- A build that Unity stops from outside (script recompile, entering Play Mode) says so: the history record names the reason, a note stays on the Build tab across the reload, and the log says whether the build settings were restored.
+
+Fixes
+
+- Per-project state: Build, Library, History and Package tab settings (prefab folder, output folders, mod author and version, package targets, recent folders) are stored per Unity project instead of one PC-wide set. Values written by older versions are copied once into each project that reads a setting it has no value for yet; the old shared values are never changed or deleted, so opening another project first cannot take them away from the original one, and clearing a list (for example the recent folders) stays cleared. A folder that does not exist in a project is dropped there as before. The shared UI language is unchanged.
+- The quick-build crash-recovery marker is project-scoped and is never taken over from another project.
+- An exception inside the Build, Library or History tab no longer stops the whole window frame: the tab shows the error with a Retry button and the details go to the Console.
+- Failed build outputs kept in Library/StudioRaming/WarudoBatchBuilder/Failed: the newest 3 are kept, older ones are deleted. Only entries inside that Mod Mate folder are touched.
+- The history export suggests `WarudoModMate_History_<date>.csv`; the Library status legend says "Mod Mate build record" instead of "WBB".
+- `WbbUtil.ComposeModName` no longer appends the date twice when the date option is on and overwrite is off (the function has no caller in this version; the shipped naming path already added it once).
+- Not changed: the template package GUID concern (D13) does not apply to this source: the package exporter writes each asset's existing GUID and .meta from the project, it never creates GUIDs.
+
 ## 0.1.0
 
 - First public source and Unity package release under the MIT License.

@@ -23,7 +23,12 @@ namespace StudioRaming.WarudoBatchBuilder
             "UModLite"
         };
         public int runtimeScripts;
+        // Every plain runtime script of the folder (not in an assembly definition, not in an Editor folder), as asset paths.
+        // These are the sources Mod Mate compiles itself; the capped lists below are for messages only.
+        public readonly List<string> plainScriptAssets = new List<string>();
         public readonly List<string> asmdefScripts = new List<string>();
+        // Assemblies that own scripts of this folder (assembly name -> .asmdef path). Whether they are runtime code is decided later.
+        public readonly Dictionary<string, string> asmdefAssemblies = new Dictionary<string, string>(StringComparer.Ordinal);
         public readonly List<string> dlls = new List<string>();
         public readonly List<string> unsupported = new List<string>();
         public bool failed;
@@ -64,9 +69,6 @@ namespace StudioRaming.WarudoBatchBuilder
 
                 if (string.Equals(extension, ".cs", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (InEditorFolder(relative))
-                        continue;
-                    scan.runtimeScripts++;
                     string asmdef = null;
                     try
                     {
@@ -76,8 +78,21 @@ namespace StudioRaming.WarudoBatchBuilder
                     {
                     }
 
+                    // A script owned by an assembly definition belongs to that assembly, wherever it sits.
                     if (!string.IsNullOrEmpty(asmdef))
+                    {
                         AddLimited(scan.asmdefScripts, assetPath);
+                        string assemblyName = AssemblyNameOf(assetPath);
+                        if (assemblyName.Length > 0 && !scan.asmdefAssemblies.ContainsKey(assemblyName))
+                            scan.asmdefAssemblies[assemblyName] = WbbUtil.NormalizePath(asmdef);
+                        continue;
+                    }
+
+                    if (InEditorFolder(relative))
+                        continue;
+
+                    scan.runtimeScripts++;
+                    scan.plainScriptAssets.Add(assetPath);
                     continue;
                 }
 
@@ -92,6 +107,21 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             return scan;
+        }
+
+        private static string AssemblyNameOf(string assetPath)
+        {
+            try
+            {
+                string name = CompilationPipeline.GetAssemblyNameFromScriptPath(assetPath);
+                if (string.IsNullOrEmpty(name))
+                    return "";
+                return name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ? name.Substring(0, name.Length - 4) : name;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
         }
 
         private static bool IsUnsupportedExtension(string extension)

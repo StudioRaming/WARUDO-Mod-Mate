@@ -14,6 +14,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private WbbHistorySection history;
         private int tab;
         private int pendingTab = -1;
+        private string tabError = "";
+        private int tabErrorTab = -1;
         private GUIContent[] tabContents;
         private int tabContentsVersion = -1;
         private static string L(string key)
@@ -144,6 +146,8 @@ namespace StudioRaming.WarudoBatchBuilder
             if (newTab == tab)
                 return;
             tab = newTab;
+            tabError = "";
+            tabErrorTab = -1;
             EditorPrefs.SetInt(WinPfx + "tab", tab);
             GUI.FocusControl(null);
             Repaint();
@@ -223,20 +227,55 @@ namespace StudioRaming.WarudoBatchBuilder
             string taskKey = tab == TabLibrary ? "Ui.Task.Library" : tab == TabHistory ? "Ui.Task.History" : "Ui.Task.Build";
             GUILayout.Label(L(taskKey), WbbStyles.BodyText);
             GUILayout.Space(WbbSize.SpaceSmall);
-            switch (tab)
-            {
-                case TabLibrary:
-                    library.OnGUI();
-                    break;
-                case TabHistory:
-                    history.OnGUI();
-                    break;
-                default:
-                    build.OnGUI();
-                    break;
-            }
-
+            if (tabError.Length > 0 && tabErrorTab == tab)
+                DrawTabError();
+            else
+                DrawSection();
             WbbStyles.EndWindowBody();
+        }
+
+        // An exception in a section used to stop the frame in the middle of its layout groups. It is caught here, shown
+        // once in the window with a Retry button, and ExitGUI makes Unity drop the half-built layout of this frame.
+        private void DrawSection()
+        {
+            try
+            {
+                switch (tab)
+                {
+                    case TabLibrary:
+                        library.OnGUI();
+                        break;
+                    case TabHistory:
+                        history.OnGUI();
+                        break;
+                    default:
+                        build.OnGUI();
+                        break;
+                }
+            }
+            catch (ExitGUIException)
+            {
+                throw;
+            }
+            catch (System.Exception e)
+            {
+                WbbUtil.LogError("The " + (tab == TabLibrary ? "Library" : tab == TabHistory ? "History" : "Build") + " tab stopped with an error: " + e);
+                tabError = string.IsNullOrEmpty(e.Message) ? e.GetType().Name : e.Message;
+                tabErrorTab = tab;
+                GUIUtility.ExitGUI();
+            }
+        }
+
+        private void DrawTabError()
+        {
+            WbbStyles.Callout(L("Win.TabError", tabError), WbbTone.Error);
+            GUILayout.Space(WbbSize.SpaceSmall);
+            if (WbbStyles.Button(LC("Win.TabRetry"), WbbButtonKind.Secondary, GUILayout.Height(WbbSize.Control)))
+            {
+                tabError = "";
+                tabErrorTab = -1;
+                Repaint();
+            }
         }
 
         private void DrawTabBar()

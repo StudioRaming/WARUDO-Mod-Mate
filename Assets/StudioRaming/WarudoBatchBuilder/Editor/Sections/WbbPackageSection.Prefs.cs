@@ -9,7 +9,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private void LoadExcluded()
         {
             excluded.Clear();
-            string raw = EditorPrefs.GetString(ExcludedKey, "");
+            string raw = WbbPrefs.GetString(ExcludedKey, "");
             if (string.IsNullOrEmpty(raw))
                 return;
             string[] parts = raw.Split(';');
@@ -25,7 +25,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (excluded.Count == 0)
             {
-                EditorPrefs.SetString(ExcludedKey, "");
+                WbbPrefs.SetString(ExcludedKey, "");
                 return;
             }
 
@@ -37,13 +37,13 @@ namespace StudioRaming.WarudoBatchBuilder
                 sb.Append(guid);
             }
 
-            EditorPrefs.SetString(ExcludedKey, sb.ToString());
+            WbbPrefs.SetString(ExcludedKey, sb.ToString());
         }
 
         private void LoadCollapsed()
         {
             collapsed.Clear();
-            string raw = EditorPrefs.GetString(CollapsedKey, "");
+            string raw = WbbPrefs.GetString(CollapsedKey, "");
             if (string.IsNullOrEmpty(raw))
                 return;
             string[] parts = raw.Split('\n');
@@ -59,7 +59,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (collapsed.Count == 0)
             {
-                EditorPrefs.SetString(CollapsedKey, "");
+                WbbPrefs.SetString(CollapsedKey, "");
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 sb.Append(path);
             }
 
-            EditorPrefs.SetString(CollapsedKey, sb.ToString());
+            WbbPrefs.SetString(CollapsedKey, sb.ToString());
         }
 
         private void LoadTargets()
@@ -79,7 +79,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (Embedded)
                 return;
             targets.Clear();
-            string raw = EditorPrefs.GetString(TargetsKey, "");
+            string raw = WbbPrefs.GetString(TargetsKey, "");
             if (string.IsNullOrEmpty(raw))
                 return;
             string[] parts = raw.Split('\n');
@@ -99,7 +99,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 sb.Append(targets[i].prefabPath);
             }
 
-            EditorPrefs.SetString(TargetsKey, sb.ToString());
+            WbbPrefs.SetString(TargetsKey, sb.ToString());
         }
 
         private static string DefaultOutputDir()

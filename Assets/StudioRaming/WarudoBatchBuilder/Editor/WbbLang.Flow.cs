@@ -136,9 +136,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "Ui.Library.StatusLegend",
                 new[]
                 {
-                    "{0}: WBB 빌드 기록 연결 · {1}: 연결된 기록 없음",
-                    "{0}: WBB build record linked · {1}: No linked record",
-                    "{0}: WBBビルド記録に接続 · {1}: 接続された記録なし"
+                    "{0}: Mod Mate 빌드 기록 연결 · {1}: 연결된 기록 없음",
+                    "{0}: Mod Mate build record linked · {1}: No linked record",
+                    "{0}: Mod Mateビルド記録に接続 · {1}: 接続された記録なし"
                 }
             },
             {

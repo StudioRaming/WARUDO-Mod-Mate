@@ -20,6 +20,7 @@ namespace StudioRaming.WarudoBatchBuilder
             Copy,
             Stage,
             WriteSettings,
+            CompileRuntime,
             InvokeBuild,
             WaitOutput,
             Verify,
@@ -61,7 +62,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (activeRunner == null || !activeRunner.running)
                 return;
             WbbUtil.LogWarning("Script reload during a build. Stopping the batch and cleaning up first.");
-            AbortSilently();
+            AbortSilently(L("Runner.AbortReload"));
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
@@ -71,15 +72,15 @@ namespace StudioRaming.WarudoBatchBuilder
             if (activeRunner == null || !activeRunner.running)
                 return;
             WbbUtil.LogWarning("Entering Play Mode during a build. Stopping the batch and cleaning up first.");
-            AbortSilently();
+            AbortSilently(L("Runner.AbortPlayMode"));
         }
 
-        private static void AbortSilently()
+        private static void AbortSilently(string reason)
         {
             AbortingSilently = true;
             try
             {
-                activeRunner.AbortAndRestore();
+                activeRunner.AbortAndRestore(reason);
             }
             catch (System.Exception e)
             {
@@ -137,12 +138,23 @@ namespace StudioRaming.WarudoBatchBuilder
         private string itemRecordId = "";
         private string itemFixupReport = "";
         private string itemBuildLogPath = "";
+        private string securityHeader = "";
+        private List<string> securityEntries;
         private System.DateTime buildStartUtc = System.DateTime.MinValue;
         private double waitStartTime;
         private long lastSize = -1L;
         private int stableSamples;
         private WbbLogCapture capture;
         private WbbBuildInvokeResult invokeResult;
+        private WbbRuntimeCompileSession compileSession;
+        private WbbAsmdefAnalysis folderAnalysis;
+        private List<WbbRuntimeUnit> itemUnits = new List<WbbRuntimeUnit>();
+        private List<WbbCompiledUnit> itemCompiled = new List<WbbCompiledUnit>();
+        private WbbRuntimeScriptPlan autoPlan;
+        private string autoPlanError = "";
+        private bool compileStarted;
+        private string abortReason = "";
+        private bool lastFinishClean = true;
         private WbbJournalOutput outputGuard;
         public bool IsRunning
         {
@@ -257,6 +269,8 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbUtil.LogWarning("Leftover build cleanup failed: " + e.Message);
             }
+
+            WbbRunnerNotice.Clear();
 
             string blocker = CheckStartBlockers(newJob);
             if (blocker.Length > 0)
@@ -394,6 +408,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 case Step.WriteSettings:
                     DoWriteSettings();
                     break;
+                case Step.CompileRuntime:
+                    DoCompileRuntime();
+                    break;
                 case Step.InvokeBuild:
                     DoInvokeBuild();
                     break;
@@ -424,7 +441,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static bool IsCancelSafeStep(Step value)
         {
-            return value == Step.Prepare || value == Step.Copy || value == Step.Stage || value == Step.WriteSettings || value == Step.InvokeBuild;
+            return value == Step.Prepare || value == Step.Copy || value == Step.Stage || value == Step.WriteSettings || value == Step.CompileRuntime || value == Step.InvokeBuild;
         }
 
         private void HandleTickException(System.Exception e)

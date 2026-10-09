@@ -146,8 +146,110 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             }
 
+            step = Step.CompileRuntime;
+            Delay(StepDelaySeconds);
+        }
+
+        // Runtime code in assembly definitions is compiled here into DLLs that the build step hands to UMod.
+        // A mod without such code passes through this step without doing anything.
+        private void DoCompileRuntime()
+        {
+            if (!compileStarted)
+            {
+                compileStarted = true;
+                if (!PlanRuntimeUnits())
+                    return;
+                if (itemUnits.Count == 0)
+                {
+                    step = Step.InvokeBuild;
+                    return;
+                }
+
+                if (compileSession == null)
+                {
+                    WbbRuntimeCompileSession.DeleteStaleRoots();
+                    compileSession = new WbbRuntimeCompileSession();
+                }
+
+                SetStatus(L("Asmdef.Compiling", currentModName));
+                compileSession.Begin(itemUnits);
+            }
+
+            string failure;
+            switch (compileSession.Pump(out failure))
+            {
+                case WbbCompileState.Running:
+                    Delay(PollIntervalSeconds);
+                    return;
+                case WbbCompileState.Failed:
+                    Fail(failure);
+                    step = Step.Cleanup;
+                    return;
+            }
+
+            itemCompiled = compileSession.Resolve(itemUnits);
+            var names = new List<string>();
+            for (int i = 0; i < itemCompiled.Count; i++)
+                names.Add(itemCompiled[i].name);
+            AppendMessage(L("Asmdef.Compiled", itemCompiled.Count, string.Join(", ", names.ToArray())));
+            WbbUtil.Log("Runtime assemblies for " + currentModName + ": " + string.Join(", ", names.ToArray()));
             step = Step.InvokeBuild;
             Delay(StepDelaySeconds);
+        }
+
+        // Which units this item needs. Manual script folder: the assemblies found in the folder at the start of the batch.
+        // Automatic mode: the assemblies of the types the prefab uses; the plain project scripts it also needs
+        // (if any) become one more unit so everything reaches UMod the same way.
+        private bool PlanRuntimeUnits()
+        {
+            itemUnits = new List<WbbRuntimeUnit>();
+            if (job.manualScriptFolder)
+            {
+                if (folderAnalysis != null)
+                    itemUnits.AddRange(folderAnalysis.units);
+                return true;
+            }
+
+            try
+            {
+                autoPlan = WbbRuntimeScriptPlan.Collect(copyPath);
+            }
+            catch (System.Exception e)
+            {
+                // Reported by the build step exactly like before.
+                autoPlanError = e.Message;
+                autoPlan = null;
+                return true;
+            }
+
+            // A prefab that needs only plain project scripts keeps the automatic-source adapter's route when the SDK has
+            // one. Everything else (assembly definitions, or an SDK without the adapter) is compiled here.
+            if (autoPlan.asmdefAssemblies.Length == 0 && WbbRuntimeScriptPlan.AdapterAvailable)
+                return true;
+            WbbAsmdefAnalysis analysis = autoPlan.asmdefAssemblies.Length > 0 ? WbbAsmdefAnalysis.ForAssemblies(autoPlan.asmdefAssemblies) : new WbbAsmdefAnalysis();
+            if (analysis.HasBlocking)
+            {
+                Fail(analysis.FirstBlockingMessage);
+                step = Step.Cleanup;
+                return false;
+            }
+
+            itemUnits.AddRange(analysis.units);
+            if (autoPlan.sources.Length > 0)
+            {
+                var plain = new WbbRuntimeUnit();
+                plain.name = WbbRuntimeUnit.PlainName;
+                plain.plain = true;
+                plain.allowUnsafe = true;
+                plain.sources = autoPlan.sources;
+                plain.defines = autoPlan.defines;
+                plain.extraReferences = autoPlan.references;
+                plain.projectReferences = analysis.units.ConvertAll(u => u.name).ToArray();
+                plain.projectReferencePaths = new string[plain.projectReferences.Length];
+                itemUnits.Add(plain);
+            }
+
+            return true;
         }
 
         private void DoInvokeBuild()
@@ -181,18 +283,39 @@ namespace StudioRaming.WarudoBatchBuilder
             StopCapture();
             capture = new WbbLogCapture();
             capture.Start();
+            WbbUModBuildHook hook = null;
+            int hookRegistered = 0;
             try
             {
+                // Only while this one synchronous build runs, so builds started from the SDK's own menu are never touched.
+                if (itemCompiled.Count > 0)
+                {
+                    string hookError;
+                    hook = WbbUModBuildHook.Install(currentModName, modFolder, itemCompiled, job.manualScriptFolder, out hookError);
+                    if (hook == null)
+                        throw new System.InvalidOperationException(hookError);
+                }
+
                 if (job.manualScriptFolder)
                     invokeResult = WbbExportSettings.InvokeBuildWithResult();
                 else
                 {
-                    var scripts = WbbRuntimeScriptPlan.Collect(copyPath);
-                    expectScripts = scripts.sources.Length > 0;
+                    if (autoPlanError.Length > 0)
+                        throw new System.InvalidOperationException(autoPlanError);
+                    var scripts = autoPlan ?? WbbRuntimeScriptPlan.Collect(copyPath);
+                    expectScripts = scripts.sources.Length > 0 || scripts.asmdefAssemblies.Length > 0;
                     WbbUtil.Log("Automatic runtime sources: " + scripts.sources.Length + "; WARUDO-provided types: " + scripts.providedTypes.Count);
                     AppendMessage(L("Runner.AutoScripts", scripts.sources.Length, scripts.providedTypes.Count));
-                    using (scripts.BeginBuild(modFolder))
+                    // Compiled by Mod Mate, or nothing to add and no adapter in this SDK: the build runs as it is.
+                    if (itemCompiled.Count > 0 || !WbbRuntimeScriptPlan.AdapterAvailable)
+                    {
                         invokeResult = WbbExportSettings.InvokeBuildWithResult();
+                    }
+                    else
+                    {
+                        using (scripts.BeginBuild(modFolder))
+                            invokeResult = WbbExportSettings.InvokeBuildWithResult();
+                    }
                 }
             }
             catch (System.Exception e)
@@ -202,6 +325,14 @@ namespace StudioRaming.WarudoBatchBuilder
                     invoked = false,
                     errorMessage = e.Message
                 };
+            }
+            finally
+            {
+                if (hook != null)
+                {
+                    hookRegistered = hook.RegisteredCount;
+                    hook.Dispose();
+                }
             }
 
             waitStartTime = EditorApplication.timeSinceStartup;
@@ -219,7 +350,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 Fail(L("Safety.BuildFailed", FirstNonEmpty(invokeResult.errorMessage, invokeResult.exceptionMessage, L("Safety.BuildFailedNoReason"))));
                 if (!string.IsNullOrEmpty(invokeResult.exceptionMessage) && invokeResult.exceptionMessage.IndexOf(invokeResult.errorMessage ?? "", System.StringComparison.Ordinal) < 0)
                     AppendMessage(WbbBuildLog.Shorten(invokeResult.exceptionMessage));
-                AppendCapturedErrors();
+                if (!AppendSecurityReport())
+                    AppendCapturedErrors();
+                step = Step.Cleanup;
+                return;
+            }
+
+            if (itemCompiled.Count > 0 && hookRegistered != itemCompiled.Count)
+            {
+                Fail(L("Asmdef.ModuleMissing"));
                 step = Step.Cleanup;
                 return;
             }
@@ -325,6 +464,7 @@ namespace StudioRaming.WarudoBatchBuilder
                     AddUnique(reasons, capture.SilentFailures[i]);
             }
 
+            RefreshBuildLog();
             List<string> logFailures = WbbBuildLog.ScanLogForFailures(itemBuildLogPath, WbbLogCapture.MaxLines);
             for (int i = 0; i < logFailures.Count && reasons.Count < WbbLogCapture.MaxLines; i++)
                 AddUnique(reasons, logFailures[i]);
@@ -342,7 +482,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 bool? hasScripts = WbbBuildLog.ArchiveHasScripts(WbbUtil.ToAbsolutePath(outputFilePath));
                 if (hasScripts.HasValue && !hasScripts.Value)
                 {
-                    Fail(L("Safety.ScriptsMissing"));
+                    Fail(itemCompiled.Count > 0 ? L("Asmdef.ModuleMissing") : L("Safety.ScriptsMissing"));
                     step = Step.Cleanup;
                     return;
                 }
@@ -446,6 +586,48 @@ namespace StudioRaming.WarudoBatchBuilder
 
             WbbJournal.ForgetCopy(copyPath, copyGuid);
             copyPath = "";
+        }
+
+        private const int SecurityMessageLimit = 12;
+        // UMod writes the per-API entries of a code security rejection to the Unity console only, never to its
+        // build log, so they come from the captured console errors. The full list is also kept in the build log.
+        private bool AppendSecurityReport()
+        {
+            StopCapture();
+            if (capture == null || invokeResult == null)
+                return false;
+            bool security = ContainsSecurity(invokeResult.errorMessage) || ContainsSecurity(invokeResult.exceptionMessage) || capture.SawSecurityFailure;
+            if (!security)
+                return false;
+            List<string> entries = capture.SecurityEntries();
+            if (entries.Count == 0)
+                return false;
+            string header = L("Safety.SecurityHeader", entries.Count);
+            AppendMessage(header);
+            int shown = System.Math.Min(entries.Count, SecurityMessageLimit);
+            for (int i = 0; i < shown; i++)
+                AppendMessage(entries[i]);
+            if (entries.Count > shown)
+                AppendMessage(L("Safety.SecurityMore", entries.Count - shown));
+            securityHeader = header;
+            securityEntries = entries;
+            WbbBuildLog.AppendSection(itemBuildLogPath, header, entries);
+            return true;
+        }
+
+        // Called again when the item ends: the UMod log can have grown after the first copy, and the security section
+        // that was appended to that copy has to survive the refresh.
+        private void RefreshBuildLog()
+        {
+            if (string.IsNullOrEmpty(itemBuildLogPath))
+                return;
+            if (WbbBuildLog.RefreshUModLog(itemRecordId, buildStartUtc, ref itemBuildLogPath) && securityEntries != null)
+                WbbBuildLog.AppendSection(itemBuildLogPath, securityHeader, securityEntries);
+        }
+
+        private static bool ContainsSecurity(string text)
+        {
+            return !string.IsNullOrEmpty(text) && text.IndexOf("security", System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void StopCapture()

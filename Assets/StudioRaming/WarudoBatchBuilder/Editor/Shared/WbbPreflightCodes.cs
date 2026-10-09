@@ -20,7 +20,14 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string EnvironmentUnsupported = "environment-unsupported";
         public const string VersionInvalid = "version-invalid";
         public const string VersionAutoFixed = "version-autofixed";
-        public const string AsmdefScripts = "asmdef-scripts";
+        public const string AsmdefNotCompiled = "asmdef-not-compiled";
+        public const string AsmdefReference = "asmdef-reference";
+        public const string AsmdefPrecompiled = "asmdef-precompiled";
+        public const string AsmdefHostUnknown = "asmdef-host-unknown";
+        public const string AsmdefNameCollidesHost = "asmdef-name-collides-host";
+        public const string PlainScriptsUnresolved = "plain-scripts-unresolved";
+        public const string SettingsMissing = "settings-missing";
+        public const string SettingsNoProfile = "settings-no-profile";
         public const string DllInScriptFolder = "dll-in-script-folder";
         public const string UnsupportedFiles = "unsupported-files";
         public const string UModBusy = "umod-busy";

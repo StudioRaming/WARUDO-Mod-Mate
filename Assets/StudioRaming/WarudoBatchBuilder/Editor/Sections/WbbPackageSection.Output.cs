@@ -53,7 +53,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (edited != current)
             {
                 outputDir = WbbUtil.NormalizePath(edited);
-                EditorPrefs.SetString(OutputDirKey, outputDir);
+                WbbPrefs.SetString(OutputDirKey, outputDir);
             }
 
             if (WbbStyles.MiniButton(LC("Package.Browse"), GUILayout.Width(WbbSize.Package.BrowseButton)))
@@ -147,17 +147,17 @@ namespace StudioRaming.WarudoBatchBuilder
             if (next == value)
                 return;
             value = next;
-            EditorPrefs.SetBool(prefKey, value);
+            WbbPrefs.SetBool(prefKey, value);
             if (host != null)
                 host.RequestRepaint();
         }
 
         private void SaveGather()
         {
-            EditorPrefs.SetBool(GatherTexKey, gather.textures);
-            EditorPrefs.SetBool(GatherMatKey, gather.materials);
-            EditorPrefs.SetBool(GatherFbxKey, gather.models);
-            EditorPrefs.SetBool(GatherPrefabKey, gather.prefabs);
+            WbbPrefs.SetBool(GatherTexKey, gather.textures);
+            WbbPrefs.SetBool(GatherMatKey, gather.materials);
+            WbbPrefs.SetBool(GatherFbxKey, gather.models);
+            WbbPrefs.SetBool(GatherPrefabKey, gather.prefabs);
         }
     }
 }

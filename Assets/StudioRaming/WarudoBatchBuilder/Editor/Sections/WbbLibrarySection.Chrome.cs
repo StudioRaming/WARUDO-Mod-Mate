@@ -113,7 +113,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (edited != current)
             {
                 paths[t] = edited;
-                EditorPrefs.SetString(OutputDirKey(type), edited);
+                WbbPrefs.SetString(OutputDirKey(type), edited);
                 pathEditedAt = EditorApplication.timeSinceStartup;
             }
 
@@ -163,7 +163,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (next != typeEnabled[t])
                 {
                     typeEnabled[t] = next;
-                    EditorPrefs.SetBool(Pfx + "Type" + t, next);
+                    WbbPrefs.SetBool(Pfx + "Type" + t, next);
                     filterDirty = true;
                     if (host != null)
                         host.RequestRepaint();
@@ -201,7 +201,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (newSort != sortMode)
             {
                 sortMode = Mathf.Clamp(newSort, 0, 2);
-                EditorPrefs.SetInt(Pfx + "Sort", sortMode);
+                WbbPrefs.SetInt(Pfx + "Sort", sortMode);
                 filterDirty = true;
                 if (host != null)
                     host.RequestRepaint();

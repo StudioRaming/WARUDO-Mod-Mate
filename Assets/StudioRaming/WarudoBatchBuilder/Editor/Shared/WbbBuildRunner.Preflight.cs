@@ -57,12 +57,17 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbSettingsHealth health = WbbExportSettingsGuard.CheckHealth(out healthDetail);
             if (health == WbbSettingsHealth.Missing)
             {
-                issues.Add(new WbbPreflightIssue(true, L("Runner.NoExportSettings"), L("Runner.NoExportSettings.hint")));
+                issues.Add(Coded(true, L("Runner.NoExportSettings"), L("Runner.NoExportSettings.hint"), WbbPreflightCodes.SettingsMissing));
             }
             else if (health == WbbSettingsHealth.Broken)
             {
                 string backup = WbbExportSettingsGuard.NewestValidBackup();
-                issues.Add(Coded(true, L("Safety.SettingsBroken"), string.IsNullOrEmpty(backup) ? L("Safety.SettingsBroken.hintNoBackup") : L("Safety.SettingsBroken.hint", BackupLabel(backup)), WbbPreflightCodes.SettingsBroken, backup));
+                string countError;
+                // A readable asset with no profile is not damaged, it is new: the SDK's own create call adds the profile.
+                if (WbbExportSettings.GetProfileCount(out countError) == 0 && string.IsNullOrEmpty(backup))
+                    issues.Add(Coded(true, L("Runner.NoProfiles"), L("Runner.NoProfiles.hint"), WbbPreflightCodes.SettingsNoProfile));
+                else
+                    issues.Add(Coded(true, L("Safety.SettingsBroken"), string.IsNullOrEmpty(backup) ? L("Safety.SettingsBroken.hintNoBackup") : L("Safety.SettingsBroken.hint", BackupLabel(backup)), WbbPreflightCodes.SettingsBroken, backup));
             }
 
             if (WbbExportSettings.IsUModBuilding() && !AnyRunning)
@@ -87,8 +92,15 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!string.IsNullOrEmpty(buildFolder))
             {
                 WbbScriptFolderScan scan = WbbScriptFolderScan.Run(buildFolder);
-                if (scan.asmdefScripts.Count > 0)
-                    issues.Add(Coded(true, L("Safety.AsmdefScripts", scan.asmdefScripts.Count), L("Safety.AsmdefScripts.hint", scan.asmdefScripts[0]), WbbPreflightCodes.AsmdefScripts));
+                if (scan.asmdefAssemblies.Count > 0 || scan.plainScriptAssets.Count > 0)
+                {
+                    // Runtime code of the folder (assembly definitions and plain scripts) is compiled by Mod Mate itself;
+                    // what stands in the way is reported here.
+                    WbbAsmdefAnalysis asmdef = WbbAsmdefAnalysis.ForFolder(scan);
+                    for (int i = 0; i < asmdef.issues.Count; i++)
+                        issues.Add(Coded(asmdef.issues[i].blocking, asmdef.issues[i].message, asmdef.issues[i].detail, asmdef.issues[i].code));
+                }
+
                 if (scan.dlls.Count > 0)
                     issues.Add(Coded(true, L("Safety.DllInScriptFolder", scan.dlls.Count), L("Safety.DllInScriptFolder.hint", scan.dlls[0]), WbbPreflightCodes.DllInScriptFolder));
                 if (scan.unsupported.Count > 0)

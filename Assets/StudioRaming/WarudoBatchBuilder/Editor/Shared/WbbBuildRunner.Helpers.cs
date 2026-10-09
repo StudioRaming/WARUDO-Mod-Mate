@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -29,8 +30,15 @@ namespace StudioRaming.WarudoBatchBuilder
             itemRecordId = "";
             itemFixupReport = "";
             itemBuildLogPath = "";
+            securityHeader = "";
+            securityEntries = null;
             invokeResult = null;
             outputGuard = null;
+            itemUnits = new List<WbbRuntimeUnit>();
+            itemCompiled = new List<WbbCompiledUnit>();
+            autoPlan = null;
+            autoPlanError = "";
+            compileStarted = false;
             if (capture != null)
                 capture.Stop();
             capture = null;

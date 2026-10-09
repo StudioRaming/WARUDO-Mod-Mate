@@ -100,6 +100,13 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!WbbExportSettingsGuard.Backup(out backupPath, out error))
                 WbbUtil.LogWarning("Build settings backup skipped: " + error);
             WbbScriptFolderScan scan = string.IsNullOrEmpty(userFolder) ? null : WbbScriptFolderScan.Run(userFolder);
+            WbbAsmdefAnalysis analysis = scan != null && (scan.asmdefAssemblies.Count > 0 || scan.plainScriptAssets.Count > 0) ? WbbAsmdefAnalysis.ForFolder(scan) : null;
+            if (analysis != null && analysis.HasBlocking)
+            {
+                SetStatus(analysis.FirstBlockingMessage);
+                return false;
+            }
+
             items = newItems;
             job = newJob;
             typeName = type.ToString();
@@ -111,7 +118,8 @@ namespace StudioRaming.WarudoBatchBuilder
             if (versionFixed)
                 WbbUtil.LogWarning("Mod version '" + (newJob.modVersion ?? "") + "' was completed to '" + modVersion + "'.");
             fixupOptions = WbbFixupOptions.FromJob(newJob);
-            expectScripts = scan != null && scan.runtimeScripts > 0;
+            expectScripts = scan != null && (scan.runtimeScripts > 0 || (analysis != null && analysis.units.Count > 0));
+            folderAnalysis = analysis;
             originalProfile = snapshot.Clone();
             profileIndex = lockedIndex;
             profileWritten = false;
@@ -216,6 +224,7 @@ namespace StudioRaming.WarudoBatchBuilder
             tempRoot = "";
             modFolder = "";
             sceneSetup = null;
+            folderAnalysis = null;
         }
 
         private bool CreateTempFolders()
@@ -261,8 +270,17 @@ namespace StudioRaming.WarudoBatchBuilder
 
         public void AbortAndRestore()
         {
+            AbortAndRestore("");
+        }
+
+        // `reason` is set when Unity stops the build from outside (script reload, Play Mode). It goes into the item's
+        // record and into a note that survives the reload, so the stop is explained once Unity is back.
+        public void AbortAndRestore(string reason)
+        {
             if (!running)
                 return;
+            abortReason = reason ?? "";
+            string stoppedName = currentModName;
             cancelRequested = true;
             try
             {
@@ -273,7 +291,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (itemActive && item != null)
                 {
                     if (item.status == WbbBuildStatus.Running || item.status == WbbBuildStatus.Pending)
-                        MarkCurrent(WbbBuildStatus.Canceled, L("Runner.CanceledItem"));
+                        MarkCurrent(WbbBuildStatus.Canceled, abortReason.Length > 0 ? L("Runner.AbortedItem", abortReason) : L("Runner.CanceledItem"));
                     SettleOutput();
                     FinishItem();
                 }
@@ -284,6 +302,15 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             FinishBatch(true);
+            if (abortReason.Length > 0)
+            {
+                string what = string.IsNullOrEmpty(stoppedName) ? abortReason : abortReason + " (" + stoppedName + ")";
+                string note = L("Runner.AbortNotice", what, lastFinishClean ? L("Runner.AbortRestored") : L("Runner.AbortRestorePending"));
+                WbbRunnerNotice.Save(note);
+                WbbUtil.LogWarning(note);
+            }
+
+            abortReason = "";
         }
 
         private void FinishItem()
@@ -329,6 +356,7 @@ namespace StudioRaming.WarudoBatchBuilder
                     break;
             }
 
+            RefreshBuildLog();
             bool fromScene = !string.IsNullOrEmpty(item.sourceHierarchyPath);
             var entry = new WbbRecord();
             entry.id = string.IsNullOrEmpty(itemRecordId) ? WbbUtil.NewId() : itemRecordId;
@@ -393,6 +421,8 @@ namespace StudioRaming.WarudoBatchBuilder
             clean &= DeleteTempFolders();
             clean &= !WbbJournal.HasPendingCopies;
             clean &= !WbbJournal.HasPendingOutputs;
+            lastFinishClean = clean;
+            DisposeCompileSession();
             if (!AbortingSilently)
                 WbbSceneAutoSave.RestoreSetupIfChanged(sceneSetup);
             sceneSetup = null;
@@ -487,6 +517,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 WbbUtil.LogError("Journal release failed: " + ex.Message);
             }
 
+            DisposeCompileSession();
+
             if (activeRunner == this)
                 activeRunner = null;
             currentModName = "";
@@ -510,6 +542,22 @@ namespace StudioRaming.WarudoBatchBuilder
                     WbbUtil.LogWarning("Finished handler threw: " + ex.Message);
                 }
             }
+        }
+
+        private void DisposeCompileSession()
+        {
+            if (compileSession == null)
+                return;
+            try
+            {
+                compileSession.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                WbbUtil.LogWarning("Could not release the runtime compile session: " + e.Message);
+            }
+
+            compileSession = null;
         }
 
         private void MarkRemainingSkipped()

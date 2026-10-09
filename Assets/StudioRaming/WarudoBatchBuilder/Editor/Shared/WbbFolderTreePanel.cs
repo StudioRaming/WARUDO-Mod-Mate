@@ -40,7 +40,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public WbbFolderTreePanel()
         {
             expanded.Add(WbbFolderPicker.AssetsRoot);
-            OnlyPrefabFolders = EditorPrefs.GetBool(WbbUtil.PrefPrefix + "Tree.OnlyPrefabs", true);
+            OnlyPrefabFolders = WbbPrefs.GetBool(WbbUtil.PrefPrefix + "Tree.OnlyPrefabs", true);
         }
 
         public void InvalidateCounts()
@@ -200,7 +200,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (nowOnly != OnlyPrefabFolders)
             {
                 OnlyPrefabFolders = nowOnly;
-                EditorPrefs.SetBool(WbbUtil.PrefPrefix + "Tree.OnlyPrefabs", OnlyPrefabFolders);
+                WbbPrefs.SetBool(WbbUtil.PrefPrefix + "Tree.OnlyPrefabs", OnlyPrefabFolders);
             }
 
             if (WbbStyles.MiniButton(LC("Tree.Collapse"), GUILayout.Width(WbbSize.Folder.TreeCollapseButton)))

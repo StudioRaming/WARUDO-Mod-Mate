@@ -137,7 +137,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             GUI.FocusControl(null);
             outputDir = WbbUtil.NormalizePath(picked);
-            EditorPrefs.SetString(OutputDirKey, outputDir);
+            WbbPrefs.SetString(OutputDirKey, outputDir);
             if (host != null)
                 host.RequestRepaint();
         }
