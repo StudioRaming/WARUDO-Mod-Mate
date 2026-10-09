@@ -1,10 +1,10 @@
-# WARUDO Mod Mate 0.1.0
+# WARUDO Mod Mate 0.1.1
 
 [English](README.md) | **한국어** | [日本語](README.ja.md)
 
 **프리팹을 선택하고 한 번에 빌드하는 무료 와루도 모딩 도우미입니다.** 매번 원본 이름을 바꾸고 폴더를 옮기는 반복 작업을 줄이고, 씬 오브젝트 빠른 빌드·빌드 이력·Unity 패키지 내보내기를 한 창에서 관리합니다.
 
-**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.0.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE)
+**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE)
 
 다운로드한 파일을 Unity에 임포트하면 됩니다. 소스를 직접 컴파일할 필요는 없습니다. 아래 화면은 0.1.0을 실제 Unity 에디터에서 열어 캡처한 것입니다. 캡처에 사용한 큐브·폴더·빌드 이력은 설명용 예제이며 배포 패키지에는 포함하지 않습니다.
 
@@ -34,7 +34,7 @@
 | 전에 만든 결과 찾기·다시 빌드 | 모드 목록 / 빌드 이력 | 파일 확인, 연결된 소스 찾기, 재빌드 준비 |
 | 프리팹과 필요한 에셋을 다른 Unity 프로젝트로 전달 | `.unitypackage 내보내기` | 프리팹별 Unity 패키지 |
 
-0.1.0은 **Prop·Character 프리팹 빌드와 Unity 패키지 내보내기**를 제공합니다. 환경(Environment)의 프리팹 일괄 빌드는 사전 점검에서 차단합니다. 환경 제작은 [공식 환경 모드 안내](https://docs.warudo.app/docs/modding/environment-mod)를 사용하세요. 모드 목록에서는 이미 만들어진 환경 모드 파일을 확인할 수 있습니다.
+0.1.x는 **Prop·Character 프리팹 빌드와 Unity 패키지 내보내기**를 제공합니다. 환경(Environment)의 프리팹 일괄 빌드는 사전 점검에서 차단합니다. 환경 제작은 [공식 환경 모드 안내](https://docs.warudo.app/docs/modding/environment-mod)를 사용하세요. 모드 목록에서는 이미 만들어진 환경 모드 파일을 확인할 수 있습니다.
 
 Live Test, 아바타 리깅, 자동 셰이더 변환, 물리 세팅은 포함하지 않습니다. 캐릭터가 SDK에 맞게 준비되어야 하며, 모드 종류를 캐릭터로 고르는 것만으로 리깅이나 물리가 만들어지지는 않습니다.
 
@@ -63,12 +63,12 @@ Unity Hub에서 **2021.3.45f2** 프로젝트를 엽니다. 기존 작업 프로�
 
 1. 맨 위의 **유니티패키지 바로 다운로드**를 누릅니다.
 2. Unity에서 **Assets → Import Package → Custom Package…**를 선택합니다.
-3. `WARUDO_Mod_Mate_0.1.0.unitypackage`를 선택합니다.
+3. `WARUDO_Mod_Mate_0.1.1.unitypackage`를 선택합니다.
 4. 항목 목록을 확인하고 **Import**를 누릅니다. 제품 폴더 안의 코드·매뉴얼·이미지는 함께 임포트하세요.
 5. 컴파일이 끝날 때까지 기다립니다.
 6. **StudioRaming → WARUDO Mod Mate**를 엽니다.
 
-창 위에 **v0.1.0**이 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
+창 위에 **v0.1.1**이 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
 
 자동 새로고침을 꺼둔 프로젝트라면 **Assets → Refresh**로 가져오기를 갱신한 뒤 컴파일 완료를 기다리세요. 파일을 교체했어도 컴파일 전에는 이전 버전의 창이 표시될 수 있습니다.
 
@@ -94,7 +94,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 정상 결과는 `.warudo` 파일과 성공 기록입니다. 이후 WARUDO에서 해당 소품을 불러와 실제로 보이는지 확인하세요. 데이터 폴더의 `Props`와 `Characters` 구분 및 Source 선택은 위 공식 첫 모드 안내를 참고하면 됩니다.
 
-**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.0`은 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
+**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.1`은 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
 
 ## 빌드 화면 읽는 법
 
@@ -222,7 +222,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 | `.NET`·Reflection 관련 SDK 컴파일 오류 | API Compatibility Level / Assembly Version Validation | .NET Framework / 해제 상태 확인 |
 | 목록이 비어 있음 | 폴더 범위·검색·숨김·인덱스 진행 | 검색 초기화, 폴더 재선택, 새로고침 |
 | 빌드 버튼이 꺼짐 | 선택 수·사전 점검·진행 중 작업 | 차단 항목 해결 후 대상 확인 |
-| 환경 빌드가 차단됨 | Environment 타입인지 | 0.1.0의 지원 범위는 Prop·Character 프리팹. 공식 SDK 환경 제작 흐름 사용 |
+| 환경 빌드가 차단됨 | Environment 타입인지 | 0.1.x의 지원 범위는 Prop·Character 프리팹. 공식 SDK 환경 제작 흐름 사용 |
 | 빠른 빌드 메뉴가 꺼짐 | Hierarchy 선택 / Play Mode / 다른 빌드 | 씬 오브젝트를 선택하고 빌드 종료까지 기다림 |
 | 결과 이름이 예상과 다름 | 이름 편집·폴더 이름·날짜 옵션 | 목록의 최종 이름을 빌드 전에 확인 |
 | 아래 목록이 좁음 | 상하 분할 경계·창 높이 | 경계를 위로 드래그, 휠 스크롤, 필요하면 창 확대 |

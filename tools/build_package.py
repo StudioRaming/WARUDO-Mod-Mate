@@ -61,6 +61,6 @@ def build(root, output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Build a Unity 2021.3 package with update-safe timestamps; set SOURCE_DATE_EPOCH for reproducible builds.')
-    parser.add_argument('--output', type=Path, default=Path('dist/WARUDO_Mod_Mate_0.1.0.unitypackage'))
+    parser.add_argument('--output', type=Path, default=Path('dist/WARUDO_Mod_Mate_0.1.1.unitypackage'))
     args = parser.parse_args()
     build(Path(__file__).resolve().parent.parent, args.output.resolve())

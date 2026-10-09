@@ -1,4 +1,4 @@
-# WARUDO Mod Mate 0.1.0 — User guide
+# WARUDO Mod Mate 0.1.1 — User guide
 
 [한국어](#한국어) · [English](#english) · [日本語](#日本語)
 
@@ -9,7 +9,7 @@
 
 **프리팹을 선택하고 한 번에 빌드하는 무료 와루도 모딩 도우미입니다.** 매번 원본 이름을 바꾸고 폴더를 옮기는 반복 작업을 줄이고, 씬 오브젝트 빠른 빌드·빌드 이력·Unity 패키지 내보내기를 한 창에서 관리합니다.
 
-**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.0.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE.txt)
+**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE.txt)
 
 다운로드한 파일을 Unity에 임포트하면 됩니다. 소스를 직접 컴파일할 필요는 없습니다. 아래 화면은 0.1.0을 실제 Unity 에디터에서 열어 캡처한 것입니다. 캡처에 사용한 큐브·폴더·빌드 이력은 설명용 예제이며 배포 패키지에는 포함하지 않습니다.
 
@@ -39,7 +39,7 @@
 | 전에 만든 결과 찾기·다시 빌드 | 모드 목록 / 빌드 이력 | 파일 확인, 연결된 소스 찾기, 재빌드 준비 |
 | 프리팹과 필요한 에셋을 다른 Unity 프로젝트로 전달 | `.unitypackage 내보내기` | 프리팹별 Unity 패키지 |
 
-0.1.0은 **Prop·Character 프리팹 빌드와 Unity 패키지 내보내기**를 제공합니다. 환경(Environment)의 프리팹 일괄 빌드는 사전 점검에서 차단합니다. 환경 제작은 [공식 환경 모드 안내](https://docs.warudo.app/docs/modding/environment-mod)를 사용하세요. 모드 목록에서는 이미 만들어진 환경 모드 파일을 확인할 수 있습니다.
+0.1.x는 **Prop·Character 프리팹 빌드와 Unity 패키지 내보내기**를 제공합니다. 환경(Environment)의 프리팹 일괄 빌드는 사전 점검에서 차단합니다. 환경 제작은 [공식 환경 모드 안내](https://docs.warudo.app/docs/modding/environment-mod)를 사용하세요. 모드 목록에서는 이미 만들어진 환경 모드 파일을 확인할 수 있습니다.
 
 Live Test, 아바타 리깅, 자동 셰이더 변환, 물리 세팅은 포함하지 않습니다. 캐릭터가 SDK에 맞게 준비되어야 하며, 모드 종류를 캐릭터로 고르는 것만으로 리깅이나 물리가 만들어지지는 않습니다.
 
@@ -68,12 +68,12 @@ Unity Hub에서 **2021.3.45f2** 프로젝트를 엽니다. 기존 작업 프로�
 
 1. 맨 위의 **유니티패키지 바로 다운로드**를 누릅니다.
 2. Unity에서 **Assets → Import Package → Custom Package…**를 선택합니다.
-3. `WARUDO_Mod_Mate_0.1.0.unitypackage`를 선택합니다.
+3. `WARUDO_Mod_Mate_0.1.1.unitypackage`를 선택합니다.
 4. 항목 목록을 확인하고 **Import**를 누릅니다. 제품 폴더 안의 코드·매뉴얼·이미지는 함께 임포트하세요.
 5. 컴파일이 끝날 때까지 기다립니다.
 6. **StudioRaming → WARUDO Mod Mate**를 엽니다.
 
-창 위에 **v0.1.0**이 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
+창 위에 **v0.1.1**이 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
 
 자동 새로고침을 꺼둔 프로젝트라면 **Assets → Refresh**로 가져오기를 갱신한 뒤 컴파일 완료를 기다리세요. 파일을 교체했어도 컴파일 전에는 이전 버전의 창이 표시될 수 있습니다.
 
@@ -99,7 +99,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 정상 결과는 `.warudo` 파일과 성공 기록입니다. 이후 WARUDO에서 해당 소품을 불러와 실제로 보이는지 확인하세요. 데이터 폴더의 `Props`와 `Characters` 구분 및 Source 선택은 위 공식 첫 모드 안내를 참고하면 됩니다.
 
-**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.0`은 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
+**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.1`은 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
 
 ## 빌드 화면 읽는 법
 
@@ -228,7 +228,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 | `.NET`·Reflection 관련 SDK 컴파일 오류 | API Compatibility Level / Assembly Version Validation | .NET Framework / 해제 상태 확인 |
 | 목록이 비어 있음 | 폴더 범위·검색·숨김·인덱스 진행 | 검색 초기화, 폴더 재선택, 새로고침 |
 | 빌드 버튼이 꺼짐 | 선택 수·사전 점검·진행 중 작업 | 차단 항목 해결 후 대상 확인 |
-| 환경 빌드가 차단됨 | Environment 타입인지 | 0.1.0의 지원 범위는 Prop·Character 프리팹. 공식 SDK 환경 제작 흐름 사용 |
+| 환경 빌드가 차단됨 | Environment 타입인지 | 0.1.x의 지원 범위는 Prop·Character 프리팹. 공식 SDK 환경 제작 흐름 사용 |
 | 빠른 빌드 메뉴가 꺼짐 | Hierarchy 선택 / Play Mode / 다른 빌드 | 씬 오브젝트를 선택하고 빌드 종료까지 기다림 |
 | 결과 이름이 예상과 다름 | 이름 편집·폴더 이름·날짜 옵션 | 목록의 최종 이름을 빌드 전에 확인 |
 | 아래 목록이 좁음 | 상하 분할 경계·창 높이 | 경계를 위로 드래그, 휠 스크롤, 필요하면 창 확대 |
@@ -273,7 +273,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 **A free Unity Editor helper for building WARUDO mods from selected prefabs.** Batch-build prepared prefabs, quick-build scene objects, inspect earlier results and export prefab dependencies from one window.
 
-**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.0.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE.txt)
+**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE.txt)
 
 Import the downloaded package into Unity; no manual source compilation is required. The screenshots show the actual 0.1.0 Editor UI in Korean. The example cubes, folders and records are not included in the release package.
 
@@ -302,7 +302,7 @@ Import the downloaded package into Unity; no manual source compilation is requir
 | Find or rebuild an earlier result | Library / History | File lookup, source lookup and rebuild preparation |
 | Transfer a prefab to another project | Unity package export | A package containing the prefab and selected dependencies |
 
-0.1.0 supports **Prop and Character prefab builds** and Unity package export. Environment prefab builds are blocked; follow the [official Environment Mod workflow](https://docs.warudo.app/docs/modding/environment-mod). Library can still list existing environment files.
+0.1.x supports **Prop and Character prefab builds** and Unity package export. Environment prefab builds are blocked; follow the [official Environment Mod workflow](https://docs.warudo.app/docs/modding/environment-mod). Library can still list existing environment files.
 
 Live Test, avatar rigging, automatic shader conversion and physics setup are not included. Choosing Character does not configure a rig or physics system.
 
@@ -317,9 +317,9 @@ The tested SDK baseline is **0.14.3.10**. Other versions should be tried in a se
 1. Back up an existing project before importing.
 2. Use the direct download link above.
 3. Choose **Assets → Import Package → Custom Package…** in Unity.
-4. Select `WARUDO_Mod_Mate_0.1.0.unitypackage` and import its code, manual and images together.
+4. Select `WARUDO_Mod_Mate_0.1.1.unitypackage` and import its code, manual and images together.
 5. Wait for compilation and open **StudioRaming → WARUDO Mod Mate**.
-6. Confirm **v0.1.0** in the header.
+6. Confirm **v0.1.1** in the header.
 
 Missing menu? Resolve the first red Console compilation error first.
 
@@ -346,7 +346,7 @@ Try a small prefab before a large character to separate installation issues from
 
 A successful result is a `.warudo` file and success record. Load it in WARUDO afterward to check rendering and behavior. The official first-mod tutorial explains Props/Characters folders and Source selection.
 
-**Tool version and mod version differ.** The header's `v0.1.0` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
+**Tool version and mod version differ.** The header's `v0.1.1` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
 
 ## Understanding Build settings
 
@@ -507,7 +507,7 @@ This independent StudioRaming tool and its documentation use the [MIT License](L
 
 **プリファブを選んでまとめてビルドできる、無料の WARUDO モディング補助ツールです。** 一括ビルド、シーンオブジェクトのクイックビルド、履歴確認、Unity パッケージの書き出しを一つのウィンドウで扱えます。
 
-**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.0.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE.txt)
+**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE.txt)
 
 ダウンロードした `.unitypackage` を Unity にインポートしてください。ソースを自分でコンパイルする必要はありません。画像は実際の 0.1.0 の韓国語 UI をキャプチャしたものです。例のキューブ・フォルダー・履歴は配布パッケージに含まれません。
 
@@ -536,7 +536,7 @@ This independent StudioRaming tool and its documentation use the [MIT License](L
 | 過去の結果を探して再ビルド | MOD 一覧 / ビルド履歴 | ファイル・ソースの確認と再ビルドの準備 |
 | 別の Unity プロジェクトに渡す | `.unitypackage` 書き出し | プリファブと選択した依存アセットのパッケージ |
 
-0.1.0 は **Prop・Character のプリファブビルド**と Unity パッケージの書き出しに対応します。Environment のプリファブ一括ビルドは事前確認で停止します。[公式の環境 MOD 手順](https://docs.warudo.app/docs/modding/environment-mod)を使用してください。既存の環境 MOD ファイルは MOD 一覧で確認できます。
+0.1.x は **Prop・Character のプリファブビルド**と Unity パッケージの書き出しに対応します。Environment のプリファブ一括ビルドは事前確認で停止します。[公式の環境 MOD 手順](https://docs.warudo.app/docs/modding/environment-mod)を使用してください。既存の環境 MOD ファイルは MOD 一覧で確認できます。
 
 Live Test、自動リギング、シェーダーの自動変換、物理設定は含まれません。Character を選ぶだけでリグや物理が作られるわけではありません。
 
@@ -551,9 +551,9 @@ SDK の検証基準は **0.14.3.10** です。別バージョンは別のプロ�
 1. 既存プロジェクトを使う場合は先にバックアップします。
 2. 冒頭の直接ダウンロードリンクを開きます。
 3. Unity で **Assets → Import Package → Custom Package…** を選びます。
-4. `WARUDO_Mod_Mate_0.1.0.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
+4. `WARUDO_Mod_Mate_0.1.1.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
 5. コンパイル後、**StudioRaming → WARUDO Mod Mate** を開きます。
-6. ヘッダーの **v0.1.0** を確認します。
+6. ヘッダーの **v0.1.1** を確認します。
 
 メニューがない場合は Console の最初の赤いコンパイルエラーを解決してください。
 
@@ -580,7 +580,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 
 成功すると `.warudo` ファイルと成功記録ができます。その後 WARUDO で読み込み、表示と動作を確認してください。Props / Characters フォルダーと Source 選択は公式の最初の MOD 手順を参照してください。
 
-**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.0` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
+**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.1` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
 
 ## ビルド画面の見方
 
@@ -702,7 +702,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 | SDK の .NET / Reflection エラー | .NET Framework / Assembly Version Validation オフ |
 | 一覧が空 | 範囲・検索・非表示・インデックスを確認して更新 |
 | ビルド無効 | 選択数・停止項目・実行中の作業を確認 |
-| Environment 停止 | 公式環境手順を使用。0.1.0 の一括対象は Prop / Character |
+| Environment 停止 | 公式環境手順を使用。0.1.x の一括対象は Prop / Character |
 | クイックビルド無効 | シーンオブジェクトを選び、Play Mode と他のビルドを終了 |
 | 想定外の名前 | 名前編集・フォルダー名・日付設定を確認 |
 | 下の一覧が狭い | 境界を上へドラッグ、スクロール、ウィンドウ拡大 |

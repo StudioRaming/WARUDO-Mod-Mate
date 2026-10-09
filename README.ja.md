@@ -1,10 +1,10 @@
-# WARUDO Mod Mate 0.1.0
+# WARUDO Mod Mate 0.1.1
 
 [English](README.md) | [한국어](README.ko.md) | **日本語**
 
 **プリファブを選んでまとめてビルドできる、無料の WARUDO モディング補助ツールです。** 一括ビルド、シーンオブジェクトのクイックビルド、履歴確認、Unity パッケージの書き出しを一つのウィンドウで扱えます。
 
-**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.0.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE)
+**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE)
 
 ダウンロードした `.unitypackage` を Unity にインポートしてください。ソースを自分でコンパイルする必要はありません。画像は実際の 0.1.0 の韓国語 UI をキャプチャしたものです。例のキューブ・フォルダー・履歴は配布パッケージに含まれません。
 
@@ -33,7 +33,7 @@
 | 過去の結果を探して再ビルド | MOD 一覧 / ビルド履歴 | ファイル・ソースの確認と再ビルドの準備 |
 | 別の Unity プロジェクトに渡す | `.unitypackage` 書き出し | プリファブと選択した依存アセットのパッケージ |
 
-0.1.0 は **Prop・Character のプリファブビルド**と Unity パッケージの書き出しに対応します。Environment のプリファブ一括ビルドは事前確認で停止します。[公式の環境 MOD 手順](https://docs.warudo.app/docs/modding/environment-mod)を使用してください。既存の環境 MOD ファイルは MOD 一覧で確認できます。
+0.1.x は **Prop・Character のプリファブビルド**と Unity パッケージの書き出しに対応します。Environment のプリファブ一括ビルドは事前確認で停止します。[公式の環境 MOD 手順](https://docs.warudo.app/docs/modding/environment-mod)を使用してください。既存の環境 MOD ファイルは MOD 一覧で確認できます。
 
 Live Test、自動リギング、シェーダーの自動変換、物理設定は含まれません。Character を選ぶだけでリグや物理が作られるわけではありません。
 
@@ -48,9 +48,9 @@ SDK の検証基準は **0.14.3.10** です。別バージョンは別のプロ�
 1. 既存プロジェクトを使う場合は先にバックアップします。
 2. 冒頭の直接ダウンロードリンクを開きます。
 3. Unity で **Assets → Import Package → Custom Package…** を選びます。
-4. `WARUDO_Mod_Mate_0.1.0.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
+4. `WARUDO_Mod_Mate_0.1.1.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
 5. コンパイル後、**StudioRaming → WARUDO Mod Mate** を開きます。
-6. ヘッダーの **v0.1.0** を確認します。
+6. ヘッダーの **v0.1.1** を確認します。
 
 メニューがない場合は Console の最初の赤いコンパイルエラーを解決してください。
 
@@ -77,7 +77,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 
 成功すると `.warudo` ファイルと成功記録ができます。その後 WARUDO で読み込み、表示と動作を確認してください。Props / Characters フォルダーと Source 選択は公式の最初の MOD 手順を参照してください。
 
-**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.0` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
+**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.1` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
 
 ## ビルド画面の見方
 
@@ -198,7 +198,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 | SDK の .NET / Reflection エラー | .NET Framework / Assembly Version Validation オフ |
 | 一覧が空 | 範囲・検索・非表示・インデックスを確認して更新 |
 | ビルド無効 | 選択数・停止項目・実行中の作業を確認 |
-| Environment 停止 | 公式環境手順を使用。0.1.0 の一括対象は Prop / Character |
+| Environment 停止 | 公式環境手順を使用。0.1.x の一括対象は Prop / Character |
 | クイックビルド無効 | シーンオブジェクトを選び、Play Mode と他のビルドを終了 |
 | 想定外の名前 | 名前編集・フォルダー名・日付設定を確認 |
 | 下の一覧が狭い | 境界を上へドラッグ、スクロール、ウィンドウ拡大 |
