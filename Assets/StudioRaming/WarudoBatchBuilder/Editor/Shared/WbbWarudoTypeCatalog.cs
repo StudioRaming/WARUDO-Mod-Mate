@@ -50,8 +50,16 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             path = "";
             IAssemblySymbol symbol;
-            if (!symbols.TryGetValue(assembly, out symbol) || symbol.GetTypeByMetadataName(metadataName) == null)
+            if (!symbols.TryGetValue(assembly, out symbol))
                 return false;
+            // WARUDO's System.dll forwards Stack`1/Queue`1 to mscorlib; a forwarded type is still provided, but only
+            // when the target resolves: a forward into an assembly WARUDO does not ship comes back as an error type.
+            if (symbol.GetTypeByMetadataName(metadataName) == null)
+            {
+                var forwarded = symbol.ResolveForwardedType(metadataName);
+                if (forwarded == null || forwarded.TypeKind == TypeKind.Error)
+                    return false;
+            }
             path = paths[assembly];
             return true;
         }
