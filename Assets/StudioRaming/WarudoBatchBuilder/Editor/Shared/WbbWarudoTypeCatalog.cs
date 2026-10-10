@@ -52,14 +52,33 @@ namespace StudioRaming.WarudoBatchBuilder
             IAssemblySymbol symbol;
             if (!symbols.TryGetValue(assembly, out symbol))
                 return false;
+            // A nested name is Outer+Inner: resolve the top-level part, then descend, so an Inner that this WARUDO
+            // build lacks is rejected even when Outer exists.
+            string[] parts = metadataName.Split('+');
             // WARUDO's System.dll forwards Stack`1/Queue`1 to mscorlib; a forwarded type is still provided, but only
             // when the target resolves: a forward into an assembly WARUDO does not ship comes back as an error type.
-            if (symbol.GetTypeByMetadataName(metadataName) == null)
+            INamedTypeSymbol current = symbol.GetTypeByMetadataName(parts[0]);
+            if (current == null)
             {
-                var forwarded = symbol.ResolveForwardedType(metadataName);
-                if (forwarded == null || forwarded.TypeKind == TypeKind.Error)
+                current = symbol.ResolveForwardedType(parts[0]);
+                if (current == null || current.TypeKind == TypeKind.Error)
                     return false;
             }
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string name = parts[i];
+                int arity = 0;
+                int tick = name.LastIndexOf('`');
+                if (tick >= 0 && int.TryParse(name.Substring(tick + 1), out arity))
+                    name = name.Substring(0, tick);
+                else
+                    arity = 0;
+                current = current.GetTypeMembers(name, arity).FirstOrDefault();
+                if (current == null)
+                    return false;
+            }
+
             path = paths[assembly];
             return true;
         }

@@ -210,21 +210,23 @@ namespace StudioRaming.WarudoBatchBuilder
                 foreach (var argument in named.TypeArguments)
                     RequireSymbol(argument);
                 named = named.OriginalDefinition;
+                // The nested name decides what WARUDO provides; the outermost type is only the unit of source enqueue.
+                string nestedName = MetadataName(named);
                 while (named.ContainingType != null)
                     named = named.ContainingType;
                 string assembly = named.ContainingAssembly.Identity.Name;
                 string name = MetadataName(named);
                 string provided;
-                if (host.Contains(assembly, name, out provided))
+                if (host.Contains(assembly, nestedName, out provided))
                 {
-                    plan.providedTypes.Add(assembly + ":" + name);
+                    plan.providedTypes.Add(assembly + ":" + nestedName);
                     nativeAssemblies.Add(assembly);
                     return;
                 }
 
                 if (named.DeclaringSyntaxReferences.Length == 0)
                 {
-                    Require(assembly, name);
+                    Require(assembly, nestedName);
                     return;
                 }
 
