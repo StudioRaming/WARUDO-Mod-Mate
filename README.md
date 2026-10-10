@@ -1,10 +1,10 @@
-# WARUDO Mod Mate 0.1.1
+# WARUDO Mod Mate 0.1.2
 
 **English** | [한국어](README.ko.md) | [日本語](README.ja.md)
 
 **A free Unity Editor helper for building WARUDO mods from selected prefabs.** Batch-build prepared prefabs, quick-build scene objects, inspect earlier results and export prefab dependencies from one window.
 
-**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE)
+**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.2.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE)
 
 Import the downloaded package into Unity; no manual source compilation is required. The screenshots show the actual 0.1.0 Editor UI in Korean. The example cubes, folders and records are not included in the release package.
 
@@ -48,9 +48,9 @@ The tested SDK baseline is **0.14.3.10**. Other versions should be tried in a se
 1. Back up an existing project before importing.
 2. Use the direct download link above.
 3. Choose **Assets → Import Package → Custom Package…** in Unity.
-4. Select `WARUDO_Mod_Mate_0.1.1.unitypackage` and import its code, manual and images together.
+4. Select `WARUDO_Mod_Mate_0.1.2.unitypackage` and import its code, manual and images together.
 5. Wait for compilation and open **StudioRaming → WARUDO Mod Mate**.
-6. Confirm **v0.1.1** in the header.
+6. Confirm **v0.1.2** in the header.
 
 Missing menu? Resolve the first red Console compilation error first.
 
@@ -77,7 +77,7 @@ Try a small prefab before a large character to separate installation issues from
 
 A successful result is a `.warudo` file and success record. Load it in WARUDO afterward to check rendering and behavior. The official first-mod tutorial explains Props/Characters folders and Source selection.
 
-**Tool version and mod version differ.** The header's `v0.1.1` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
+**Tool version and mod version differ.** The header's `v0.1.2` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
 
 ## Understanding Build settings
 

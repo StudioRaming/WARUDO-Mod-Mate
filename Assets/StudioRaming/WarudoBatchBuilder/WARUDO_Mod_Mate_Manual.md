@@ -1,4 +1,4 @@
-# WARUDO Mod Mate 0.1.1 — User guide
+# WARUDO Mod Mate 0.1.2 — User guide
 
 [한국어](#한국어) · [English](#english) · [日本語](#日本語)
 
@@ -9,7 +9,7 @@
 
 **프리팹을 선택하고 한 번에 빌드하는 무료 와루도 모딩 도우미입니다.** 매번 원본 이름을 바꾸고 폴더를 옮기는 반복 작업을 줄이고, 씬 오브젝트 빠른 빌드·빌드 이력·Unity 패키지 내보내기를 한 창에서 관리합니다.
 
-**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE.txt)
+**[유니티패키지 바로 다운로드](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.2.unitypackage)** · [전체 릴리스](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT 라이선스](LICENSE.txt)
 
 다운로드한 파일을 Unity에 임포트하면 됩니다. 소스를 직접 컴파일할 필요는 없습니다. 아래 화면은 0.1.0을 실제 Unity 에디터에서 열어 캡처한 것입니다. 캡처에 사용한 큐브·폴더·빌드 이력은 설명용 예제이며 배포 패키지에는 포함하지 않습니다.
 
@@ -68,12 +68,12 @@ Unity Hub에서 **2021.3.45f2** 프로젝트를 엽니다. 기존 작업 프로�
 
 1. 맨 위의 **유니티패키지 바로 다운로드**를 누릅니다.
 2. Unity에서 **Assets → Import Package → Custom Package…**를 선택합니다.
-3. `WARUDO_Mod_Mate_0.1.1.unitypackage`를 선택합니다.
+3. `WARUDO_Mod_Mate_0.1.2.unitypackage`를 선택합니다.
 4. 항목 목록을 확인하고 **Import**를 누릅니다. 제품 폴더 안의 코드·매뉴얼·이미지는 함께 임포트하세요.
 5. 컴파일이 끝날 때까지 기다립니다.
 6. **StudioRaming → WARUDO Mod Mate**를 엽니다.
 
-창 위에 **v0.1.1**이 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
+창 위에 **v0.1.2**가 보이면 이번 버전이 열린 것입니다. 메뉴가 없다면 먼저 Console의 컴파일 오류를 확인하세요.
 
 자동 새로고침을 꺼둔 프로젝트라면 **Assets → Refresh**로 가져오기를 갱신한 뒤 컴파일 완료를 기다리세요. 파일을 교체했어도 컴파일 전에는 이전 버전의 창이 표시될 수 있습니다.
 
@@ -99,7 +99,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 정상 결과는 `.warudo` 파일과 성공 기록입니다. 이후 WARUDO에서 해당 소품을 불러와 실제로 보이는지 확인하세요. 데이터 폴더의 `Props`와 `Characters` 구분 및 Source 선택은 위 공식 첫 모드 안내를 참고하면 됩니다.
 
-**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.1`은 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
+**툴 버전과 모드 버전은 다릅니다.** 창 위의 `v0.1.2`는 Mod Mate 버전이고, 빌드 설정의 `모드 버전`은 지금 만드는 모드의 버전입니다. 이 값에 `1.0.0`이 보여도 툴이 잘못 설치된 것은 아닙니다.
 
 ## 빌드 화면 읽는 법
 
@@ -273,7 +273,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 **A free Unity Editor helper for building WARUDO mods from selected prefabs.** Batch-build prepared prefabs, quick-build scene objects, inspect earlier results and export prefab dependencies from one window.
 
-**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE.txt)
+**[Download the Unity package directly](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.2.unitypackage)** · [All releases](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT License](LICENSE.txt)
 
 Import the downloaded package into Unity; no manual source compilation is required. The screenshots show the actual 0.1.0 Editor UI in Korean. The example cubes, folders and records are not included in the release package.
 
@@ -317,9 +317,9 @@ The tested SDK baseline is **0.14.3.10**. Other versions should be tried in a se
 1. Back up an existing project before importing.
 2. Use the direct download link above.
 3. Choose **Assets → Import Package → Custom Package…** in Unity.
-4. Select `WARUDO_Mod_Mate_0.1.1.unitypackage` and import its code, manual and images together.
+4. Select `WARUDO_Mod_Mate_0.1.2.unitypackage` and import its code, manual and images together.
 5. Wait for compilation and open **StudioRaming → WARUDO Mod Mate**.
-6. Confirm **v0.1.1** in the header.
+6. Confirm **v0.1.2** in the header.
 
 Missing menu? Resolve the first red Console compilation error first.
 
@@ -346,7 +346,7 @@ Try a small prefab before a large character to separate installation issues from
 
 A successful result is a `.warudo` file and success record. Load it in WARUDO afterward to check rendering and behavior. The official first-mod tutorial explains Props/Characters folders and Source selection.
 
-**Tool version and mod version differ.** The header's `v0.1.1` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
+**Tool version and mod version differ.** The header's `v0.1.2` is Mod Mate's version. `Mod version` describes your output and may be `1.0.0`.
 
 ## Understanding Build settings
 
@@ -507,7 +507,7 @@ This independent StudioRaming tool and its documentation use the [MIT License](L
 
 **プリファブを選んでまとめてビルドできる、無料の WARUDO モディング補助ツールです。** 一括ビルド、シーンオブジェクトのクイックビルド、履歴確認、Unity パッケージの書き出しを一つのウィンドウで扱えます。
 
-**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.1.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE.txt)
+**[Unity パッケージを直接ダウンロード](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases/latest/download/WARUDO_Mod_Mate_0.1.2.unitypackage)** · [リリース一覧](https://github.com/StudioRaming/WARUDO-Mod-Mate/releases) · [MIT ライセンス](LICENSE.txt)
 
 ダウンロードした `.unitypackage` を Unity にインポートしてください。ソースを自分でコンパイルする必要はありません。画像は実際の 0.1.0 の韓国語 UI をキャプチャしたものです。例のキューブ・フォルダー・履歴は配布パッケージに含まれません。
 
@@ -551,9 +551,9 @@ SDK の検証基準は **0.14.3.10** です。別バージョンは別のプロ�
 1. 既存プロジェクトを使う場合は先にバックアップします。
 2. 冒頭の直接ダウンロードリンクを開きます。
 3. Unity で **Assets → Import Package → Custom Package…** を選びます。
-4. `WARUDO_Mod_Mate_0.1.1.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
+4. `WARUDO_Mod_Mate_0.1.2.unitypackage` を選び、コード・マニュアル・画像を一緒にインポートします。
 5. コンパイル後、**StudioRaming → WARUDO Mod Mate** を開きます。
-6. ヘッダーの **v0.1.1** を確認します。
+6. ヘッダーの **v0.1.2** を確認します。
 
 メニューがない場合は Console の最初の赤いコンパイルエラーを解決してください。
 
@@ -580,7 +580,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 
 成功すると `.warudo` ファイルと成功記録ができます。その後 WARUDO で読み込み、表示と動作を確認してください。Props / Characters フォルダーと Source 選択は公式の最初の MOD 手順を参照してください。
 
-**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.1` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
+**ツールと MOD のバージョンは別です。** ヘッダーの `v0.1.2` は Mod Mate のバージョンです。設定内の MOD バージョンに `1.0.0` が表示されても、インストール間違いではありません。
 
 ## ビルド画面の見方
 

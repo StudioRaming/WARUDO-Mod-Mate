@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2 (2026-10-11)
+
+Fixes
+
+- Types that WARUDO provides through an assembly type-forward are accepted. WARUDO's System.dll forwards ``Stack`1`` and ``Queue`1`` to mscorlib, so a mod whose runtime used them was rejected with "WARUDO does not provide this DLL-only type". A forward whose target does not resolve is still refused.
+- Nested types are checked by their full metadata name (Outer+Inner) against WARUDO. An Inner type that the installed WARUDO lacks is now rejected even when Outer exists. `Stack<T>.Enumerator` and `Queue<T>.Enumerator` (foreach over Stack or Queue) are no longer rejected.
+
 ## 0.1.1 (2026-10-09)
 
 Mod runtime code
