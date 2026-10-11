@@ -577,9 +577,18 @@ namespace StudioRaming.WarudoBatchBuilder
                 "History.RebuildFailedConfirm",
                 new[]
                 {
-                    "실패 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}\n\n계속할까요?",
-                    "Found {0} rebuild target(s) among failed records (newest per prefab).\nFirst target: {1}\n\nContinue?",
-                    "失敗記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}\n\n続行しますか？"
+                    "실패 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}{2}\n\n계속할까요?",
+                    "Found {0} rebuild target(s) among failed records (newest per prefab).\nFirst target: {1}{2}\n\nContinue?",
+                    "失敗記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}{2}\n\n続行しますか？"
+                }
+            },
+            {
+                "History.RebuildDropNote",
+                new[]
+                {
+                    "설정이 다른 {0}건은 이번에 빠집니다. (타입 · 버전 · 제작자 · 출력 폴더가 다름)",
+                    "{0} item(s) with different settings are left out this time (type, version, author or output folder differ).",
+                    "設定が異なる {0}件は今回は含まれません。（タイプ・バージョン・作者・出力フォルダが異なる）"
                 }
             },
             {
@@ -802,9 +811,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "History.RebuildSelectedConfirm",
                 new[]
                 {
-                    "선택한 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}\n\n계속할까요?",
-                    "Found {0} rebuild target(s) in the selection (newest per prefab).\nFirst target: {1}\n\nContinue?",
-                    "選択した記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}\n\n続行しますか？"
+                    "선택한 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}{2}\n\n계속할까요?",
+                    "Found {0} rebuild target(s) in the selection (newest per prefab).\nFirst target: {1}{2}\n\nContinue?",
+                    "選択した記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}{2}\n\n続行しますか？"
                 }
             },
         };
