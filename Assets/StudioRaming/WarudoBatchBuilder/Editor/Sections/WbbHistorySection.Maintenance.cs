@@ -49,12 +49,21 @@ namespace StudioRaming.WarudoBatchBuilder
                 host.RequestRepaint();
         }
 
+        // Same shape as the Library delete confirm: the selected records that a search, filter or folded group hides are named.
+        private bool ConfirmDeleteSelected(List<Row> picked)
+        {
+            string text = L("History.DeleteSelectedConfirm", picked.Count, picked[0].nameText);
+            if (hiddenSelectedCount > 0)
+                text += "\n\n" + L("History.DeleteHiddenWarn", hiddenSelectedCount);
+            return EditorUtility.DisplayDialog(L("Common.ProductName"), text, L("Common.Delete"), L("Common.Cancel"));
+        }
+
         private void DeleteSelected()
         {
             var picked = CollectSelected();
             if (picked.Count == 0)
                 return;
-            if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.DeleteSelectedConfirm", picked.Count, picked[0].nameText), L("Common.Delete"), L("Common.Cancel")))
+            if (!ConfirmDeleteSelected(picked))
                 return;
             var ids = new List<string>(picked.Count);
             for (int i = 0; i < picked.Count; i++)

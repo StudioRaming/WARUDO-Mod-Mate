@@ -459,6 +459,14 @@ namespace StudioRaming.WarudoBatchBuilder
             RequestRepaint();
         }
 
+        // Clear Selection drops every selected prefab, including ones a search, filter or other folder scope hides.
+        private void ClearAllSelection()
+        {
+            selected.Clear();
+            MarkSelectionChanged();
+            RequestRepaint();
+        }
+
         private void SetSelectionForFiltered(bool value)
         {
             for (int i = 0; i < filtered.Count; i++)

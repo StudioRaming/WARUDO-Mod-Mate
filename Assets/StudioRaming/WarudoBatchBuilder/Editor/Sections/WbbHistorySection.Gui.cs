@@ -451,7 +451,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (WbbStyles.MiniButton(LC("Common.SelectAll"), GUILayout.Width(WbbSize.History.SelectAllButton)))
                 SetSelectionForVisible(true);
             if (WbbStyles.MiniButton(LC("Common.DeselectAll"), GUILayout.Width(WbbSize.History.DeselectAllButton)))
-                SetSelectionForVisible(false);
+                ClearAllSelection();
             GUILayout.Space(WbbSize.SpaceSmall);
             selectionCueScratch.text = L("Ui.History.SelectionCue", selectionCount);
             selectionCueScratch.tooltip = selectionCueScratch.text;

@@ -219,7 +219,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (WbbStyles.MiniButton(LC("Common.SelectAll"), GUILayout.Width(WbbSize.Library.SelectAllButton)))
                 SetSelectionForFiltered(true);
             if (WbbStyles.MiniButton(LC("Common.DeselectAll"), GUILayout.Width(WbbSize.Library.DeselectAllButton)))
-                SetSelectionForFiltered(false);
+                ClearAllSelection();
             GUILayout.Space(WbbSize.SpaceSmall);
             selectionCueScratch.text = L("Ui.Library.SelectionCue", selectionCount, selectionTrackedCount, Mathf.Max(0, selectionCount - selectionTrackedCount));
             selectionCueScratch.tooltip = selectionCueScratch.text;

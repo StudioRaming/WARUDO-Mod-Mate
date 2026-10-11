@@ -118,6 +118,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private string pendingStatusLineText = "";
         private WbbTone pendingStatusLineTone = WbbTone.Info;
         private bool pendingForceRefresh;
+        private int hiddenSelectedCount;
         private bool pendingExportCsv;
         private bool pendingRebuildSelected;
         private bool pendingRebuildFailed;

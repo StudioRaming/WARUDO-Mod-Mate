@@ -619,6 +619,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "History.DeleteHiddenWarn",
+                new[]
+                {
+                    "이 중 {0}건은 현재 검색·필터나 접힌 묶음 때문에 화면에 보이지 않는 기록입니다.",
+                    "{0} of these are not visible on screen right now because of the current search/filter or a folded group.",
+                    "このうち {0}件は現在の検索・フィルターまたは折りたたまれたグループにより画面に表示されていない記録です。"
+                }
+            },
+            {
                 "History.DeleteOneConfirm",
                 new[]
                 {

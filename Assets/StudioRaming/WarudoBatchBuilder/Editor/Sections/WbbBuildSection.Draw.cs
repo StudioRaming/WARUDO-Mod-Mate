@@ -363,7 +363,7 @@ namespace StudioRaming.WarudoBatchBuilder
             });
             menu.AddItem(LC("Common.DeselectAll"), false, delegate
             {
-                SetSelectionForFiltered(false);
+                ClearAllSelection();
             });
             menu.AddSeparator("");
             for (int s = SortName; s <= SortState; s++)

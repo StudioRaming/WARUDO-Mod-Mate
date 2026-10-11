@@ -77,6 +77,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 host.RequestRepaint();
         }
 
+        // Clear Selection drops every selected file, including ones a search or filter hides.
+        private void ClearAllSelection()
+        {
+            selected.Clear();
+            selectionDirty = true;
+            if (host != null)
+                host.RequestRepaint();
+        }
+
         private List<Row> CollectSelected()
         {
             var result = new List<Row>();
