@@ -79,7 +79,10 @@ namespace StudioRaming.WarudoBatchBuilder
             if (WbbSceneAutoSave.HasDirtyPrefabStage(out stagePath))
                 issues.Add(Coded(true, L("Safety.PrefabStageDirty", stagePath), L("Safety.PrefabStageDirty.hint"), WbbPreflightCodes.PrefabStageDirty));
             if (!AnyRunning && WbbJournal.Exists && WbbJournal.Current == null)
-                issues.Add(Coded(false, L("Safety.JournalPending"), L("Safety.JournalPending.hint"), WbbPreflightCodes.JournalPending));
+            {
+                bool restoreFailed = WbbJournal.SettingsRestorePending;
+                issues.Add(Coded(restoreFailed, L("Safety.JournalPending"), restoreFailed ? L("Safety.JournalBlocksStart") : L("Safety.JournalPending.hint"), WbbPreflightCodes.JournalPending));
+            }
             if (WbbDatabase.LoadFailed)
                 issues.Add(Coded(false, L("Safety.DatabaseLoadFailed"), L("Safety.DatabaseLoadFailed.hint"), WbbPreflightCodes.DatabaseLoadFailed));
             bool versionFixed;

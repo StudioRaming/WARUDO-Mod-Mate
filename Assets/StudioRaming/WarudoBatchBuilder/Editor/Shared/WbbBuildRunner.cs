@@ -270,6 +270,13 @@ namespace StudioRaming.WarudoBatchBuilder
                 WbbUtil.LogWarning("Leftover build cleanup failed: " + e.Message);
             }
 
+            // A journal that survived recovery still holds the only copy of the original settings; Begin would overwrite it.
+            if (WbbJournal.Exists && WbbJournal.Current == null)
+            {
+                SetStatus(L("Safety.JournalBlocksStart"));
+                return false;
+            }
+
             WbbRunnerNotice.Clear();
 
             string blocker = CheckStartBlockers(newJob);

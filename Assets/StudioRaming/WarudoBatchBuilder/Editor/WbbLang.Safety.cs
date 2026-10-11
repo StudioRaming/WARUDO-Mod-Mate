@@ -313,6 +313,24 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Safety.JournalBlocksStart",
+                new[]
+                {
+                    "지난 빌드의 설정을 되돌리지 못해 복구 기록을 남겨 두었고, 새 빌드는 시작하지 않았습니다. 설정 파일의 읽기 전용·잠금을 풀고 에디터를 다시 열거나, 빌드 탭의 ExportSettings 백업에서 되돌리세요.",
+                    "The settings of the last build could not be restored, so its recovery record was kept and no new build was started. Clear the read-only flag or lock on the settings file and reopen the editor, or restore from an ExportSettings backup in the Build tab.",
+                    "前回のビルドの設定を戻せなかったため復旧記録を残し、新しいビルドは開始しませんでした。設定ファイルの読み取り専用やロックを解除してエディターを開き直すか、ビルドタブの ExportSettings バックアップから戻してください。"
+                }
+            },
+            {
+                "Safety.JournalUnrecovered",
+                new[]
+                {
+                    "빌드 설정을 여러 번 복원하지 못해 복구 기록을 {0} 로 따로 보관했습니다. 빌드 탭의 ExportSettings 백업에서 되돌리세요.",
+                    "The build settings could not be restored after several attempts, so the recovery record was set aside as {0}. Restore from an ExportSettings backup in the Build tab.",
+                    "ビルド設定を何度も復元できなかったため、復旧記録を {0} として別に保管しました。ビルドタブの ExportSettings バックアップから戻してください。"
+                }
+            },
+            {
                 "Safety.DatabaseLoadFailed",
                 new[]
                 {

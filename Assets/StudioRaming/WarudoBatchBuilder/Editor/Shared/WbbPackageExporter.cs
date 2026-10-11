@@ -37,7 +37,14 @@ namespace StudioRaming.WarudoBatchBuilder
 
         public static bool WritePackage(IList<WbbPackageAsset> assets, string packageRootName, string outputFilePath, WbbGatherOptions gather, out string error)
         {
+            int skippedCount;
+            return WritePackage(assets, packageRootName, outputFilePath, gather, out error, out skippedCount);
+        }
+
+        public static bool WritePackage(IList<WbbPackageAsset> assets, string packageRootName, string outputFilePath, WbbGatherOptions gather, out string error, out int skippedCount)
+        {
             error = string.Empty;
+            skippedCount = 0;
             if (assets == null || assets.Count == 0)
             {
                 error = "No assets to package.";
@@ -68,18 +75,21 @@ namespace StudioRaming.WarudoBatchBuilder
 
             int skipped;
             List<Entry> entries = BuildEntries(assets, rootName, gather, out skipped);
+            skippedCount = skipped;
             if (entries.Count == 0)
             {
                 error = "No readable asset to package. (" + skipped + " skipped)";
                 return false;
             }
 
+            // Written beside the target and swapped in at the end, so a failed or interrupted export leaves the old package alone.
+            string tempPath = outputPath + ".tmp-" + Guid.NewGuid().ToString("N");
             int written = 0;
             long totalBytes = 0L;
             bool ok;
             try
             {
-                using (var file = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, FileBufferSize))
+                using (var file = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, FileBufferSize))
                 using (var gzip = new WbbGzipStream(file, "archtemp.tar", GzipTimeStamp(), true))
                 using (var tar = new WbbTarWriter(gzip))
                 {
@@ -122,14 +132,46 @@ namespace StudioRaming.WarudoBatchBuilder
                 ok = false;
             }
 
+            if (ok)
+            {
+                string commitError;
+                if (!CommitFile(tempPath, outputPath, out commitError))
+                {
+                    error = commitError;
+                    ok = false;
+                }
+            }
+
             if (!ok)
             {
-                TryDelete(outputPath);
+                skippedCount = skipped;
+                TryDelete(tempPath);
                 return false;
             }
 
+            skippedCount = skipped;
+
             WbbUtil.Log("Package written: " + outputPath + " (" + written + " assets, " + WbbUtil.FormatSize(totalBytes) + " raw" + (skipped > 0 ? ", " + skipped + " skipped" : "") + ")");
             return true;
+        }
+
+        // Swaps the finished temp file in for the target: File.Replace when the target exists, File.Move otherwise.
+        internal static bool CommitFile(string tempPath, string outputPath, out string error)
+        {
+            error = string.Empty;
+            try
+            {
+                if (File.Exists(outputPath))
+                    File.Replace(tempPath, outputPath, null);
+                else
+                    File.Move(tempPath, outputPath);
+                return true;
+            }
+            catch (Exception e)
+            {
+                error = "Cannot replace the package file: " + e.Message;
+                return false;
+            }
         }
 
         private static List<Entry> BuildEntries(IList<WbbPackageAsset> assets, string rootName, WbbGatherOptions gather, out int skipped)
@@ -232,7 +274,7 @@ namespace StudioRaming.WarudoBatchBuilder
             }
             catch (Exception e)
             {
-                WbbUtil.LogWarning("Package: cannot remove incomplete file '" + path + "' (" + e.Message + ")");
+                WbbUtil.LogWarning("Package: cannot remove temporary file '" + path + "' (" + e.Message + ")");
             }
         }
     }

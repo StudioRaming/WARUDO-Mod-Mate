@@ -112,6 +112,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
             int done = 0;
             int failed = 0;
+            int skippedAssets = 0;
             long totalBytes = 0L;
             bool canceled = false;
             var errors = new List<string>();
@@ -155,7 +156,10 @@ namespace StudioRaming.WarudoBatchBuilder
 
                     string outputPath = renameInsteadOfOverwrite ? MakeFreePath(dir, plan.baseName) : plan.outputPath;
                     string error;
-                    if (WbbPackageExporter.WritePackage(keep, plan.baseName, outputPath, gather, out error))
+                    int skippedInPackage;
+                    bool written = WbbPackageExporter.WritePackage(keep, plan.baseName, outputPath, gather, out error, out skippedInPackage);
+                    skippedAssets += skippedInPackage;
+                    if (written)
                     {
                         done++;
                         totalBytes += FileSizeOf(outputPath);
@@ -182,7 +186,9 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int i = 0; i < errors.Count; i++)
                 WbbUtil.LogWarning("Package export: " + errors[i]);
             string summary = canceled ? L("Package.ResultCanceled", done, plans.Count, WbbUtil.FormatSize(totalBytes)) : L("Package.ResultOk", done, failed, WbbUtil.FormatSize(totalBytes));
-            SetResultStatus(summary, failed > 0 ? MessageType.Warning : MessageType.Info, dir);
+            if (skippedAssets > 0)
+                summary += " " + L("Package.ResultSkipped", skippedAssets);
+            SetResultStatus(summary, failed > 0 || skippedAssets > 0 ? MessageType.Warning : MessageType.Info, dir);
             WbbUtil.Log(summary + " -> " + dir);
             if (host != null)
                 host.RequestRepaint();

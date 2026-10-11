@@ -56,6 +56,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public bool clearConsoleOnBuild;
         public bool showOutputDirectory;
         public int logLevel;
+        public int recoveryAttempts;
     }
 
     public class WbbStrandedOriginal
@@ -72,9 +73,11 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string TempFolderPrefix = "_WBB_Temp_do_not_edit_";
         private const string FileName = "BuildJournal.json";
         private const string StrandReportedKey = WbbUtil.PrefPrefix + "Journal.StrandReported";
+        public const int MaxRecoveryAttempts = 3;
         private static WbbJournalData current;
         private static string lastRecoverySummary = "";
         private static string lastRecoveryIso = "";
+        private static bool settingsRestorePending;
         static WbbJournal()
         {
             EditorApplication.delayCall += OnEditorLoaded;
@@ -116,6 +119,15 @@ namespace StudioRaming.WarudoBatchBuilder
             get
             {
                 return lastRecoverySummary;
+            }
+        }
+
+        // True while a journal is kept because the build settings could not be written back; a new batch must wait for it.
+        public static bool SettingsRestorePending
+        {
+            get
+            {
+                return settingsRestorePending && Exists;
             }
         }
 
@@ -505,6 +517,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public static void Complete()
         {
             current = null;
+            settingsRestorePending = false;
             try
             {
                 if (File.Exists(JournalPath))
@@ -727,9 +740,58 @@ namespace StudioRaming.WarudoBatchBuilder
             lastRecoverySummary = summary;
             lastRecoveryIso = WbbUtil.NowIso();
             WbbUtil.LogWarning("Recovered from an interrupted build: removed " + removedCopies + " temporary copy(ies), " + "reverted " + revertedOutputs + " unconfirmed output file(s), " + "build settings restored=" + settingsRestored + (problems.Count > 0 ? ", left for manual check: " + string.Join(", ", problems.ToArray()) : "") + ".");
-            Notify(summary);
-            Complete();
+            if (settingsRestored)
+            {
+                Notify(summary);
+                Complete();
+                return true;
+            }
+
+            KeepForSettingsRestore(data, summary);
             return true;
+        }
+
+        // Settings could not be written back: the journal is the only record of the original values, so keep it
+        // (settings fields only) and retry later, up to MaxRecoveryAttempts, then set it aside like an unreadable one.
+        private static void KeepForSettingsRestore(WbbJournalData data, string summary)
+        {
+            data.copies.Clear();
+            data.tempFolders.Clear();
+            data.tempRoot = "";
+            data.outputs.Clear();
+            data.recoveryAttempts++;
+            bool saved = Write(data);
+            if (data.recoveryAttempts >= MaxRecoveryAttempts)
+            {
+                string target = PreserveUnrecovered();
+                if (target.Length > 0)
+                {
+                    settingsRestorePending = false;
+                    Notify(WbbLang.T("Safety.JournalUnrecovered", Path.GetFileName(target)));
+                    return;
+                }
+            }
+
+            settingsRestorePending = true;
+            if (!saved)
+                WbbUtil.LogError("The recovery attempt count could not be saved; the previous journal file is kept as it was.");
+            Notify(summary);
+        }
+
+        private static string PreserveUnrecovered()
+        {
+            try
+            {
+                string target = JournalPath + ".unrecovered-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                File.Move(JournalPath, target);
+                WbbUtil.LogError("The build settings could not be restored after " + MaxRecoveryAttempts + " attempts; the recovery record was set aside (nothing was deleted): " + target + ". Restore ExportSettings from a backup.");
+                return target;
+            }
+            catch (Exception e)
+            {
+                WbbUtil.LogError("Could not set aside the unrecovered build journal: " + e.Message);
+                return "";
+            }
         }
 
         private static string ResolveCopyPath(WbbJournalCopy copy, WbbJournalData data)
