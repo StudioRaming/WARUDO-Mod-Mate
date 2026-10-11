@@ -349,6 +349,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Quick.BuildBusy",
+                new[]
+                {
+                    "다른 빌드가 끝나면 빌드할 수 있습니다.",
+                    "You can build once the other build finishes.",
+                    "他のビルドが終わるとビルドできます。"
+                }
+            },
+            {
                 "Quick.Build.tip",
                 new[]
                 {
