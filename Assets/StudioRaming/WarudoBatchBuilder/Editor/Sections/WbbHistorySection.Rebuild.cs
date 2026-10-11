@@ -80,7 +80,7 @@ namespace StudioRaming.WarudoBatchBuilder
             int dropped = targets.Count - chosen.Count;
             if (dropped > 0)
             {
-                EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildMultiNotice", chosen.Count, chosen[0].modName, dropped), L("Common.Ok"));
+                ConfirmDialog(L("Common.ProductName"), L("History.RebuildMultiNotice", chosen.Count, chosen[0].modName, dropped), L("Common.Ok"), "");
             }
         }
 
@@ -96,7 +96,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbRecord one = targets[0];
                 string prefab = string.IsNullOrEmpty(one.prefabPath) ? L("Common.None") : one.prefabPath;
-                if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildConfirm", one.modName, prefab), L("History.RebuildSend"), L("Common.Cancel")))
+                if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildConfirm", one.modName, prefab), L("History.RebuildSend"), L("Common.Cancel")))
                     return;
             }
             else
