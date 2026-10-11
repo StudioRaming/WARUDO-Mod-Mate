@@ -39,7 +39,7 @@ Live Test、自動リギング、シェーダーの自動変換、物理設定�
 
 ## 準備とインストール
 
-Windows PC と Unity **2021.3.45f2** が検証済み環境です。`.warudo` の作成には別途 WARUDO Mod Tool SDK と対応アセットが必要です。出力の動作確認には WARUDO を使用します。Unity パッケージの書き出しだけなら SDK は不要です。
+Windows PC と Unity **2021.3.45f2** が検証済み環境です。`.warudo` の作成には別途 WARUDO Mod Tool SDK と対応アセットが必要です。出力の動作確認には WARUDO を使用します。自動スクリプトモードのビルドにも同じ PC 上の WARUDO が必要です（Steam の自動検出、出力先、または指定した WARUDO フォルダ）。Unity パッケージの書き出しだけなら SDK は不要です。
 
 SDK の検証基準は **0.14.3.10** です。別バージョンは別のプロジェクトで先に試してください。[公式 SDK インストール手順](https://docs.warudo.app/docs/modding/sdk-installation)を参照し、**Player → Other Settings** の API Compatibility Level を **.NET Framework**、Assembly Version Validation を **オフ**にします。SDK のインポート後、赤いコンパイルエラーがないことを確認してください。
 

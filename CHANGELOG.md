@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- Automatic script mode no longer fails every item when Steam does not list WARUDO. Mod Mate now takes the WARUDO folder from the output path (when it is inside Warudo_Data/StreamingAssets), then from the new per-project "Set WARUDO folder" setting, then from Steam. Without any of them, preflight blocks the batch with one message and a [Set WARUDO folder] button instead of failing each item. Manual script folders and assembly definitions show a warning that the check against WARUDO's DLLs is skipped.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
