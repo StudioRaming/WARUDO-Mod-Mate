@@ -152,6 +152,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private List<WbbCompiledUnit> itemCompiled = new List<WbbCompiledUnit>();
         private WbbRuntimeScriptPlan autoPlan;
         private string autoPlanError = "";
+        private string warudoStreaming = "";
         private bool compileStarted;
         private string abortReason = "";
         private bool lastFinishClean = true;

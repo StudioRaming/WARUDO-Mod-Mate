@@ -12,7 +12,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private const string DataSuffix = "Warudo_Data/StreamingAssets";
         // Tests only: makes the Steam search find nothing, so the output path and the WARUDO folder setting decide. Not shown in the UI.
         public static bool DisableSteamLookupForTests;
-        // The root the running batch decided on (empty outside a batch). Code that has no output path of its own reads it.
+        // The root the running batch decided on. Code that has no output path of its own reads it while a batch runs.
         public static string BatchStreamingAssets = "";
         private static bool searched;
         private static string cachedStreamingAssets = "";
@@ -136,7 +136,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             get
             {
-                if (!string.IsNullOrEmpty(BatchStreamingAssets))
+                if (WbbBuildRunner.AnyRunning && !string.IsNullOrEmpty(BatchStreamingAssets))
                     return BatchStreamingAssets;
                 string source;
                 return ResolveForOutput("", out source);

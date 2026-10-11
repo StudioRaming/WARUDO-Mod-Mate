@@ -209,6 +209,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private bool pendingBuild;
         private bool pendingThumbBatch;
         private bool pendingPickOutput;
+        private bool pendingPickWarudoRoot;
         private bool pendingPickStaging;
         private bool pendingPackageExport;
         private int pendingOutputMode = -1;

@@ -245,11 +245,17 @@ namespace StudioRaming.WarudoBatchBuilder
                         RequestRepaint();
                     }
                 }
-                else if (ex != null && ex.code == WbbPreflightCodes.WarudoNotFound)
+                else if (ex != null && (ex.code == WbbPreflightCodes.WarudoNotFound || ex.code == WbbPreflightCodes.WarudoManagedMissing))
                 {
-                    if (WbbStyles.Button(LC("Build.OutputPick"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.OutputPickButton), GUILayout.Height(WbbSize.Control)))
+                    if (ex.code == WbbPreflightCodes.WarudoNotFound && WbbStyles.Button(LC("Build.OutputPick"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.OutputPickButton), GUILayout.Height(WbbSize.Control)))
                     {
                         pendingPickOutput = true;
+                        RequestRepaint();
+                    }
+
+                    if (WbbStyles.Button(LC("Safety.PickWarudoFolder"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.RestoreSettingsButton), GUILayout.Height(WbbSize.Control)))
+                    {
+                        pendingPickWarudoRoot = true;
                         RequestRepaint();
                     }
                 }

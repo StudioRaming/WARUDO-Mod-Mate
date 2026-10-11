@@ -12,6 +12,15 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (ResolveExportType(newJob) == WbbExportType.Environment)
                 return L("Safety.EnvironmentUnsupported");
+#if WBB_WARUDO_SDK
+            if (!newJob.manualScriptFolder)
+            {
+                WbbWarudoLocator.Invalidate();
+                string startSource;
+                if (WbbWarudoLocator.ResolveForOutput(ResolveOutputDirectory(newJob), out startSource).Length == 0)
+                    return L("Safety.WarudoManagedMissing");
+            }
+#endif
             string error;
             if (!WbbExportSettings.ValidateAvailable(out error))
                 return error;
@@ -37,6 +46,10 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private bool PrepareBatch(IList<WbbBuildItem> newItems, WbbJob newJob)
         {
+            // A batch decides on the WARUDO folder from what is on disk now, not from what an earlier look found.
+            WbbWarudoLocator.Invalidate();
+            WbbWarudoManaged.Invalidate();
+            WbbRuntimeScriptPlan.ResetCatalog();
             WbbExportType type = ResolveExportType(newJob);
             string userFolder = WbbUtil.ResolveBuildFolder(newJob, type);
             string outDir = ResolveOutputDirectory(newJob);
@@ -65,6 +78,16 @@ namespace StudioRaming.WarudoBatchBuilder
                 return false;
             }
 
+            string warudoSource;
+            string streaming = WbbWarudoLocator.ResolveForOutput(outDir, out warudoSource);
+            WbbUtil.Log("WARUDO folder for this batch: source " + (warudoSource.Length == 0 ? "none" : warudoSource) + " (a = output path, b = WARUDO folder setting, c = Steam), " + (streaming.Length == 0 ? "no folder" : streaming));
+#if WBB_WARUDO_SDK
+            if (!newJob.manualScriptFolder && streaming.Length == 0)
+            {
+                SetStatus(L("Safety.WarudoManagedMissing"));
+                return false;
+            }
+#endif
             string error;
             int lockedIndex = WbbExportSettings.GetActiveProfileIndex(out error);
             if (lockedIndex < 0)
@@ -100,15 +123,19 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!WbbExportSettingsGuard.Backup(out backupPath, out error))
                 WbbUtil.LogWarning("Build settings backup skipped: " + error);
             WbbScriptFolderScan scan = string.IsNullOrEmpty(userFolder) ? null : WbbScriptFolderScan.Run(userFolder);
-            WbbAsmdefAnalysis analysis = scan != null && (scan.asmdefAssemblies.Count > 0 || scan.plainScriptAssets.Count > 0) ? WbbAsmdefAnalysis.ForFolder(scan) : null;
+            WbbAsmdefAnalysis analysis = scan != null && (scan.asmdefAssemblies.Count > 0 || scan.plainScriptAssets.Count > 0) ? WbbAsmdefAnalysis.ForFolder(scan, streaming) : null;
             if (analysis != null && analysis.HasBlocking)
             {
                 SetStatus(analysis.FirstBlockingMessage);
                 return false;
             }
 
+            if (streaming.Length == 0 && analysis != null)
+                WbbUtil.LogWarning(L("Safety.WarudoManagedSkipped"));
             items = newItems;
             job = newJob;
+            warudoStreaming = streaming;
+            WbbWarudoLocator.BatchStreamingAssets = streaming;
             typeName = type.ToString();
             outputDirectory = outDir;
             usingUserScriptFolder = !string.IsNullOrEmpty(userFolder);
