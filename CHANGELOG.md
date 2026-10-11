@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- Automatic collection no longer fails on C# 8 and 9 syntax (such as `??=` or switch expressions) that Unity 2021.3 compiles. The analysis parses at C# 9, and its "feature not available" (CS8370, CS8773) and preview (CS8652) errors are left to the compile, which falls back to Unity's default language level. Other analysis errors name the project file and line.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes

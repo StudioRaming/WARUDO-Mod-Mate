@@ -250,7 +250,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 CSharpCompilation found;
                 if (compilations.TryGetValue(info.name, out found))
                     return found;
-                var options = new CSharpParseOptions(LanguageVersion.CSharp7_3, preprocessorSymbols: RuntimeDefines(info.defines));
+                // Unity 2021.3's default language level, the one the compile falls back to. The 7.3 limit stays with the compile.
+                var options = new CSharpParseOptions(LanguageVersion.CSharp9, preprocessorSymbols: RuntimeDefines(info.defines));
                 var trees = info.sourceFiles.Select(p => CSharpSyntaxTree.ParseText(File.ReadAllText(p), options, Path.GetFullPath(p))).ToArray();
                 var paths = info.compiledAssemblyReferences;
                 var refs = new List<MetadataReference>();
@@ -292,8 +293,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 {
                     var tree = queue.Dequeue();
                     var model = owners[tree].GetSemanticModel(tree);
-                    foreach (var error in model.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
-                        throw new InvalidOperationException("Cannot analyse runtime source: " + error);
+                    foreach (var error in model.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && !IsLanguageLevelError(d)))
+                        throw new InvalidOperationException("Cannot analyse runtime source: " + DescribeError(error));
                     foreach (var node in tree.GetRoot().DescendantNodes())
                     {
                         if (node is BaseTypeDeclarationSyntax || node is DelegateDeclarationSyntax)
@@ -382,6 +383,25 @@ namespace StudioRaming.WarudoBatchBuilder
             private static IEnumerable<string> RuntimeDefines(IEnumerable<string> defines)
             {
                 return defines.Where(d => d != "UNITY_EDITOR" && !d.StartsWith("UNITY_EDITOR_", StringComparison.Ordinal));
+            }
+
+            // The analysis parses at C# 9, so a newer feature is an error here. The compile decides those: it compiles again at
+            // Unity's default level (WbbRuntimeCompileSession). CS8370 is "Feature is not available in C# 7.3 / 8", CS8773 is
+            // "Feature is not available in C# 9.0" (Roslyn 4.13 uses a separate code for 9.0), and CS8652 is "Feature is currently
+            // in Preview and unsupported". Nothing else is skipped.
+            private static bool IsLanguageLevelError(Diagnostic error)
+            {
+                return error.Id == "CS8370" || error.Id == "CS8773" || error.Id == "CS8652";
+            }
+
+            // Same shape as the compile errors: project-relative file, line, then the message.
+            private static string DescribeError(Diagnostic error)
+            {
+                string text = "error " + error.Id + ": " + WbbBuildLog.Shorten(error.GetMessage());
+                if (!error.Location.IsInSource)
+                    return text;
+                var span = error.Location.GetLineSpan();
+                return WbbRuntimeCompileSession.ProjectRelative(span.Path) + "(" + (span.StartLinePosition.Line + 1) + "): " + text;
             }
         }
     }
