@@ -91,6 +91,8 @@ def match_known(build_id, hashes):
 
 def parse_since(token):
     count, _, prefix = token.partition(":")
+    if not count.isdigit() or not re.fullmatch(r"[0-9A-Fa-f]*", prefix):
+        raise argparse.ArgumentTypeError("--since takes N or N:HASH as printed after since=, not %r" % token)
     return int(count), prefix.lower()
 
 
@@ -101,7 +103,10 @@ def count_script_loads(log, since_lines, since_hash):
     prefix = hashlib.sha256()
     prefix_hex = ""
     with open(log, "rb") as handle:
-        for total, raw in enumerate(handle, 1):
+        for raw in handle:
+            if not raw.endswith(b"\n"):
+                break  # WARUDO is still writing this line; hashing it now would read as a restart on the next run
+            total += 1
             prefix.update(raw)
             if total == since_lines:
                 prefix_hex = prefix.hexdigest()[:HASH_CHARS]
@@ -123,7 +128,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--steam-root", type=Path, default=default_steam_root())
     parser.add_argument("--player-log", nargs="?", const="", default=None, help="count script loads (no value = default path)")
-    parser.add_argument("--since", default="0", help="N:HASH printed as since= by the run before the test")
+    parser.add_argument("--since", type=parse_since, default=(0, ""), help="N:HASH printed as since= by the run before the test")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--append", type=Path)
     args = parser.parse_args()
@@ -152,10 +157,12 @@ def main():
     }
     if args.player_log is not None:
         log = Path(args.player_log) if args.player_log else default_player_log()
-        since_lines, since_hash = parse_since(args.since)
+        since_lines, since_hash = args.since
         try:
+            if log is None:
+                raise FileNotFoundError("USERPROFILE is not set")
             record["playerLog"] = count_script_loads(log, since_lines, since_hash)
-        except (OSError, TypeError):
+        except OSError:
             record["playerLog"] = {"error": "Player.log not found"}
 
     if args.json:

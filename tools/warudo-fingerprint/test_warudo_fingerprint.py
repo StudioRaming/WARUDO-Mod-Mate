@@ -73,6 +73,19 @@ check("longer restarted log detected", pc["restarted"] and pc["scriptLoads"] == 
 code, out, _ = run("--steam-root", str(root), "--player-log", str(HERE / "A.log"), "--since", "20:" + token.split(":")[1])
 check("shorter log detected", "restarted" in out and "scriptLoads(after 20)=2" in out, out.split("| ")[-1])
 
+# A line WARUDO is still writing is left out, so the token taken mid-write still matches once the line is finished.
+(HERE / "D.log").write_text("".join(a) + "Fallback handler could not lo", encoding="utf-8")
+code, out, _ = run("--steam-root", str(root), "--player-log", str(HERE / "D.log"), "--json")
+pd = json.loads(out)["playerLog"]
+(HERE / "D.log").write_text("".join(a) + LOAD, encoding="utf-8")
+code, out, _ = run("--steam-root", str(root), "--player-log", str(HERE / "D.log"), "--since", pd["next"], "--json")
+pd2 = json.loads(out)["playerLog"]
+check("partial last line", pd["lines"] == 10 and pd["next"] == token and not pd2["restarted"] and pd2["scriptLoads"] == 1,
+      json.dumps(pd) + " then " + json.dumps(pd2))
+
+code, out, err = run("--steam-root", str(root), "--player-log", str(HERE / "A.log"), "--since", "abc")
+check("bad --since", code == 2 and "--since takes N or N:HASH" in err and "Traceback" not in err, err.splitlines()[-1] if err else "")
+
 code, out, _ = run("--steam-root", str(root), "--player-log", str(HERE / "missing.log"))
 check("missing Player.log keeps the record", code == 2 and "Player.log not found" in out and "MagicaClothV2.dll=" in out, out[-60:])
 
