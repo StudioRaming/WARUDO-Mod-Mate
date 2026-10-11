@@ -376,6 +376,9 @@ namespace StudioRaming.WarudoBatchBuilder
             preflightDirty = true;
             rebuildQueuedCount = 0;
             rebuildToken = "";
+            // An other-folder item lives in the list only while it is selected, so a selection change rescans to drop it and recount.
+            if (otherScopeCount > 0 && !busyLayout)
+                itemsDirty = true;
         }
 
         private void ClearRebuildNameOverrides()

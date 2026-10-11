@@ -295,6 +295,8 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 selected.Clear();
                 lastClickedGuid = "";
+                if (otherScopeCount > 0 && !busyLayout)
+                    itemsDirty = true;
             }
 
             int applied = 0;
