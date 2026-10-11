@@ -147,7 +147,7 @@ Disabled menu? Check Hierarchy selection, Play Mode and other active builds. A P
 
 Edit the same Prop and build it again without closing WARUDO.
 
-1. Set **Mod type** to Prop, turn on **Overwrite same name**, and set **Output path** to the `Props` folder of the WARUDO data folder, then build. Scene-object quick build always overwrites the same name.
+1. Set **Mod type** to Prop, turn on **Overwrite same name**, and set **Output path** to `Warudo_Data/StreamingAssets/Props`, then build. Scene-object quick build always overwrites the same name.
 2. In WARUDO, set the scene Prop's Source to that file once.
 3. Edit the prop in Unity and build again.
 4. WARUDO notices the changed file and reloads the Prop by itself. There is nothing to press.
@@ -158,7 +158,7 @@ Edit the same Prop and build it again without closing WARUDO.
 - Scope: verified for Props without scripts. Props with scripts and Characters are not verified yet. Environment builds are not supported in 0.1.x.
 - Caution: selecting Source right after replacing the file can cause one extra reload, depending on when WARUDO notices the file.
 
-When such a build succeeds (a Prop without scripts that overwrote the same name), the result area shows a short notice with the same content.
+When such a build succeeds (a Prop without scripts that overwrote the same name), the result area shows a short notice with the same content. It appears only when the output is inside that `Props` folder (or the Prop folder set in the Library tab).
 
 ## Export a Unity package
 

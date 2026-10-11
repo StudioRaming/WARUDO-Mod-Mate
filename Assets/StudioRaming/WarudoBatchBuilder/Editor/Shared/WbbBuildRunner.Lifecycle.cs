@@ -118,6 +118,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (versionFixed)
                 WbbUtil.LogWarning("Mod version '" + (newJob.modVersion ?? "") + "' was completed to '" + modVersion + "'.");
             fixupOptions = WbbFixupOptions.FromJob(newJob);
+            // With a manual script folder this is batch-wide: a mixed batch can only hide the quick-iteration notice, never show it for a scripted Prop.
             expectScripts = scan != null && (scan.runtimeScripts > 0 || (analysis != null && analysis.units.Count > 0));
             folderAnalysis = analysis;
             originalProfile = snapshot.Clone();

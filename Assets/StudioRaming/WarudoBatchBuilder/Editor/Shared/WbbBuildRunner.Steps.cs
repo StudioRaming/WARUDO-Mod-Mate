@@ -495,12 +495,21 @@ namespace StudioRaming.WarudoBatchBuilder
             var done = CurrentItem();
             if (done != null)
             {
-                done.replacedExistingOutput = outputGuard != null && outputGuard.backupPath.Length > 0;
+                done.replacedExistingOutput = outputGuard != null && outputGuard.backupPath.Length > 0 && IsInWarudoPropsFolder(outputFilePath);
+                // expectScripts is batch-wide in the manual script-folder path, so this errs toward hiding the notice.
                 done.packedRuntimeScripts = expectScripts || itemCompiled.Count > 0;
             }
 
             WbbJournal.MarkOutputVerified(outputGuard);
             step = Step.Cleanup;
+        }
+
+        // WARUDO only reloads a changed file from the folders it reads Props from: the default Props folder and the Prop output folder set in the Library tab.
+        private static bool IsInWarudoPropsFolder(string outputFile)
+        {
+            string file = WbbUtil.ToAbsolutePath(outputFile);
+            string configured = WbbPrefs.GetString(WbbUtil.PrefPrefix + "OutputDir." + WbbExportType.Prop, WbbUtil.DefaultOutputPath(WbbExportType.Prop));
+            return WbbJournal.IsUnder(file, WbbUtil.ToAbsolutePath(configured)) || WbbJournal.IsUnder(file, WbbUtil.ToAbsolutePath(WbbUtil.DefaultOutputPath(WbbExportType.Prop)));
         }
 
         private void DoCleanup()
