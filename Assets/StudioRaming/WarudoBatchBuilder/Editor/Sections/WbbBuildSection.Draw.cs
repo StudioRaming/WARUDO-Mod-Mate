@@ -402,7 +402,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 });
             else
                 menu.AddDisabledItem(LC("Build.ExportPackage"));
-            if (items.Count > 0)
+            if (items.Count - otherScopeCount > 0)
                 menu.AddItem(LC("Build.GenerateThumbs"), false, delegate
                 {
                     pendingThumbBatch = true;

@@ -104,10 +104,10 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 emptyKind = EmptyNone;
             }
-            else if (items.Count > 0)
+            else if (items.Count - otherScopeCount > 0)
             {
                 emptyKind = EmptyNoMatch;
-                emptyMessage = L("Common.NoMatch", items.Count);
+                emptyMessage = L("Common.NoMatch", items.Count - otherScopeCount);
             }
             else if (indexBusyLayout)
             {

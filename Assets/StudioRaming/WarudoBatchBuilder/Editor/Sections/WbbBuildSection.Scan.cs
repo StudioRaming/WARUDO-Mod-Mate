@@ -135,6 +135,7 @@ namespace StudioRaming.WarudoBatchBuilder
             hoverIndex = -1;
             rawCount = 0;
             userHiddenCount = 0;
+            otherScopeCount = 0;
             bool wholeProject = string.Equals(scopeFolder, "Assets", System.StringComparison.OrdinalIgnoreCase);
             IList<WbbPrefabIndex.Entry> entries = WbbPrefabIndex.Entries;
             for (int i = 0; i < entries.Count; i++)
@@ -142,7 +143,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 WbbPrefabIndex.Entry e = entries[i];
                 if (e == null || e.inCode)
                     continue;
-                if (!wholeProject && !WbbListSettings.IsUnder(e.path, scopeFolder))
+                // A selection made in another folder stays and builds; the scope only decides what the list shows.
+                bool otherScope = !wholeProject && !WbbListSettings.IsUnder(e.path, scopeFolder);
+                if (otherScope && !selected.Contains(e.guid))
                     continue;
                 WbbRecord record;
                 latest.TryGetValue(e.guid, out record);
@@ -159,14 +162,17 @@ namespace StudioRaming.WarudoBatchBuilder
                     reason = ShowReason.Physics;
                 else
                     reason = ShowReason.Raw;
-                if (reason == ShowReason.Raw)
+                if (!otherScope && reason == ShowReason.Raw)
                     rawCount++;
-                else if (reason == ShowReason.Hidden)
+                else if (!otherScope && reason == ShowReason.Hidden)
                     userHiddenCount++;
                 bool dimmed = reason == ShowReason.Raw || reason == ShowReason.Hidden;
-                if (dimmed && !showHidden && !IsAutomationTarget(e.guid))
+                if (dimmed && !otherScope && !showHidden && !IsAutomationTarget(e.guid))
                     continue;
+                if (otherScope)
+                    otherScopeCount++;
                 var item = new Item();
+                item.otherScope = otherScope;
                 item.guid = e.guid;
                 item.path = e.path;
                 item.folder = e.folder;
