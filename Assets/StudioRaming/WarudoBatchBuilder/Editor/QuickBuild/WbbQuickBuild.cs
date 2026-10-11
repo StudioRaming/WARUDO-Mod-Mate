@@ -470,9 +470,12 @@ namespace StudioRaming.WarudoBatchBuilder
         private static void Report(bool canceled, int success, int failed)
         {
             string elapsed = WbbUtil.FormatDuration(EditorApplication.timeSinceStartup - batchStartTime);
-            if (!canceled && failed == 0 && success > 0 && !quickIterateNotice)
+            if (!canceled && failed == 0 && success > 0)
             {
                 string text = success == 1 && finishedRecords.Count > 0 ? L("Quick.DoneOne", finishedRecords[0].modName + WbbUtil.ModExtension) : L("Quick.DoneMany", success, elapsed);
+                // A quick-iteration build keeps the light notification (no dialog in the loop) and adds one short line.
+                if (quickIterateNotice)
+                    text += "\n" + L("QuickIterate.NoticeShort");
                 for (int i = 0; i < finishedRecords.Count; i++)
                     WbbUtil.Log("Built " + finishedRecords[i].outputFilePath);
                 SceneView sceneView = SceneView.lastActiveSceneView;
@@ -484,8 +487,6 @@ namespace StudioRaming.WarudoBatchBuilder
             var body = new System.Text.StringBuilder();
             body.Append(canceled ? L("Quick.ResultCanceled", success, failed) : L("Quick.ResultDone", success, failed));
             body.Append("\n").Append(L("Quick.Elapsed", elapsed));
-            if (quickIterateNotice)
-                body.Append("\n\n").Append(L("QuickIterate.Notice"));
             for (int i = 0; i < finishedRecords.Count && i < ReportPreviewCount; i++)
             {
                 WbbRecord record = finishedRecords[i];

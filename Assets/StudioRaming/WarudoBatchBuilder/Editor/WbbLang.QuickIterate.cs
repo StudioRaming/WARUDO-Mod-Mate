@@ -15,6 +15,15 @@ namespace StudioRaming.WarudoBatchBuilder
                     "WARUDO が起動していれば、上書きした Prop を WARUDO が自動で読み込み直します(通常 15 秒以内)。位置やサイズなど WARUDO 側の設定は残り、プロップ内で実行中に変えた値は初期値に戻ります。"
                 }
             },
+            {
+                "QuickIterate.NoticeShort",
+                new[]
+                {
+                    "WARUDO가 켜져 있으면 스스로 다시 불러옵니다.",
+                    "If WARUDO is running, it reloads it by itself.",
+                    "WARUDO が起動していれば自動で読み込み直します。"
+                }
+            },
         };
     }
 }
