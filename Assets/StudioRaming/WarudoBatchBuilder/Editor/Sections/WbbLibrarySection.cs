@@ -156,6 +156,28 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbPrefs.SetBool(Pfx + "PathsOpen", pathsOpen);
         }
 
+        // The Build tab shares these keys. Tab entry and window focus pick up a folder it changed and scan the new one.
+        public void ReloadPathsFromPrefs()
+        {
+            bool changed = false;
+            for (int t = 0; t < TypeCount; t++)
+            {
+                var type = (WbbExportType)t;
+                string stored = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+                if (string.Equals(stored, paths[t], System.StringComparison.Ordinal))
+                    continue;
+                paths[t] = stored;
+                changed = true;
+            }
+
+            if (!changed)
+                return;
+            pathEditedAt = -1d;
+            pendingForceRescan = true;
+            if (host != null)
+                host.RequestRepaint();
+        }
+
         public void Refresh()
         {
             if (EditorApplication.timeSinceStartup - lastScanTime < FocusRescanMinSec)

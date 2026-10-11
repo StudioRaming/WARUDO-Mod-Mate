@@ -141,6 +141,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 job.outputDirectory = editedOutput;
                 WbbPrefs.SetString(OutputDirKey(CurrentType), editedOutput);
+                NoteOutputDirSeen();
                 namesDirty = true;
                 preflightDirty = true;
             }
@@ -466,6 +467,7 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbPrefs.SetInt(Pfx + "Type", typeIndex);
             var type = (WbbExportType)typeIndex;
             job.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            NoteOutputDirSeen();
             ClearRebuildNameOverrides();
             namesDirty = true;
             preflightDirty = true;
@@ -549,6 +551,7 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbJob stored = WbbDatabase.GetJob(id);
             if (stored == null)
                 return;
+            DiscardRebuildBorrow();
             job.id = stored.id;
             job.name = stored.name;
             job.buildFolderGuid = stored.buildFolderGuid;

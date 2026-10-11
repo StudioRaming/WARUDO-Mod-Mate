@@ -1096,6 +1096,33 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.RebuildBorrowNote",
+                new[]
+                {
+                    "재빌드: 기록 설정 사용 중 (종류 {0}, v{1}, 제작자 {2}, 출력 폴더 {3}, mod 모드). 이번 빌드에만 적용되고 저장된 빌드 설정은 그대로입니다.",
+                    "Rebuild: using the record's settings (type {0}, v{1}, author {2}, output folder {3}, mod mode). They apply to this build only; your saved Build settings are unchanged.",
+                    "再ビルド: 記録の設定を使用中（種類 {0}、v{1}、作成者 {2}、出力フォルダ {3}、modモード）。今回のビルドのみに適用され、保存済みのビルド設定は変わりません。"
+                }
+            },
+            {
+                "Build.RebuildBorrowRestore",
+                new[]
+                {
+                    "내 설정으로",
+                    "Use my settings",
+                    "元の設定に戻す"
+                }
+            },
+            {
+                "Build.RebuildUnhid",
+                new[]
+                {
+                    "숨겨 둔 프리팹 {0}개를 다시 보이게 했습니다.",
+                    "{0} hidden prefab(s) were shown again.",
+                    "非表示にしていたプレハブ {0}件を再表示しました。"
+                }
+            },
+            {
                 "Build.RebuildQueued",
                 new[]
                 {

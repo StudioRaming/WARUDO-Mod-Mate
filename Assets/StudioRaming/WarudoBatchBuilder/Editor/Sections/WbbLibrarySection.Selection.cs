@@ -144,9 +144,10 @@ namespace StudioRaming.WarudoBatchBuilder
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(selectionText, midMini);
             GUILayout.FlexibleSpace();
-            using (new EditorGUI.DisabledScope(selectionTrackedCount == 0))
+            bool buildBusy = host != null && host.BuildBusy;
+            using (new EditorGUI.DisabledScope(selectionTrackedCount == 0 || buildBusy))
             {
-                if (WbbStyles.PlainButton(rebuildButtonContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.Library.RebuildSelectedButton)))
+                if (WbbStyles.PlainButton(buildBusy ? host.RebuildButtonContent(rebuildButtonContent) : rebuildButtonContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.Library.RebuildSelectedButton)))
                 {
                     pendingRebuild = true;
                     if (host != null)

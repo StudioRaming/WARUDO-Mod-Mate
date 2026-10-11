@@ -354,13 +354,18 @@ namespace StudioRaming.WarudoBatchBuilder
 
             if (rebuildQueuedCount == 1 && missing == 0)
             {
-                SetStatus(L("Build.RebuildQueued", string.IsNullOrEmpty(firstName) ? L("Common.None") : firstName), MessageType.Info);
+                string one = L("Build.RebuildQueued", string.IsNullOrEmpty(firstName) ? L("Common.None") : firstName);
+                if (rebuildUnhiddenCount > 0)
+                    one += " " + L("Build.RebuildUnhid", rebuildUnhiddenCount);
+                SetStatus(one, MessageType.Info);
                 return;
             }
 
             string message = L("Build.RebuildQueuedMany", rebuildQueuedCount);
             if (missing > 0)
                 message += " " + L("Build.RebuildNotFound", missingName);
+            if (rebuildUnhiddenCount > 0)
+                message += " " + L("Build.RebuildUnhid", rebuildUnhiddenCount);
             SetStatus(message, missing > 0 ? MessageType.Warning : MessageType.Info);
         }
 

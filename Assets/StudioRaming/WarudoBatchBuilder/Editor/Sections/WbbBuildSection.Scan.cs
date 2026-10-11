@@ -22,8 +22,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private string RebuildSettings(WbbRecord record, out string version, out string author, out string outputDir)
         {
             int type = Mathf.Clamp(record.exportType, 0, TypeCount - 1);
-            version = string.IsNullOrEmpty(record.modVersion) ? job.modVersion : record.modVersion;
-            author = string.IsNullOrEmpty(record.modAuthor) ? job.modAuthor : record.modAuthor;
+            version = string.IsNullOrEmpty(record.modVersion) ? (rebuildBorrow != null ? rebuildBorrow.modVersion : job.modVersion) : record.modVersion;
+            author = string.IsNullOrEmpty(record.modAuthor) ? (rebuildBorrow != null ? rebuildBorrow.modAuthor : job.modAuthor) : record.modAuthor;
             outputDir = string.IsNullOrEmpty(record.outputDirectory) ? WbbPrefs.GetString(OutputDirKey((WbbExportType)type), WbbUtil.DefaultOutputPath((WbbExportType)type)) : WbbUtil.NormalizePath(record.outputDirectory);
             return type + "|" + version + "|" + author + "|" + outputDir;
         }
@@ -58,15 +58,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 pendingRebuildModNames.Clear();
                 pendingSelectReplace = true;
                 rebuildQueuedCount = 0;
+                rebuildUnhiddenCount = 0;
             }
 
             rebuildToken = token;
-            job.exportType = type;
-            job.modVersion = version;
-            job.modAuthor = author;
-            job.outputDirectory = outputDir;
-            job.outputMode = (int)WbbOutputMode.WarudoMod;
-            SavePrefs();
+            // The record's settings are borrowed for this run only; the saved Build tab settings come back afterwards.
+            BorrowForRebuild(type, version, author, outputDir);
             string guid = record.prefabGuid;
             if (string.IsNullOrEmpty(guid) && !string.IsNullOrEmpty(path))
                 guid = AssetDatabase.AssetPathToGUID(path);
@@ -77,7 +74,11 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (!string.IsNullOrEmpty(record.modName))
                     pendingRebuildModNames[guid] = record.modName;
                 if (WbbListSettings.IsHidden(guid))
+                {
                     WbbListSettings.SetHidden(guid, false);
+                    rebuildUnhiddenCount++;
+                }
+
                 if (!string.IsNullOrEmpty(path) && !WbbListSettings.IsUnder(path, scopeFolder))
                     pendingScope = "Assets";
             }

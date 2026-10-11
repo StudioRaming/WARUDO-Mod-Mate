@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- The output folder is saved once and read by both the Build tab and the Mod list tab (Library). The Build tab used to write its in-memory folder back whenever it saved a setting or the window closed, so a folder changed in the Mod list tab went back to the old one. It now writes the folder only when the Build tab changed it. Both tabs read the saved folder again on tab entry and window focus, the Build tab only while no build is running. The Package tab folder is separate and unchanged.
+- Rebuild no longer replaces the saved Build tab settings. The record's type, version, author and output folder, and the mod output mode, are used for that rebuild only and are not saved; a note with a "Use my settings" button shows them on the Build tab, and the saved settings come back when the build ends, when the selection changes or when the button is pressed. A hidden prefab that a rebuild shows again is still shown again, and the status line says how many.
+- Rebuilding several records while a build is running shows one "build is running" notice instead of one per record, and the rebuild buttons and menu items of the History and Mod list tabs are disabled during a build (the buttons say why in their tooltip).
+
 ## 0.1.2 (2026-10-11)
 
 Fixes

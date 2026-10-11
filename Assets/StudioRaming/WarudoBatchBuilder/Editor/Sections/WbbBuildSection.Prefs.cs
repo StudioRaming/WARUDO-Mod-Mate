@@ -43,6 +43,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.appendDateSuffix = WbbPrefs.GetBool(Pfx + "AppendDate", false);
             job.overwriteExisting = WbbPrefs.GetBool(Pfx + "Overwrite", true);
             job.outputMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "OutputMode", 0), 0, OutputModeCount - 1);
+            NoteOutputDirSeen();
             job.stripVrcComponents = WbbPrefs.GetBool(Pfx + "StripVrc", true);
             job.manualScriptFolder = WbbListSettings.ManualScriptFolder;
             LoadManualNames();
@@ -80,15 +81,19 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbListSettings.ManualScriptFolder = job.manualScriptFolder;
             WbbPrefs.SetString(Pfx + "PrefabGuid", job.prefabFolderGuid == null ? "" : job.prefabFolderGuid);
             WbbPrefs.SetString(Pfx + "PrefabPath", job.prefabFolderPath == null ? "" : job.prefabFolderPath);
-            WbbPrefs.SetInt(Pfx + "Type", Mathf.Clamp(job.exportType, 0, TypeCount - 1));
-            WbbPrefs.SetString(Pfx + "Version", job.modVersion == null ? "" : job.modVersion);
-            WbbPrefs.SetString(Pfx + "Author", job.modAuthor == null ? "" : job.modAuthor);
+            // While a rebuild borrows the record's settings, the borrowed values are not the user's defaults.
+            if (rebuildBorrow == null)
+            {
+                WbbPrefs.SetInt(Pfx + "Type", Mathf.Clamp(job.exportType, 0, TypeCount - 1));
+                WbbPrefs.SetString(Pfx + "Version", job.modVersion == null ? "" : job.modVersion);
+                WbbPrefs.SetString(Pfx + "Author", job.modAuthor == null ? "" : job.modAuthor);
+                WbbPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
+            }
+
             WbbPrefs.SetString(Pfx + "Description", job.modDescription == null ? "" : job.modDescription);
-            if (!string.IsNullOrEmpty(job.outputDirectory))
-                WbbPrefs.SetString(OutputDirKey(CurrentType), job.outputDirectory);
+            PersistOutputDirIfChanged();
             WbbPrefs.SetBool(Pfx + "AppendDate", job.appendDateSuffix);
             WbbPrefs.SetBool(Pfx + "Overwrite", job.overwriteExisting);
-            WbbPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
             WbbPrefs.SetBool(Pfx + "StripVrc", job.stripVrcComponents);
             WbbPrefs.SetBool(Pfx + "UseFolderPrefix", job.useFolderNamePrefix);
             WbbPrefs.SetString(Pfx + "NamePrefix", job.namePrefix == null ? "" : job.namePrefix);

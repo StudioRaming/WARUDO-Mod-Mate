@@ -141,6 +141,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             job.outputDirectory = WbbUtil.NormalizePath(picked);
             WbbPrefs.SetString(OutputDirKey(CurrentType), job.outputDirectory);
+            NoteOutputDirSeen();
             namesDirty = true;
             preflightDirty = true;
             RequestRepaint();
