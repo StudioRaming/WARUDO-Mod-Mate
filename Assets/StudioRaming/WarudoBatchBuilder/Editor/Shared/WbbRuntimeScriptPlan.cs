@@ -23,7 +23,34 @@ namespace StudioRaming.WarudoBatchBuilder
         // Mod Mate compiles each of them into its own DLL (see WbbRuntimeUnitCompiler).
         public string[] asmdefAssemblies = new string[0];
         public readonly HashSet<string> providedTypes = new HashSet<string>(StringComparer.Ordinal);
+        private static WbbWarudoTypeCatalog catalog;
+        private static string catalogRoot = "";
+        // The catalog is read once per batch: the runner calls this at the start of a batch, and Collect reads it again only
+        // when the WARUDO folder it is asked about is another one.
+        public static void ResetCatalog()
+        {
+            catalog = null;
+            catalogRoot = "";
+        }
+
+        private static WbbWarudoTypeCatalog CatalogFor(string warudoStreamingAssets)
+        {
+            if (catalog == null || !string.Equals(catalogRoot, warudoStreamingAssets ?? "", StringComparison.OrdinalIgnoreCase))
+            {
+                catalog = WbbWarudoTypeCatalog.Read(warudoStreamingAssets);
+                catalogRoot = warudoStreamingAssets;
+            }
+
+            return catalog;
+        }
+
         public static WbbRuntimeScriptPlan Collect(string prefabPath)
+        {
+            return Collect(prefabPath, WbbWarudoLocator.AmbientStreamingAssets);
+        }
+
+        // `warudoStreamingAssets`: the folder WbbWarudoLocator.ResolveForOutput chose for this build's output path.
+        public static WbbRuntimeScriptPlan Collect(string prefabPath, string warudoStreamingAssets)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
@@ -47,7 +74,7 @@ namespace StudioRaming.WarudoBatchBuilder
                     roots.Add(type);
             }
 
-            return CollectTypes(roots);
+            return CollectTypes(roots, warudoStreamingAssets);
         }
 
         private static void CollectSerializedTypes(UnityEngine.Object target, List<Type> roots, HashSet<UnityEngine.Object> visited)
@@ -80,7 +107,12 @@ namespace StudioRaming.WarudoBatchBuilder
 
         public static WbbRuntimeScriptPlan CollectTypes(IEnumerable<Type> roots)
         {
-            var collector = new Collector();
+            return CollectTypes(roots, WbbWarudoLocator.AmbientStreamingAssets);
+        }
+
+        public static WbbRuntimeScriptPlan CollectTypes(IEnumerable<Type> roots, string warudoStreamingAssets)
+        {
+            var collector = new Collector(CatalogFor(warudoStreamingAssets));
             var queue = new Queue<Type>(roots);
             var visited = new HashSet<Type>();
             while (queue.Count > 0)
@@ -130,7 +162,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private sealed class Collector
         {
             private readonly WbbRuntimeScriptPlan plan = new WbbRuntimeScriptPlan();
-            private readonly WbbWarudoTypeCatalog host = WbbWarudoTypeCatalog.Read();
+            private readonly WbbWarudoTypeCatalog host;
             private readonly Dictionary<string, PlayerAssembly> assemblies;
             private readonly Dictionary<string, CSharpCompilation> compilations = new Dictionary<string, CSharpCompilation>();
             private readonly Dictionary<string, MetadataReference> metadata = new Dictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
@@ -142,8 +174,9 @@ namespace StudioRaming.WarudoBatchBuilder
             private readonly HashSet<string> nativeAssemblies = new HashSet<string>(StringComparer.Ordinal);
             private readonly HashSet<string> asmdefAssemblies = new HashSet<string>(StringComparer.Ordinal);
             private readonly Dictionary<string, bool> asmdefKnown = new Dictionary<string, bool>(StringComparer.Ordinal);
-            public Collector()
+            public Collector(WbbWarudoTypeCatalog host)
             {
+                this.host = host;
                 assemblies = CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies).ToDictionary(a => a.name, StringComparer.Ordinal);
             }
 

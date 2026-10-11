@@ -745,6 +745,24 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Safety.WarudoManagedMissing",
+                new[]
+                {
+                    "WARUDO 폴더를 찾지 못해 스크립트 검사를 할 수 없습니다.",
+                    "The WARUDO folder was not found, so the scripts cannot be checked.",
+                    "WARUDO フォルダが見つからないため、スクリプトを検査できません。"
+                }
+            },
+            {
+                "Safety.WarudoManagedFolder",
+                new[]
+                {
+                    "WARUDO 의 Managed 폴더가 없습니다: {0}",
+                    "The WARUDO Managed folder is missing: {0}",
+                    "WARUDO の Managed フォルダがありません: {0}"
+                }
+            },
+            {
                 "Safety.DeleteFailed",
                 new[]
                 {
