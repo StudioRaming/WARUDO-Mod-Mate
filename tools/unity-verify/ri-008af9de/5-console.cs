@@ -13,7 +13,7 @@ int errors = 0;
 string firstError = "";
 try
 {
-    string logPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "Unity/Editor/Editor.log");
+    string logPath = (string.IsNullOrEmpty(UnityEngine.Application.consoleLogPath) ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "Unity/Editor/Editor.log") : UnityEngine.Application.consoleLogPath);
     using (var stream = new System.IO.FileStream(logPath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite | System.IO.FileShare.Delete))
     using (var reader = new System.IO.StreamReader(stream))
     {

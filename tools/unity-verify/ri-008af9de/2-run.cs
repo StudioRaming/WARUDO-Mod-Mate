@@ -121,7 +121,7 @@ StudioRaming.WarudoBatchBuilder.WbbWarudoLocator.DisableSteamLookupForTests = sw
 StudioRaming.WarudoBatchBuilder.WbbWarudoLocator.Invalidate();
 if (Case == "C") StudioRaming.WarudoBatchBuilder.WbbPrefs.SetString(PrefKey, WarudoRoot.Replace('\\', '/').TrimEnd('/'));
 
-string logPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "Unity/Editor/Editor.log");
+string logPath = (string.IsNullOrEmpty(UnityEngine.Application.consoleLogPath) ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "Unity/Editor/Editor.log") : UnityEngine.Application.consoleLogPath);
 long logOffset = 0;
 try { logOffset = new System.IO.FileInfo(logPath).Length; } catch (System.Exception) { }
 
