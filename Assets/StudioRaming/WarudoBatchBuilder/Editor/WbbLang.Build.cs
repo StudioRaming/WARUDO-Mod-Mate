@@ -952,6 +952,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.ConfirmOtherScope",
+                new[]
+                {
+                    "다른 폴더 {0}개 포함: {1}",
+                    "{0} from other folders included: {1}",
+                    "他のフォルダの {0}件を含む: {1}"
+                }
+            },
+            {
                 "Build.ConfirmBody",
                 new[]
                 {

@@ -9,6 +9,32 @@ namespace StudioRaming.WarudoBatchBuilder
         // The build confirm. Internal so a verification script can read the target list without a click.
         internal static System.Func<string, string, string, string, bool> ConfirmDialog = EditorUtility.DisplayDialog;
 
+        // Targets picked in another folder are not in the list, so the confirm names them (first ConfirmPreviewCount, then +M).
+        private string OtherScopeConfirmLine(List<WbbBuildItem> targets)
+        {
+            var names = new List<string>();
+            for (int i = 0; i < targets.Count; i++)
+            {
+                int index = IndexOfGuid(targets[i].prefabGuid);
+                if (index >= 0 && items[index].otherScope)
+                    names.Add(targets[i].modName + WbbUtil.ModExtension);
+            }
+
+            if (names.Count == 0)
+                return "";
+            var shown = new System.Text.StringBuilder();
+            for (int i = 0; i < names.Count && i < ConfirmPreviewCount; i++)
+            {
+                if (i > 0)
+                    shown.Append(", ");
+                shown.Append(names[i]);
+            }
+
+            if (names.Count > ConfirmPreviewCount)
+                shown.Append(" (+").Append(names.Count - ConfirmPreviewCount).Append(')');
+            return L("Build.ConfirmOtherScope", names.Count, shown.ToString());
+        }
+
         private void StartBuild()
         {
             string error;
@@ -86,6 +112,9 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             string body = L("Build.ConfirmBody", WbbLang.TypeName(CurrentType), targets.Count, string.IsNullOrEmpty(job.modVersion) ? "1.0.0" : job.modVersion, string.IsNullOrEmpty(job.modAuthor) ? L("Build.NoAuthorUnset") : job.modAuthor, outputDir, preview.ToString());
+            string otherLine = OtherScopeConfirmLine(targets);
+            if (otherLine.Length > 0)
+                body += "\n\n" + otherLine;
             if (warnings.Count > 0)
                 body += L("Build.WarnHeader") + "\n" + FormatIssues(warnings);
             if (confirm && !ConfirmDialog(L("Build.ConfirmTitle"), body, L("Build.ConfirmGo"), L("Common.Cancel")))
