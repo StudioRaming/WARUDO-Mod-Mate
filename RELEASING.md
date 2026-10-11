@@ -15,7 +15,7 @@ dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Pa
 ```
 
 - `<modtool SDK>` is the `app.warudo.modtool@<hash>` package in a Unity project's `Library/PackageCache`.
-- `<WARUDO>` is the WARUDO install folder. With no second argument the check uses the Steam default path.
+- `<WARUDO>` is the WARUDO install folder. Without the argument the check uses the Steam default path.
 - Exit 0 is required. Exit 2 means WARUDO could not be read; exit 1 means at least one expected result differs.
 
 ## 2. Unity verification
