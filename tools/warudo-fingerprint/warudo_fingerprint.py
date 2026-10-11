@@ -4,12 +4,16 @@ A result measured on the Steam beta branch says nothing about the default branch
 receipt carries the branch, the build id and the hashes of the DLLs that decide mod loading and cloth data. Run this before
 and after each live test and paste the line into the receipt (or pass --append).
 
-  python tools/warudo-fingerprint/warudo_fingerprint.py [--steam-root DIR] [--player-log FILE [--since-line N]]
+  python tools/warudo-fingerprint/warudo_fingerprint.py [--steam-root DIR] [--player-log [FILE] [--since N:HASH]]
                                                         [--json] [--append FILE]
 
 --player-log counts the lines that show a mod's scripts being loaded. Current WARUDO builds no longer print "Load mod:";
-a mod assembly loaded at runtime shows as "Fallback handler could not load library .../data-<address>.dll". Pass the
-line count printed by the run before the test as --since-line to count only what the test added.
+a mod assembly loaded at runtime shows as "Fallback handler could not load library .../data-<address>.dll". Each run
+prints since=N:HASH (the line count and a hash of those lines); pass it as --since on the run after the test to count only
+what the test added. A different hash means WARUDO restarted in between (it starts a new Player.log on every launch), and
+the whole new log is counted.
+
+Exit codes: 0 = recorded, 2 = no install found or a DLL is missing (the line is still printed with MISSING).
 """
 import argparse
 import datetime
@@ -24,6 +28,8 @@ APP_ID = "2079120"
 DLLS = ("MagicaClothV2.dll", "UMod.dll", "UMod-Shared.dll", "Warudo.Core.dll")
 SCRIPT_LOAD = re.compile(r"Fallback handler could not load library .*[\\/]data-[0-9A-Fa-f]+\.dll")
 KNOWN = Path(__file__).with_name("known_builds.json")
+MANIFEST = "appmanifest_%s.acf" % APP_ID
+HASH_CHARS = 12
 
 
 def default_steam_root():
@@ -36,13 +42,32 @@ def default_player_log():
     return Path(profile) / "AppData" / "LocalLow" / "HakuyaLabs" / "Warudo" / "Player.log" if profile else None
 
 
-def read_manifest(steam_root):
-    manifest = steam_root / "steamapps" / ("appmanifest_%s.acf" % APP_ID)
-    text = manifest.read_text(encoding="utf-8", errors="replace")
+def find_library(steam_root):
+    """Return the Steam library folder that holds WARUDO: the given root, or one listed in its libraryfolders.vdf."""
+    if (steam_root / "steamapps" / MANIFEST).exists():
+        return steam_root
+    folders = steam_root / "steamapps" / "libraryfolders.vdf"
+    if folders.exists():
+        for raw in re.findall(r'"path"\s+"([^"]*)"', folders.read_text(encoding="utf-8", errors="replace")):
+            library = Path(raw.replace("\\\\", "\\"))
+            if (library / "steamapps" / MANIFEST).exists():
+                return library
+    return None
+
+
+def read_manifest(library):
+    text = (library / "steamapps" / MANIFEST).read_text(encoding="utf-8", errors="replace")
     build = re.search(r'"buildid"\s+"(\d+)"', text)
     # BetaKey appears under UserConfig (what the user picked) and MountedConfig (what is installed); both are reported.
     betas = re.findall(r'"BetaKey"\s+"([^"]*)"', text)
-    return manifest, (build.group(1) if build else ""), betas
+    return (build.group(1) if build else ""), betas
+
+
+def branch_of(betas):
+    picked = set(betas)
+    if len(picked) > 1:
+        return "mismatch"  # picked a branch in Steam but the download has not finished
+    return "beta" if picked and next(iter(picked)) else "default"
 
 
 def sha256(path):
@@ -54,52 +79,84 @@ def sha256(path):
 
 
 def match_known(build_id, hashes):
-    if not KNOWN.exists():
-        return "unknown"
-    for entry in json.loads(KNOWN.read_text(encoding="utf-8")):
+    try:
+        entries = json.loads(KNOWN.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "unknown (known_builds.json missing or unreadable)"
+    for entry in entries:
         if entry.get("buildid") == build_id and all(entry.get("sha256", {}).get(name) == value for name, value in hashes.items()):
             return entry["label"]
     return "unknown (add it to known_builds.json once confirmed)"
 
 
-def count_script_loads(log, since_line):
-    total = loads = 0
-    with open(log, "r", encoding="utf-8", errors="replace") as handle:
-        for total, line in enumerate(handle, 1):
-            if total > since_line and SCRIPT_LOAD.search(line):
-                loads += 1
-    return total, loads
+def parse_since(token):
+    count, _, prefix = token.partition(":")
+    return int(count), prefix.lower()
+
+
+def count_script_loads(log, since_lines, since_hash):
+    """Count script loads after the first since_lines lines, or in the whole log when those lines are not the same."""
+    total = 0
+    loads_after = loads_all = 0
+    prefix = hashlib.sha256()
+    prefix_hex = ""
+    with open(log, "rb") as handle:
+        for total, raw in enumerate(handle, 1):
+            prefix.update(raw)
+            if total == since_lines:
+                prefix_hex = prefix.hexdigest()[:HASH_CHARS]
+            if SCRIPT_LOAD.search(raw.decode("utf-8", errors="replace")):
+                loads_all += 1
+                if total > since_lines:
+                    loads_after += 1
+    restarted = since_lines > 0 and (total < since_lines or (since_hash and prefix_hex != since_hash))
+    return {
+        "lines": total,
+        "since": since_lines,
+        "scriptLoads": loads_all if restarted else loads_after,
+        "restarted": bool(restarted),
+        "next": "%d:%s" % (total, prefix.hexdigest()[:HASH_CHARS]),
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--steam-root", type=Path, default=default_steam_root())
     parser.add_argument("--player-log", nargs="?", const="", default=None, help="count script loads (no value = default path)")
-    parser.add_argument("--since-line", type=int, default=0)
+    parser.add_argument("--since", default="0", help="N:HASH printed as since= by the run before the test")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--append", type=Path)
     args = parser.parse_args()
 
-    try:
-        manifest, build_id, betas = read_manifest(args.steam_root)
-    except FileNotFoundError as error:
-        print("ERROR no WARUDO install found (%s); pass --steam-root" % error.filename, file=sys.stderr)
+    library = find_library(args.steam_root)
+    if library is None:
+        print("ERROR no %s under the Steam root or its libraryfolders.vdf; pass --steam-root <library>" % MANIFEST, file=sys.stderr)
         return 2
-    managed = args.steam_root / "steamapps" / "common" / "Warudo" / "Warudo_Data" / "Managed"
-    hashes = {name: sha256(managed / name) for name in DLLS}
+    build_id, betas = read_manifest(library)
+    managed = library / "steamapps" / "common" / "Warudo" / "Warudo_Data" / "Managed"
+    hashes = {}
+    missing = []
+    for name in DLLS:
+        try:
+            hashes[name] = sha256(managed / name)
+        except OSError:
+            hashes[name] = "MISSING"
+            missing.append(name)
     record = {
         "observedAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
         "buildid": build_id,
         "betaKey": betas,
-        "branch": "beta" if any(b for b in betas) else "default",
+        "branch": branch_of(betas),
         "known": match_known(build_id, hashes),
         "sha256": hashes,
     }
     if args.player_log is not None:
         log = Path(args.player_log) if args.player_log else default_player_log()
-        lines, loads = count_script_loads(log, args.since_line)
-        # WARUDO starts a new Player.log on every launch, so a shorter log than --since-line means it restarted in between.
-        record["playerLog"] = {"lines": lines, "sinceLine": args.since_line, "scriptLoads": loads, "restarted": lines < args.since_line}
+        since_lines, since_hash = parse_since(args.since)
+        try:
+            record["playerLog"] = count_script_loads(log, since_lines, since_hash)
+        except (OSError, TypeError):
+            record["playerLog"] = {"error": "Player.log not found"}
 
     if args.json:
         out = json.dumps(record, ensure_ascii=False)
@@ -107,15 +164,21 @@ def main():
         out = "WARUDO %s buildid=%s BetaKey=%s known=%s | %s" % (
             record["branch"], build_id, "/".join(betas) or "-", record["known"],
             " ".join("%s=%s" % (name, value[:16]) for name, value in hashes.items()))
-        if "playerLog" in record:
-            log_info = record["playerLog"]
-            out += " | Player.log lines=%d scriptLoads(since %d)=%d" % (log_info["lines"], log_info["sinceLine"], log_info["scriptLoads"])
+        log_info = record.get("playerLog")
+        if log_info and "error" in log_info:
+            out += " | %s" % log_info["error"]
+        elif log_info:
+            out += " | Player.log lines=%d scriptLoads(after %d)=%d since=%s" % (
+                log_info["lines"], log_info["since"], log_info["scriptLoads"], log_info["next"])
             if log_info["restarted"]:
-                out += " (log is shorter than --since-line: WARUDO restarted, see Player-prev.log)"
+                out += " (WARUDO restarted after --since, whole new log counted; the old one is Player-prev.log)"
     print(out)
     if args.append:
         with open(args.append, "a", encoding="utf-8") as handle:
             handle.write(out + "\n")
+    if missing:
+        print("ERROR missing in Warudo_Data/Managed: %s" % ", ".join(missing), file=sys.stderr)
+        return 2
     return 0
 
 
