@@ -12,7 +12,7 @@ folder still builds. They run in the Unity Editor (2021.3.45f2, SDK 0.14.3.10) t
 | `1-write-fixtures.cs` | setup | Copies `fixture/` into `<QaRoot>/Assets/WmmAsmdefFixture`. Refuses to overwrite. Triggers a reload. |
 | `2-build.cs` | build | Makes the fixture prefab once, then starts one build through `WbbBuildRunner.Start`. Returns `QUEUED`. |
 | `3-audit.cs` | check | Polls until the build stops running, then prints one `PASS`/`FAIL` line per check and a `VERDICT`. Changes nothing. |
-| `4-abort-by-reload.cs` | check | Starts a build, forces a script reload during it (`Phase = "reload"`), then checks the cancel path (`Phase = "check"`). |
+| `4-abort-by-reload.cs` | check | Waits for a running build's item to start staging, forces a script reload then (`Phase = "reload"`), then checks the cancel path (`Phase = "check"`). |
 
 ## Parameters
 
@@ -30,7 +30,8 @@ Every script has `PARAMETER` constants at the top. They ship empty. A script wit
 1. `1-write-fixtures.cs`, then wait until the editor is ready (`lab_wait_ready`).
 2. `2-build.cs` with `Case = "ok-manual"`, then poll `3-audit.cs` until it no longer says `RUNNING`.
 3. Repeat step 2 for `ok-auto`, `bad-manual` and `plain-manual`, each with a new `RunTag`.
-4. `2-build.cs` with `RunTag = "R1"` and `4-abort-by-reload.cs` (`Phase = "reload"`, then `Phase = "check"`).
+4. `2-build.cs` with `RunTag = "R1"`, then at once `4-abort-by-reload.cs` with `Phase = "reload"` (it returns `WAITING`
+   and requests the recompile itself once the item reaches staging), wait for the editor, then `Phase = "check"`.
 
 Do not edit scripts in `Assets/` during a run. A recompile during a build cancels it.
 
@@ -44,5 +45,6 @@ Do not edit scripts in `Assets/` during a run. A recompile during a build cancel
 | `plain-manual` | no asmdef; plain scripts compiled by Mod Mate | `PASS` | Status `Success`; archive lists entries; `assemblymodules.dat` packed. The history message naming `WbbRuntimeScripts` is not asserted by the script; read it by hand. |
 | `4-abort-by-reload` (check) | build interrupted by a reload | `PASS` | Item status `Canceled`; record message says the build was cancelled by a recompile; a note survives the reload; no WMM temp folder; no build journal; no half-written archive |
 
-`INCONCLUSIVE` means the build finished before the reload reached it: rerun with a new `RunTag`. It is not a pass.
+`INCONCLUSIVE` means the reload missed the item: the build finished before it, or it stopped the batch before the item
+started (the item is then `Skipped` and has no history record). Rerun with a new `RunTag`. It is not a pass.
 `FAIL (n check(s))` lists each failed check on its own `FAIL` line.

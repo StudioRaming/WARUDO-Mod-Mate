@@ -1,12 +1,14 @@
 // WMM asmdef runtime support, item 5 check (task_id PHYS-RESUME-20261008). lab_exec_file statement body, QA project only.
 // Shows what a build does when a script recompile cuts it off, three calls:
-//   Phase = "reload"  : call this ONLY while a build from 2-build.cs is RUNNING (3-audit.cs says RUNNING). It asks Unity to
-//                       recompile scripts, which reloads the domain and aborts the WMM runner. The bridge may report the
-//                       disconnect; wait for the editor to be ready again.
+//   Phase = "reload"  : call this ONLY while a build from 2-build.cs is RUNNING (3-audit.cs says RUNNING). It waits for
+//                       the item to reach Stage, WriteSettings or CompileRuntime, then asks Unity to recompile scripts,
+//                       which reloads the domain and aborts the WMM runner. The bridge may report the disconnect; wait
+//                       for the editor to be ready again.
 //   Phase = "check"   : after the reload. Expects the item Canceled with the reason in its message, a note kept for the
 //                       Build tab, the build profile restored, no temp folder and no journal left. Read-only.
-// Start the build with 2-build.cs (Case ok-manual, a new RunTag) right before "reload"; the compile step of a larger
-// runtime is the best moment, so use a runtime with many files if the fixture finishes too fast.
+// Start the build with 2-build.cs (Case ok-manual, a new RunTag) and call "reload" right after it returns QUEUED. An
+// immediate recompile request lands while the batch is still in Prepare, before the item starts: the item is Skipped
+// and leaves no history record, so "check" can only say INCONCLUSIVE (measured 2026-10-11). Hence the wait.
 const string Phase = "reload";                                     // PARAMETER: reload | check
 const string Case = "ok-manual";                                   // PARAMETER, as in 2-build.cs
 const string RunTag = "R1";                                        // PARAMETER, the tag of the interrupted build
@@ -20,8 +22,40 @@ if (UnityEngine.Application.dataPath != QaRoot + "/Assets") return "ABORT not th
 if (Phase == "reload")
 {
     if (!StudioRaming.WarudoBatchBuilder.WbbBuildRunner.AnyRunning) return "ABORT no WMM build is running; start one with 2-build.cs first";
-    UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-    return "REQUESTED a script recompile while " + modName + " runs. Wait for the editor, then run Phase=check.";
+    // The runner's private step is read by reflection; without it, fall back to an immediate request.
+    var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
+    var runnerType = typeof(StudioRaming.WarudoBatchBuilder.WbbBuildRunner);
+    var activeField = runnerType.GetField("activeRunner", flags);
+    var stepField = runnerType.GetField("step", flags);
+    if (activeField == null || stepField == null)
+    {
+        UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+        return "REQUESTED a script recompile at once (runner step not readable, the result may be INCONCLUSIVE). Wait for the editor, then run Phase=check.";
+    }
+
+    int ticks = 0;
+    UnityEditor.EditorApplication.CallbackFunction hook = null;
+    hook = () =>
+    {
+        ticks++;
+        object runner = activeField.GetValue(null);
+        if (runner == null || !StudioRaming.WarudoBatchBuilder.WbbBuildRunner.AnyRunning || ticks > 20000)
+        {
+            UnityEditor.EditorApplication.update -= hook;
+            UnityEngine.Debug.Log("[WmmAbortCheck] no recompile requested: the build ended or the wait ran out at tick " + ticks);
+            return;
+        }
+
+        string step = stepField.GetValue(runner).ToString();
+        if (step == "Stage" || step == "WriteSettings" || step == "CompileRuntime")
+        {
+            UnityEditor.EditorApplication.update -= hook;
+            UnityEngine.Debug.Log("[WmmAbortCheck] requesting a script recompile at step " + step + ", tick " + ticks);
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+        }
+    };
+    UnityEditor.EditorApplication.update += hook;
+    return "WAITING to request a script recompile once " + modName + " reaches Stage, WriteSettings or CompileRuntime (the Console logs [WmmAbortCheck]). Wait for the editor, then run Phase=check.";
 }
 
 if (StudioRaming.WarudoBatchBuilder.WbbBuildRunner.AnyRunning) return "RUNNING";
@@ -54,9 +88,9 @@ foreach (var candidate in StudioRaming.WarudoBatchBuilder.WbbDatabase.Records)
 }
 if (record == null)
 {
-    // The build finished before the reload reached it, or never ran: report which.
+    // The build finished before the reload reached it, or the reload stopped the batch before the item started: report which.
     bool built = System.IO.File.Exists(OutDir + "/" + modName + ".warudo");
-    return "INCONCLUSIVE no history record for " + modName + (built ? " but the archive exists: the build finished before the recompile" : " and no archive: the build never started");
+    return "INCONCLUSIVE no history record for " + modName + (built ? " but the archive exists: the build finished before the recompile" : " and no archive: the reload stopped the batch before the item started (item Skipped, no record), or the build never ran. Rerun with a new RunTag");
 }
 
 var status = (StudioRaming.WarudoBatchBuilder.WbbBuildStatus)record.status;
