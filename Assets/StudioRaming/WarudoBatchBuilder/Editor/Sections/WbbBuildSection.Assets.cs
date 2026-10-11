@@ -212,7 +212,17 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void GenerateThumbnailBatch()
         {
-            bool onlySelected = selectedCount > 0;
+            // selectedCount also counts other-folder selections, which this walk over the listed items never reaches.
+            bool onlySelected = false;
+            for (int i = 0; i < filtered.Count; i++)
+            {
+                if (!items[filtered[i]].isScene && selected.Contains(items[filtered[i]].guid))
+                {
+                    onlySelected = true;
+                    break;
+                }
+            }
+
             var targets = new List<Item>();
             for (int i = 0; i < filtered.Count; i++)
             {
