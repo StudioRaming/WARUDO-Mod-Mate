@@ -57,6 +57,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public bool showOutputDirectory;
         public int logLevel;
         public int recoveryAttempts;
+        public string recoverySession = "";
     }
 
     public class WbbStrandedOriginal
@@ -77,7 +78,9 @@ namespace StudioRaming.WarudoBatchBuilder
         private static WbbJournalData current;
         private static string lastRecoverySummary = "";
         private static string lastRecoveryIso = "";
-        private static bool settingsRestorePending;
+        private static string sessionId;
+        private static long pendingStamp = -1L;
+        private static bool pendingCached;
         static WbbJournal()
         {
             EditorApplication.delayCall += OnEditorLoaded;
@@ -123,11 +126,56 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         // True while a journal is kept because the build settings could not be written back; a new batch must wait for it.
+        // Derived from the file (recoveryAttempts > 0), so it survives domain reloads; cached by the file's write time.
         public static bool SettingsRestorePending
         {
             get
             {
-                return settingsRestorePending && Exists;
+                try
+                {
+                    if (!File.Exists(JournalPath))
+                    {
+                        pendingStamp = -1L;
+                        return false;
+                    }
+
+                    var info = new FileInfo(JournalPath);
+                    long stamp = info.LastWriteTimeUtc.Ticks ^ info.Length;
+                    if (stamp != pendingStamp)
+                    {
+                        WbbJournalData data = Read();
+                        pendingCached = data != null && data.recoveryAttempts > 0;
+                        pendingStamp = stamp;
+                    }
+
+                    return pendingCached;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // Identifies one editor run: stable across domain reloads, different after the editor is restarted.
+        private static string EditorSessionId
+        {
+            get
+            {
+                if (sessionId == null)
+                {
+                    try
+                    {
+                        var process = System.Diagnostics.Process.GetCurrentProcess();
+                        sessionId = process.Id + "-" + process.StartTime.ToUniversalTime().Ticks;
+                    }
+                    catch (Exception)
+                    {
+                        sessionId = "unknown";
+                    }
+                }
+
+                return sessionId;
             }
         }
 
@@ -517,7 +565,6 @@ namespace StudioRaming.WarudoBatchBuilder
         public static void Complete()
         {
             current = null;
-            settingsRestorePending = false;
             try
             {
                 if (File.Exists(JournalPath))
@@ -759,20 +806,29 @@ namespace StudioRaming.WarudoBatchBuilder
             data.tempFolders.Clear();
             data.tempRoot = "";
             data.outputs.Clear();
-            data.recoveryAttempts++;
+            // The cap counts editor sessions, not calls: recovery also runs on every script reload and every Start click,
+            // so counting those would burn the attempts on one locked file in a minute and then discard the only record
+            // of the original settings. A retry inside the same session still restores and still blocks Start, but does not count.
+            string session = EditorSessionId;
+            if (data.recoverySession != session)
+            {
+                data.recoveryAttempts++;
+                data.recoverySession = session;
+            }
+
+            if (data.recoveryAttempts < 1)
+                data.recoveryAttempts = 1;
             bool saved = Write(data);
             if (data.recoveryAttempts >= MaxRecoveryAttempts)
             {
                 string target = PreserveUnrecovered();
                 if (target.Length > 0)
                 {
-                    settingsRestorePending = false;
                     Notify(WbbLang.T("Safety.JournalUnrecovered", Path.GetFileName(target)));
                     return;
                 }
             }
 
-            settingsRestorePending = true;
             if (!saved)
                 WbbUtil.LogError("The recovery attempt count could not be saved; the previous journal file is kept as it was.");
             Notify(summary);
