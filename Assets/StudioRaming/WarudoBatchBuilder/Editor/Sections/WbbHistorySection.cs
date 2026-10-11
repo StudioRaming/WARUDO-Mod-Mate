@@ -15,6 +15,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private const int GroupByJob = 1;
         private const int GroupFlat = 2;
         private const string Pfx = WbbUtil.PrefPrefix + "History.";
+        // The confirm dialogs of delete and rebuild. Internal so a verification script can read the text without a click.
+        internal static System.Func<string, string, string, string, bool> ConfirmDialog = EditorUtility.DisplayDialog;
         private static string L(string key)
         {
             return WbbLang.T(key);

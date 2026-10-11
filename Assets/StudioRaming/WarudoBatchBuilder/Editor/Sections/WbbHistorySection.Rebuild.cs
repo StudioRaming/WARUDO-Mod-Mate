@@ -101,7 +101,7 @@ namespace StudioRaming.WarudoBatchBuilder
             }
             else
             {
-                if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildSelectedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
+                if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildSelectedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
                     return;
             }
 
@@ -127,7 +127,7 @@ namespace StudioRaming.WarudoBatchBuilder
             var targets = DedupeByPrefab(failed);
             if (targets.Count == 0)
                 return;
-            if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildFailedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
+            if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildFailedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
                 return;
             SendRebuild(targets);
         }

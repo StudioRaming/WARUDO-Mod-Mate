@@ -55,7 +55,7 @@ namespace StudioRaming.WarudoBatchBuilder
             string text = L("History.DeleteSelectedConfirm", picked.Count, picked[0].nameText);
             if (hiddenSelectedCount > 0)
                 text += "\n\n" + L("History.DeleteHiddenWarn", hiddenSelectedCount);
-            return EditorUtility.DisplayDialog(L("Common.ProductName"), text, L("Common.Delete"), L("Common.Cancel"));
+            return ConfirmDialog(L("Common.ProductName"), text, L("Common.Delete"), L("Common.Cancel"));
         }
 
         private void DeleteSelected()

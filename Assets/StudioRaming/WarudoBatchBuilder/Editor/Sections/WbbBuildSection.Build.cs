@@ -6,6 +6,9 @@ namespace StudioRaming.WarudoBatchBuilder
 {
     public partial class WbbBuildSection
     {
+        // The build confirm. Internal so a verification script can read the target list without a click.
+        internal static System.Func<string, string, string, string, bool> ConfirmDialog = EditorUtility.DisplayDialog;
+
         private void StartBuild()
         {
             string error;
@@ -85,7 +88,7 @@ namespace StudioRaming.WarudoBatchBuilder
             string body = L("Build.ConfirmBody", WbbLang.TypeName(CurrentType), targets.Count, string.IsNullOrEmpty(job.modVersion) ? "1.0.0" : job.modVersion, string.IsNullOrEmpty(job.modAuthor) ? L("Build.NoAuthorUnset") : job.modAuthor, outputDir, preview.ToString());
             if (warnings.Count > 0)
                 body += L("Build.WarnHeader") + "\n" + FormatIssues(warnings);
-            if (confirm && !EditorUtility.DisplayDialog(L("Build.ConfirmTitle"), body, L("Build.ConfirmGo"), L("Common.Cancel")))
+            if (confirm && !ConfirmDialog(L("Build.ConfirmTitle"), body, L("Build.ConfirmGo"), L("Common.Cancel")))
             {
                 error = "Canceled.";
                 return false;
