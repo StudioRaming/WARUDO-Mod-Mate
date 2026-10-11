@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- Clear Selection clears the whole selection in the Mod list, History and Build list menu, including items a search or filter hides. It used to unselect only the visible ones and left Delete selected enabled. Select All still takes only what is visible, and its tooltip says so. The History delete confirm now says how many of the selected records are hidden, like the Mod list one does.
+- The Build tab keeps a selection made in another folder when the folder tree changes scope. The kept prefabs are not listed but are named in the build confirm and built; the list count line says how many come from other folders.
+- The History tab re-checks which output files still exist when it is entered or the window is focused (at most every 3 seconds), so a file moved to the Recycle Bin shows as missing. Entering the Mod list tab refreshes it too.
+- The Quick Build button says why it is disabled while another build runs (tooltip and a status line) and turns on by itself when that build ends.
+- The History rebuild confirm says how many selected records are left out because their type, version, author or output folder differ from the largest group.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
