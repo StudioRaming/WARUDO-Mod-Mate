@@ -104,6 +104,8 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbLang.OnWindowFocus();
             if (tab == TabLibrary && library != null)
                 library.Refresh();
+            else if (tab == TabHistory && history != null)
+                history.Refresh();
         }
 
         public void RequestRepaint()
@@ -149,6 +151,10 @@ namespace StudioRaming.WarudoBatchBuilder
             tabError = "";
             tabErrorTab = -1;
             EditorPrefs.SetInt(WinPfx + "tab", tab);
+            if (tab == TabLibrary && library != null)
+                library.Refresh();
+            else if (tab == TabHistory && history != null)
+                history.Refresh();
             GUI.FocusControl(null);
             Repaint();
         }

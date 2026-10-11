@@ -119,6 +119,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private WbbTone pendingStatusLineTone = WbbTone.Info;
         private bool pendingForceRefresh;
         private int hiddenSelectedCount;
+        private const double RefreshMinSec = 3.0;
+        private double lastRefreshTime = -999d;
         private bool pendingExportCsv;
         private bool pendingRebuildSelected;
         private bool pendingRebuildFailed;
@@ -194,8 +196,11 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbPrefs.SetInt(Pfx + "Group", groupMode);
         }
 
+        // Re-checks the output files on tab entry and focus; the minimum gap keeps a big history from rescanning on every click.
         public void Refresh()
         {
+            if (EditorApplication.timeSinceStartup - lastRefreshTime < RefreshMinSec)
+                return;
             pendingForceRefresh = true;
             if (host != null)
                 host.RequestRepaint();

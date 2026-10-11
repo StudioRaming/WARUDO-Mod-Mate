@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace StudioRaming.WarudoBatchBuilder
@@ -65,7 +66,10 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             WbbDatabase.EnsureLoaded();
             if (clearFileCache)
+            {
                 fileExists.Clear();
+                lastRefreshTime = EditorApplication.timeSinceStartup;
+            }
             var list = WbbDatabase.Records;
             dbCount = list.Count;
             dbTopId = list.Count > 0 ? list[0].id : "";
