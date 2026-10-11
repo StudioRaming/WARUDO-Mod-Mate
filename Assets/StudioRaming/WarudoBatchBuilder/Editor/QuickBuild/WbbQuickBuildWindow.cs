@@ -213,9 +213,10 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             // canBuild only changes in Validate, so a build that starts or ends elsewhere has to mark it dirty here.
             bool running = WbbBuildRunner.AnyRunning;
-            if (running != otherBuildRunning)
+            if (running != otherBuildRunning && !validationDirty)
             {
                 validationDirty = true;
+                existsCache.Clear();
                 Repaint();
             }
 
