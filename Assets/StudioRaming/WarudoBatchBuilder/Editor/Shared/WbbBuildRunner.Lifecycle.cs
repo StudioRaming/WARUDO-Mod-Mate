@@ -347,6 +347,8 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 case WbbBuildStatus.Success:
                     successCount++;
+                    if (job != null && job.exportType == (int)WbbExportType.Prop && item.replacedExistingOutput && !item.packedRuntimeScripts)
+                        quickIterateCount++;
                     break;
                 case WbbBuildStatus.Failed:
                     failedCount++;

@@ -492,6 +492,13 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             MarkCurrent(WbbBuildStatus.Success, "");
+            var done = CurrentItem();
+            if (done != null)
+            {
+                done.replacedExistingOutput = outputGuard != null && outputGuard.backupPath.Length > 0;
+                done.packedRuntimeScripts = expectScripts || itemCompiled.Count > 0;
+            }
+
             WbbJournal.MarkOutputVerified(outputGuard);
             step = Step.Cleanup;
         }

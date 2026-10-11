@@ -263,6 +263,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private int resultFailed;
         private int resultCanceledItems;
         private int resultSkipped;
+        private bool resultQuickIterate;
         private string resultOutputDir = "";
         private bool resultVisible;
         private string resultLabel = "";

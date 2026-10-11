@@ -170,6 +170,7 @@ namespace StudioRaming.WarudoBatchBuilder
             resultFailed = runner != null ? runner.FailedCount : 0;
             resultCanceledItems = 0;
             resultSkipped = 0;
+            resultQuickIterate = !canceled && resultFailed == 0 && runner != null && runner.QuickIterateCount > 0;
             if (runner != null)
             {
                 IList<WbbBuildItem> ran = runner.Items;

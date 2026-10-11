@@ -203,6 +203,8 @@ namespace StudioRaming.WarudoBatchBuilder
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
+            if (resultQuickIterate)
+                WbbStyles.Callout(L("QuickIterate.Notice"), WbbTone.Info);
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (WbbStyles.Button(LC("Build.OpenOutput"), WbbButtonKind.Secondary, GUILayout.Height(WbbSize.ControlSmall)))

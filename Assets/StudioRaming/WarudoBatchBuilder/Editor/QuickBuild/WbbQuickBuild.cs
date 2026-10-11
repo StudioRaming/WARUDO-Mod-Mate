@@ -36,6 +36,7 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         private static WbbBuildRunner runner;
+        private static bool quickIterateNotice;
         private static string tempFolder = "";
         private static readonly List<string> tempGuids = new List<string>();
         private static readonly List<WbbRecord> finishedRecords = new List<WbbRecord>();
@@ -444,6 +445,7 @@ namespace StudioRaming.WarudoBatchBuilder
             HookUpdate(false);
             int success = runner != null ? runner.SuccessCount : 0;
             int failed = runner != null ? runner.FailedCount : 0;
+            quickIterateNotice = !canceled && failed == 0 && runner != null && runner.QuickIterateCount > 0;
             DetachRunner();
             CleanupTemp();
             WbbWindow.RepaintOpenWindows();
@@ -468,7 +470,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private static void Report(bool canceled, int success, int failed)
         {
             string elapsed = WbbUtil.FormatDuration(EditorApplication.timeSinceStartup - batchStartTime);
-            if (!canceled && failed == 0 && success > 0)
+            if (!canceled && failed == 0 && success > 0 && !quickIterateNotice)
             {
                 string text = success == 1 && finishedRecords.Count > 0 ? L("Quick.DoneOne", finishedRecords[0].modName + WbbUtil.ModExtension) : L("Quick.DoneMany", success, elapsed);
                 for (int i = 0; i < finishedRecords.Count; i++)
@@ -482,6 +484,8 @@ namespace StudioRaming.WarudoBatchBuilder
             var body = new System.Text.StringBuilder();
             body.Append(canceled ? L("Quick.ResultCanceled", success, failed) : L("Quick.ResultDone", success, failed));
             body.Append("\n").Append(L("Quick.Elapsed", elapsed));
+            if (quickIterateNotice)
+                body.Append("\n\n").Append(L("QuickIterate.Notice"));
             for (int i = 0; i < finishedRecords.Count && i < ReportPreviewCount; i++)
             {
                 WbbRecord record = finishedRecords[i];
