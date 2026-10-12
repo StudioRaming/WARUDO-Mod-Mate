@@ -84,6 +84,10 @@ namespace StudioRaming.WarudoBatchBuilder
         private static string sessionId;
         private static long pendingStamp = -1L;
         private static bool pendingCached;
+        // Set when a recovery in this domain could not write the settings back. It covers the case where saving the kept
+        // journal failed too, so the file on disk still says recoveryAttempts == 0. A domain reload clears it, and the
+        // recovery that runs after the reload (and before every Start) sets it again while the restore keeps failing.
+        private static bool restorePendingInMemory;
         static WbbJournal()
         {
             EditorApplication.delayCall += OnEditorLoaded;
@@ -139,8 +143,12 @@ namespace StudioRaming.WarudoBatchBuilder
                     if (!File.Exists(JournalPath))
                     {
                         pendingStamp = -1L;
+                        restorePendingInMemory = false;
                         return false;
                     }
+
+                    if (restorePendingInMemory)
+                        return true;
 
                     var info = new FileInfo(JournalPath);
                     long stamp = info.LastWriteTimeUtc.Ticks ^ info.Length;
@@ -621,6 +629,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public static void Complete()
         {
             current = null;
+            restorePendingInMemory = false;
             try
             {
                 if (File.Exists(JournalPath))
@@ -858,6 +867,7 @@ namespace StudioRaming.WarudoBatchBuilder
         // (settings fields only) and retry later, up to MaxRecoveryAttempts, then set it aside like an unreadable one.
         private static void KeepForSettingsRestore(WbbJournalData data, string summary)
         {
+            restorePendingInMemory = true;
             data.copies.Clear();
             data.tempFolders.Clear();
             data.tempRoot = "";
@@ -898,6 +908,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 string target = JournalPath + SetAsideMarker + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
                 File.Move(JournalPath, target);
                 pendingStamp = -1L;
+                restorePendingInMemory = false;
                 WbbUtil.LogError("The build journal was set aside because " + reason + " (nothing was deleted): " + target + ". The settings from before that build were not written back; check ExportSettings or restore it from a backup.");
                 return target;
             }
