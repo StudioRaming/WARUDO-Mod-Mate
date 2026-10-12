@@ -26,6 +26,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private int pendingDbAction;
         private string pendingRestoreSettings;
         private bool pendingCreateSettings;
+        private bool pendingSetAsideJournal;
+        private bool pendingAckSetAside;
         private bool pendingTreeToggle;
         private float listViewportHeightLayout = WbbSize.Build.CardHeight * 2f;
         public void OnGUI()
@@ -524,6 +526,41 @@ namespace StudioRaming.WarudoBatchBuilder
                 string err;
                 bool ok = WbbExportSettingsGuard.Restore(backup, out err);
                 SetStatus(ok ? L("Safety.SettingsRestored") : L("Safety.SettingsRestoreFailed", err), ok ? MessageType.Info : MessageType.Error);
+                // A restored file can make a kept journal writable again (its profile is back), and the journal holds the
+                // values from just before the build, which are newer than any backup: write them back now, not on the next Start.
+                if (ok && WbbJournal.SettingsRestorePending)
+                {
+                    try
+                    {
+                        WbbJournal.RecoverIfNeeded();
+                    }
+                    catch (System.Exception e)
+                    {
+                        WbbUtil.LogWarning("Leftover build cleanup after the settings restore failed: " + e.Message);
+                    }
+                }
+
+                preflightDirty = true;
+                RequestRepaint();
+            }
+
+            if (pendingSetAsideJournal)
+            {
+                pendingSetAsideJournal = false;
+                if (WbbJournal.SettingsRestorePending && EditorUtility.DisplayDialog(L("Common.ProductName"), L("Safety.JournalSetAside.confirm"), L("Safety.JournalSetAside"), L("Common.Cancel")))
+                {
+                    string name = WbbJournal.SetAsidePending("the user chose to set it aside");
+                    SetStatus(name.Length > 0 ? L("Safety.JournalSetAside.done", name) : L("Safety.JournalSetAside.failed"), name.Length > 0 ? MessageType.Warning : MessageType.Error);
+                }
+
+                preflightDirty = true;
+                RequestRepaint();
+            }
+
+            if (pendingAckSetAside)
+            {
+                pendingAckSetAside = false;
+                WbbJournal.AcknowledgeSetAside();
                 preflightDirty = true;
                 RequestRepaint();
             }

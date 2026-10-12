@@ -74,6 +74,9 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string TempFolderPrefix = "_WBB_Temp_do_not_edit_";
         private const string FileName = "BuildJournal.json";
         private const string StrandReportedKey = WbbUtil.PrefPrefix + "Journal.StrandReported";
+        // File name of the newest set-aside record the user has acknowledged; a newer one blocks builds until acknowledged.
+        private const string SetAsideAckKey = WbbUtil.PrefPrefix + "Journal.SetAsideAcknowledged";
+        private const string SetAsideMarker = ".unrecovered-";
         public const int MaxRecoveryAttempts = 3;
         private static WbbJournalData current;
         private static string lastRecoverySummary = "";
@@ -155,6 +158,59 @@ namespace StudioRaming.WarudoBatchBuilder
                     return false;
                 }
             }
+        }
+
+        // The newest set-aside record (BuildJournal.json.unrecovered-<time>) the user has not acknowledged yet, or "".
+        // It means the settings from before an interrupted build were never written back, so the next build would take
+        // the values left in ExportSettings for the originals; builds wait until the user has checked the settings.
+        public static string UnacknowledgedSetAside
+        {
+            get
+            {
+                try
+                {
+                    string dir = WbbBuildLog.LibraryDirectory;
+                    if (!Directory.Exists(dir))
+                        return "";
+                    string newest = "";
+                    foreach (string path in Directory.GetFiles(dir, FileName + SetAsideMarker + "*"))
+                    {
+                        string name = Path.GetFileName(path);
+                        if (string.CompareOrdinal(name, newest) > 0)
+                            newest = name;
+                    }
+
+                    if (newest.Length == 0 || string.CompareOrdinal(newest, WbbPrefs.GetString(SetAsideAckKey, "", false)) <= 0)
+                        return "";
+                    return newest;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
+
+        public static void AcknowledgeSetAside()
+        {
+            string newest = UnacknowledgedSetAside;
+            if (newest.Length > 0)
+                WbbPrefs.SetString(SetAsideAckKey, newest);
+        }
+
+        // The user's way out of a pending record whose settings cannot be written back (a profile that no longer exists,
+        // a settings asset that was replaced): move it aside like the attempt cap does, nothing is deleted. Choosing this
+        // counts as acknowledging it. Returns the set-aside file name, or "" when the move failed.
+        public static string SetAsidePending(string reason)
+        {
+            if (current != null || WbbBuildRunner.AnyRunning || !SettingsRestorePending)
+                return "";
+            string target = PreserveUnrecovered(reason);
+            if (target.Length == 0)
+                return "";
+            string name = Path.GetFileName(target);
+            WbbPrefs.SetString(SetAsideAckKey, name);
+            return name;
         }
 
         // Identifies one editor run: stable across domain reloads, different after the editor is restarted.
@@ -821,9 +877,10 @@ namespace StudioRaming.WarudoBatchBuilder
             bool saved = Write(data);
             if (data.recoveryAttempts >= MaxRecoveryAttempts)
             {
-                string target = PreserveUnrecovered();
+                string target = PreserveUnrecovered("the build settings could not be restored after " + MaxRecoveryAttempts + " attempts");
                 if (target.Length > 0)
                 {
+                    // Builds stay blocked until the user acknowledges it (UnacknowledgedSetAside); the toast is only the first notice.
                     Notify(WbbLang.T("Safety.JournalUnrecovered", Path.GetFileName(target)));
                     return;
                 }
@@ -834,13 +891,14 @@ namespace StudioRaming.WarudoBatchBuilder
             Notify(summary);
         }
 
-        private static string PreserveUnrecovered()
+        private static string PreserveUnrecovered(string reason)
         {
             try
             {
-                string target = JournalPath + ".unrecovered-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                string target = JournalPath + SetAsideMarker + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
                 File.Move(JournalPath, target);
-                WbbUtil.LogError("The build settings could not be restored after " + MaxRecoveryAttempts + " attempts; the recovery record was set aside (nothing was deleted): " + target + ". Restore ExportSettings from a backup.");
+                pendingStamp = -1L;
+                WbbUtil.LogError("The build journal was set aside because " + reason + " (nothing was deleted): " + target + ". The settings from before that build were not written back; check ExportSettings or restore it from a backup.");
                 return target;
             }
             catch (Exception e)

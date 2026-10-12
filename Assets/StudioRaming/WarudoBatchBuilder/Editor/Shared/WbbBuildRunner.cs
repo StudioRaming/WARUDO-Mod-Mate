@@ -261,19 +261,36 @@ namespace StudioRaming.WarudoBatchBuilder
                 return false;
             }
 
+            string recoveryError = "";
             try
             {
                 WbbJournal.RecoverIfNeeded();
             }
             catch (System.Exception e)
             {
+                recoveryError = e.Message;
                 WbbUtil.LogWarning("Leftover build cleanup failed: " + e.Message);
             }
 
-            // A journal that survived recovery still holds the only copy of the original settings; Begin would overwrite it.
-            if (WbbJournal.Exists && WbbJournal.Current == null)
+            // Begin overwrites the journal file. That is only safe once recovery has read it: a journal whose settings could
+            // not be written back, or one recovery failed on, still holds the only copy of the original settings. A journal
+            // left only because deleting it failed after a full recovery holds nothing that is still needed.
+            if (WbbJournal.SettingsRestorePending)
             {
                 SetStatus(L("Safety.JournalBlocksStart"));
+                return false;
+            }
+
+            if (recoveryError.Length > 0 && WbbJournal.Exists && WbbJournal.Current == null)
+            {
+                SetStatus(L("Safety.JournalRecoveryError", recoveryError));
+                return false;
+            }
+
+            string setAside = WbbJournal.UnacknowledgedSetAside;
+            if (setAside.Length > 0)
+            {
+                SetStatus(L("Safety.JournalSetAsidePending", setAside) + " " + L("Safety.JournalSetAsidePending.hint"));
                 return false;
             }
 

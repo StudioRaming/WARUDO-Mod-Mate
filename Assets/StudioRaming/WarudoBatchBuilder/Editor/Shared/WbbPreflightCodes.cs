@@ -32,6 +32,8 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string UnsupportedFiles = "unsupported-files";
         public const string UModBusy = "umod-busy";
         public const string JournalPending = "journal-pending";
+        public const string JournalRestoreFailed = "journal-restore-failed";
+        public const string JournalSetAside = "journal-set-aside";
         public const string DatabaseLoadFailed = "database-load-failed";
     }
 }
