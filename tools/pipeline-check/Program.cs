@@ -20,8 +20,9 @@ static class Program
         Console.WriteLine("case | expected | actual");
 
         string path = args.Length > 0 ? args[0] : DefaultPath;
+        // The real file holds whichever pipeline WARUDO is set to right now, so (a) only requires a readable value.
         if (File.Exists(path))
-            Check("(a) WARUDO file " + path, true, WbbWarudoPipeline.ParseNiloToonEnabled(File.ReadAllText(path)));
+            CheckReadable("(a) WARUDO file " + path, WbbWarudoPipeline.ParseNiloToonEnabled(File.ReadAllText(path)));
         else
             Console.WriteLine("(a) WARUDO file " + path + " | SKIP | file not found");
 
@@ -32,7 +33,7 @@ static class Program
         Check("(e) value after nested object", null, WbbWarudoPipeline.ParseNiloToonEnabled("{\"dataInputs\":{\"Enabled\":{\"type\":\"bool\",\"properties\":{\"x\":1},\"value\":\"false\"}}}"));
         Check("(f) other block first", true, WbbWarudoPipeline.ParseNiloToonEnabled("{\"dataInputs\":{\"Other\":{\"value\":\"false\"},\"Enabled\":{\"type\":\"bool\",\"value\":\"true\"}}}"));
 
-        Console.WriteLine("PASS " + passed + "/" + run);
+        Console.WriteLine((anyMismatch ? "FAIL " : "PASS ") + passed + "/" + run);
         return anyMismatch ? 1 : 0;
     }
 
@@ -45,6 +46,16 @@ static class Program
         else
             anyMismatch = true;
         Console.WriteLine(name + " | " + Show(expected) + " | " + Show(actual) + (ok ? "" : "  <-- MISMATCH"));
+    }
+
+    static void CheckReadable(string name, bool? actual)
+    {
+        run++;
+        if (actual.HasValue)
+            passed++;
+        else
+            anyMismatch = true;
+        Console.WriteLine(name + " | true or false | " + Show(actual) + (actual.HasValue ? " (" + (actual.Value ? "URP" : "Built-in") + ")" : "  <-- MISMATCH"));
     }
 
     static string Show(bool? value)
