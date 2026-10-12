@@ -16,7 +16,9 @@ dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Pa
 
 - `<modtool SDK>` is the `app.warudo.modtool@<hash>` package in a Unity project's `Library/PackageCache`.
 - `<WARUDO>` is the WARUDO install folder. Without the argument the check uses the Steam default path.
-- Exit 0 is required. Exit 2 means WARUDO could not be read; exit 1 means at least one expected result differs.
+- Exit 0 is required. Exit 2 means WARUDO could not be read; exit 1 means at least one expected result differs; exit 3
+  (INCONCLUSIVE) means `Warudo.Core.dll` has no generic type nested in a generic type, so the two generic nested cases
+  could not be built and only 13 cases ran. Exit 3 is not a pass.
 
 ## 2. Unity verification
 

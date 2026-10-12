@@ -125,7 +125,8 @@ for (var t = engineType; t != null && t != typeof(object); t = t.BaseType)
 {
     if (!t.IsGenericType) continue;
     var hookField = t.GetField("beforeRunProcessors", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-    var current = hookField == null ? null : hookField.GetValue(null) as System.Delegate;
+    if (hookField == null) break; // stays -1: the audit cannot compare a hook it cannot see
+    var current = hookField.GetValue(null) as System.Delegate;
     hookCount = current == null ? 0 : current.GetInvocationList().Length;
     break;
 }

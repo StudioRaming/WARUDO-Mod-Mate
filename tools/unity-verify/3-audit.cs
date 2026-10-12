@@ -150,11 +150,19 @@ for (var t = engineType; t != null && t != typeof(object); t = t.BaseType)
 {
     if (!t.IsGenericType) continue;
     var hookField = t.GetField("beforeRunProcessors", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-    var current = hookField == null ? null : hookField.GetValue(null) as System.Delegate;
+    if (hookField == null) break;
+    var current = hookField.GetValue(null) as System.Delegate;
     hookAfter = current == null ? 0 : current.GetInvocationList().Length;
     break;
 }
-Check("UMod beforeRunProcessors back to its handler count", Receipt("hookCount.before") == hookAfter.ToString(), "before=" + Receipt("hookCount.before") + " after=" + hookAfter);
+// -1 means the hook field was not found (UMod changed): "-1" == "-1" would be a pass that compared nothing.
+if (Receipt("hookCount.before") == "-1" || hookAfter == -1)
+{
+    inconclusive++;
+    report.AppendLine("INCONCLUSIVE UMod beforeRunProcessors back to its handler count: hook field not found (before=" + Receipt("hookCount.before") + " after=" + hookAfter + ")");
+}
+else
+    Check("UMod beforeRunProcessors back to its handler count", Receipt("hookCount.before") == hookAfter.ToString(), "before=" + Receipt("hookCount.before") + " after=" + hookAfter);
 
 string verdict = failures > 0 ? "FAIL (" + failures + " check(s))" : inconclusive > 0 ? "INCONCLUSIVE" : "PASS";
 return report.ToString().TrimEnd() + "\nVERDICT " + verdict + " case=" + Case + " modName=" + modName + (entries != null ? " entries=" + OutDir + "/" + modName + "-entries.txt" : "");

@@ -53,3 +53,4 @@ A rerun gives the same result; read the security values in ModToolsSettings firs
 `FAIL (n check(s))` lists each failed check on its own `FAIL` line.
 
 No before snapshot gives INCONCLUSIVE; a profile that cannot be read after the build gives FAIL.
+A UMod hook field that cannot be found (handler count `-1`) also gives INCONCLUSIVE.

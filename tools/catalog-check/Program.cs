@@ -95,10 +95,21 @@ static class Program
         }
 
         string skipped = generic.Length > 0 ? "" : ", generic nested cases skipped";
-        Console.WriteLine(failures == 0
-            ? "PASS " + cases.Count + "/" + cases.Count + " cases match" + skipped + " (WARUDO " + version + ")"
-            : "FAIL " + failures + " of " + cases.Count + " cases differ" + skipped + " (WARUDO " + version + ")");
-        return failures == 0 ? 0 : 1;
+        if (failures > 0)
+        {
+            Console.WriteLine("FAIL " + failures + " of " + cases.Count + " cases differ" + skipped + " (WARUDO " + version + ")");
+            return 1;
+        }
+
+        // Without the two generic nested rows the arity on both sides of '+' is not checked, so the run is not a pass.
+        if (generic.Length == 0)
+        {
+            Console.WriteLine("INCONCLUSIVE " + cases.Count + "/" + cases.Count + " cases match" + skipped + " (WARUDO " + version + ")");
+            return 3;
+        }
+
+        Console.WriteLine("PASS " + cases.Count + "/" + cases.Count + " cases match (WARUDO " + version + ")");
+        return 0;
     }
 
     // The first (by ordinal full name) type in the DLL whose name and whose top-level declaring type both carry a generic
