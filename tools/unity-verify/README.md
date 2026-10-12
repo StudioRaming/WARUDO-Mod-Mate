@@ -48,3 +48,5 @@ Do not edit scripts in `Assets/` during a run. A recompile during a build cancel
 `INCONCLUSIVE` means the reload missed the item: the build finished before it, or it stopped the batch before the item
 started (the item is then `Skipped` and has no history record). Rerun with a new `RunTag`. It is not a pass.
 `FAIL (n check(s))` lists each failed check on its own `FAIL` line.
+
+No before snapshot gives INCONCLUSIVE; a profile that cannot be read after the build gives FAIL.

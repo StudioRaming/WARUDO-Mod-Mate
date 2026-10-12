@@ -21,7 +21,7 @@ static class Program
     // Expected results, one row per case. Rows 1-13 are the cases of the original WBB-03 harness (baseline output in the
     // Ops record). A row that differs from WARUDO's actual result fails the run. Rows that name WARUDO types must be
     // checked again after a WARUDO update; the failure output prints its version. The generic nested rows are not listed
-    // here: they are built from Warudo.Core.dll at run time (GenericNestedCases).
+    // here: they are built from Warudo.Core.dll at run time (GenericNestedName, in Main).
     static readonly (string Asm, string Name, bool Expected)[] FixedCases =
     {
         ("System", "System.Collections.Generic.Stack`1", true),

@@ -75,6 +75,7 @@ string Receipt(string key)
 
 var report = new System.Text.StringBuilder();
 int failures = 0;
+int inconclusive = 0;
 void Check(string name, bool ok, string detail)
 {
     report.AppendLine((ok ? "PASS " : "FAIL ") + name + (detail.Length > 0 ? " : " + detail : ""));
@@ -107,7 +108,17 @@ string profileError;
 int profileIndex = StudioRaming.WarudoBatchBuilder.WbbExportSettings.GetActiveProfileIndex(out profileError);
 StudioRaming.WarudoBatchBuilder.WbbProfileSnapshot after = null;
 if (profileIndex >= 0) StudioRaming.WarudoBatchBuilder.WbbExportSettings.TryReadActiveProfile(out after, out profileError, profileIndex);
-if (after != null && Receipt("before.modName") != null)
+if (Receipt("before.modName") == null)
+{
+    // No before snapshot in the receipt: the profile cannot be compared, so this is not a pass.
+    inconclusive++;
+    report.AppendLine("INCONCLUSIVE build profile restored: no before snapshot (" + Receipt("before.error") + ")");
+}
+else if (after == null)
+{
+    Check("build profile restored", false, "after profile unreadable: " + profileError);
+}
+else
 {
     Check("build profile restored", Receipt("before.modName") == after.modName && Receipt("before.modAuthor") == after.modAuthor && Receipt("before.modVersion") == after.modVersion
         && Receipt("before.modDescription") == after.modDescription && Receipt("before.modAssetPath") == after.modAssetPath && Receipt("before.modExportPath") == after.modExportPath,
@@ -121,4 +132,5 @@ foreach (string folder in UnityEditor.AssetDatabase.GetSubFolders("Assets"))
 Check("no WMM temp folder left in Assets", !tempLeft, "");
 Check("build journal cleared", !StudioRaming.WarudoBatchBuilder.WbbJournal.Exists, "");
 Check("no half-written archive", !System.IO.File.Exists(OutDir + "/" + modName + ".warudo"), "");
-return report.ToString().TrimEnd() + "\nVERDICT " + (failures > 0 ? "FAIL (" + failures + " check(s))" : "PASS") + " modName=" + modName;
+string verdict = failures > 0 ? "FAIL (" + failures + " check(s))" : inconclusive > 0 ? "INCONCLUSIVE" : "PASS";
+return report.ToString().TrimEnd() + "\nVERDICT " + verdict + " modName=" + modName;

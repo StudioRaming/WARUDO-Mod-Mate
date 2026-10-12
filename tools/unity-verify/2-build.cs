@@ -144,6 +144,11 @@ if (before != null)
     receipt.AppendLine("before.modAssetPath=" + before.modAssetPath);
     receipt.AppendLine("before.modExportPath=" + before.modExportPath);
 }
+else
+{
+    // Without this line 3-audit.cs can only say INCONCLUSIVE, and it says why.
+    receipt.AppendLine("before.error=" + profileIndex + "|" + profileError);
+}
 int blocking = 0;
 foreach (var issue in issues)
 {

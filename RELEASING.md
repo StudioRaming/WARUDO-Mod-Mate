@@ -21,7 +21,7 @@ dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Pa
 ## 2. Unity verification
 
 Run the four cases in `tools/unity-verify/README.md` in an empty Unity 2021.3.45f2 project with SDK 0.14.3.10.
-Record the `VERDICT` line of each case. Every case must match its expected row in that README.
+Record the `VERDICT` line of each case. Every case must match its expected row in that README. INCONCLUSIVE is not a pass.
 
 ## 3. Package
 

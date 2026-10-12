@@ -114,7 +114,17 @@ string profileError;
 int profileIndex = StudioRaming.WarudoBatchBuilder.WbbExportSettings.GetActiveProfileIndex(out profileError);
 StudioRaming.WarudoBatchBuilder.WbbProfileSnapshot after = null;
 if (profileIndex >= 0) StudioRaming.WarudoBatchBuilder.WbbExportSettings.TryReadActiveProfile(out after, out profileError, profileIndex);
-if (after != null && Receipt("before.modName") != null)
+if (Receipt("before.modName") == null)
+{
+    // No before snapshot in the receipt: the profile cannot be compared, so this is not a pass.
+    inconclusive++;
+    report.AppendLine("INCONCLUSIVE build profile restored: no before snapshot (" + Receipt("before.error") + ")");
+}
+else if (after == null)
+{
+    Check("build profile restored", false, "after profile unreadable: " + profileError);
+}
+else
 {
     Check("build profile restored", Receipt("before.modName") == after.modName && Receipt("before.modAuthor") == after.modAuthor && Receipt("before.modVersion") == after.modVersion
         && Receipt("before.modDescription") == after.modDescription && Receipt("before.modAssetPath") == after.modAssetPath && Receipt("before.modExportPath") == after.modExportPath,
