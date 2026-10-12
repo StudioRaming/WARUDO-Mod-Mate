@@ -8,6 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="UnityStubs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)../../Assets/StudioRaming/WarudoBatchBuilder/Editor/Shared/WbbWarudoPipeline.Parse.cs" Link="WbbWarudoPipeline.Parse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../Assets/StudioRaming/WarudoBatchBuilder/Editor/Shared/WbbWarudoPipeline.cs" Link="WbbWarudoPipeline.cs" />
   </ItemGroup>
 </Project>

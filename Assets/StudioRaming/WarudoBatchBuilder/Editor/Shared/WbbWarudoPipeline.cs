@@ -16,6 +16,10 @@ namespace StudioRaming.WarudoBatchBuilder
         private static DateTime cachedWriteTimeUtc;
         private static WbbUtil.PipelineKind? cachedKind;
         private static string cachedSource = "not-found";
+        // False after a failed read. WARUDO may hold the file open while writing it, or a read may catch it half
+        // written; the time stamp need not change afterwards, so a failed result is read again instead of kept.
+        private static bool cachedReadable;
+        private static string lastWarning = "";
         private static double lastCheckTime = double.NegativeInfinity;
 
         public static WbbUtil.PipelineKind? Read(out string source)
@@ -47,7 +51,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 WbbUtil.LogWarning("Could not read the WARUDO pipeline option time: " + e.Message);
             }
 
-            if (path != cachedPath || exists != cachedExists || writeTimeUtc != cachedWriteTimeUtc)
+            if (path != cachedPath || exists != cachedExists || writeTimeUtc != cachedWriteTimeUtc || !cachedReadable)
             {
                 cachedPath = path;
                 cachedExists = exists;
@@ -61,10 +65,12 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static void Resolve(string path, bool exists)
         {
+            cachedReadable = true;
             if (!exists)
             {
                 cachedKind = WbbUtil.PipelineKind.Urp;
                 cachedSource = "default";
+                lastWarning = "";
                 return;
             }
 
@@ -75,14 +81,20 @@ namespace StudioRaming.WarudoBatchBuilder
                 {
                     cachedKind = enabled.Value ? WbbUtil.PipelineKind.Urp : WbbUtil.PipelineKind.BuiltIn;
                     cachedSource = "file";
+                    lastWarning = "";
                     return;
                 }
             }
             catch (Exception e)
             {
-                WbbUtil.LogWarning("Could not read the WARUDO pipeline option: " + e.Message);
+                // Retried every few seconds while it fails, so the same message is logged once.
+                string warning = "Could not read the WARUDO pipeline option: " + e.Message;
+                if (warning != lastWarning)
+                    WbbUtil.LogWarning(warning);
+                lastWarning = warning;
             }
 
+            cachedReadable = false;
             cachedKind = null;
             cachedSource = "unreadable";
         }
