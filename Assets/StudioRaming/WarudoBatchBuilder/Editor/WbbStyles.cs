@@ -65,6 +65,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private static readonly List<Texture2D> ownedTextures = new List<Texture2D>();
         private static bool builtDark;
         private static bool built;
+        private static bool reloadHooked;
         private static readonly GUIContent measure = new GUIContent();
         private static GUIContent clearContent;
         private static int clearContentVersion = -1;
@@ -96,6 +97,14 @@ namespace StudioRaming.WarudoBatchBuilder
             bool dark = Dark;
             if (built && builtDark == dark && cardTex != null && cardFlatTex != null && miniInfo != null)
                 return;
+            if (!reloadHooked)
+            {
+                // The card textures are HideAndDontSave and outlive a domain reload, but the list that owns them does
+                // not. WbbWindow.OnDisable frees them; with only Quick Build or the folder browser open nothing did.
+                reloadHooked = true;
+                AssemblyReloadEvents.beforeAssemblyReload += Cleanup;
+            }
+
             DestroyTextures();
             builtDark = dark;
             built = true;
@@ -313,7 +322,7 @@ namespace StudioRaming.WarudoBatchBuilder
             built = false;
             clearContent = null;
             clearContentVersion = -1;
-            searchIconLoaded = false;
+            searchIconState = -1;
             iconCache.Clear();
             iconCacheState = -1;
         }

@@ -799,12 +799,15 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         private static Texture searchIcon;
-        private static bool searchIconLoaded;
+        private static int searchIconState = -1;
         private static void DrawSearchIcon(Rect cell)
         {
-            if (!searchIconLoaded)
+            // IconContent returns the variant for the current skin and screen scale, so the cache follows both like
+            // EditorIcon's; otherwise a Dark to Light theme switch keeps the pale icon on the light field.
+            int state = (Dark ? 1 : 0) | (EditorGUIUtility.pixelsPerPoint > 1f ? 2 : 0);
+            if (searchIconState != state)
             {
-                searchIconLoaded = true;
+                searchIconState = state;
                 try
                 {
                     GUIContent found = EditorGUIUtility.IconContent("Search Icon");
