@@ -1,1 +1,4 @@
+# Never convert line endings: every checkout holds the committed bytes whatever core.autocrlf says (Git for
+# Windows sets it to true), so tools/build_package.py packs the same bytes and gives the same sha256 everywhere.
+* -text
 *.meta -whitespace
