@@ -8,6 +8,7 @@ Fixes
 - Removing a work folder no longer also removes a renamed work folder whose old path now holds the folder being removed.
 - The magnifier icon in search fields follows an Editor Theme switch and a move to a monitor with another display scale. It kept the first theme's icon, which is hard to see after switching from Dark to Light.
 - Script reloads no longer leave the window's card textures behind in memory when only Quick Build or the folder browser is open.
+- When the build journal cannot be written (for example while another program holds the file), the item fails before it overwrites an existing mod file or writes the build profile, and the referenced mods list and console options are left as they are. Before, a Unity crash right after such a failed write made the next start delete the finished backup of the old mod file, and could leave the build profile, the referenced mods list or the console options changed.
 
 ## 0.1.2 (2026-10-11)
 
