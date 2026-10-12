@@ -17,7 +17,8 @@ folder still builds. They run in the Unity Editor (2021.3.45f2, SDK 0.14.3.10) t
 ## Parameters
 
 Every script has `PARAMETER` constants at the top. They ship empty. A script with an empty `QaRoot`, `OutDir` or
-`FixtureSource` returns `ABORT ...` before it touches anything. Set them per run, in the bridge call, never in the file:
+`FixtureSource` returns `ABORT ...` before it touches anything. `lab_exec_file` runs a file and takes no arguments, so
+set them in a copy of the script outside the repository for each run. Never commit them (they hold local paths):
 
 - `QaRoot`: the empty Unity 2021.3.45f2 project (its `Assets` folder is checked against `Application.dataPath`).
 - `OutDir`: an existing folder for archives and receipts.
@@ -47,6 +48,8 @@ Do not edit scripts in `Assets/` during a run. A recompile during a build cancel
 
 `INCONCLUSIVE` means the reload missed the item: the build finished before it, or it stopped the batch before the item
 started (the item is then `Skipped` and has no history record). Rerun with a new `RunTag`. It is not a pass.
+For `bad-manual`, INCONCLUSIVE means the build succeeded: the SDK's code security check did not refuse the fixture.
+A rerun gives the same result; read the security values in ModToolsSettings first.
 `FAIL (n check(s))` lists each failed check on its own `FAIL` line.
 
 No before snapshot gives INCONCLUSIVE; a profile that cannot be read after the build gives FAIL.
