@@ -114,7 +114,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (riskIncluded != null)
                     return riskIncluded;
                 riskIncluded = new HashSet<string>(StringComparer.Ordinal);
-                string raw = WbbPrefs.GetString(RiskIncludedKey, "");
+                // Not migrated: re-including a risky file is a choice for one project. Copying the shared value from 0.1.0 would
+                // include the same paid code by default in every other project that imported the same package (same GUIDs).
+                string raw = WbbPrefs.GetString(RiskIncludedKey, "", false);
                 if (!string.IsNullOrEmpty(raw))
                 {
                     string[] parts = raw.Split(';');

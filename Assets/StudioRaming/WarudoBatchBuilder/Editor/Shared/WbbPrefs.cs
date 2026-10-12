@@ -14,6 +14,8 @@ namespace StudioRaming.WarudoBatchBuilder
     // the shared key. The shared keys are never changed or deleted, so no project can take the old values away from
     // another one, and a value that does not fit a project (a folder that is not in it) is dropped by the code that reads
     // it. A key that a project deletes is marked, so the shared value is not copied back (see DeleteKey).
+    // Values that belong to one project only are never migrated (GetString with migrate=false): the quick-build crash
+    // recovery marker and the list of redistribution-risk files the user chose to include again in the Package tab.
     public static class WbbPrefs
     {
         private const string DeletedSuffix = ".deleted";

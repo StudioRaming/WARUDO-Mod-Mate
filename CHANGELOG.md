@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- The Package tab's list of redistribution-risk files you chose to include again is no longer taken over from 0.1.0. 0.1.0 stored it PC-wide, and since 0.1.1 every project that had no list of its own copied it, so a paid shader or DLL re-included in one project started out included in every other project that imported the same package. This is an exception to the per-project migration described under 0.1.1: the list is now chosen in each project. A project opened with 0.1.1 or 0.1.2 may still hold the copied list; check the rows with the warning chip, or reset it with Clear exclusions in the Package tab (it also clears the re-included risk files).
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
