@@ -43,6 +43,24 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.PipelineMismatch",
+                new[]
+                {
+                    "WARUDO는 {0}, 이 프로젝트는 {1}입니다. 이대로 빌드하면 WARUDO에서 모드가 안 보이거나 분홍색(마젠타)으로 보입니다. WARUDO 설정 → URP/NiloToon 탭 → 활성화됨을 맞추거나, WARUDO와 같은 파이프라인 프로젝트에서 다시 빌드하세요.",
+                    "WARUDO uses {0}, this project uses {1}. Built as it is, the mod will be invisible or magenta in WARUDO. Match WARUDO settings → URP/NiloToon tab → Enabled, or rebuild in a project that uses the same pipeline as WARUDO.",
+                    "WARUDO は {0}、このプロジェクトは {1} です。このままビルドすると WARUDO で MOD が表示されないか、マゼンタで表示されます。WARUDO の設定 → URP/NiloToon タブ → 有効化を合わせるか、WARUDO と同じパイプラインのプロジェクトでビルドし直してください。"
+                }
+            },
+            {
+                "Build.PipelineWarudoDefault",
+                new[]
+                {
+                    "(WARUDO 기본값)",
+                    "(WARUDO default)",
+                    "(WARUDO 初期値)"
+                }
+            },
+            {
                 "Build.PipelineUrp",
                 new[]
                 {

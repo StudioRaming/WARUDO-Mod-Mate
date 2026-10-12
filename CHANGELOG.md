@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Changes
+
+- The Build tab shows WARUDO's render pipeline next to the project badge, read from the URP/NiloToon Enabled option in WARUDO's plugin data. A mismatch between the two shows a warning line and warning badges; the build is not blocked. The build log records the WARUDO pipeline as well.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
