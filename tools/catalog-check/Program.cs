@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using StudioRaming.WarudoBatchBuilder;
 
 namespace StudioRaming.WarudoBatchBuilder
@@ -15,9 +19,10 @@ namespace StudioRaming.WarudoBatchBuilder
 static class Program
 {
     // Expected results, one row per case. Rows 1-13 are the cases of the original WBB-03 harness (baseline output in the
-    // Ops record), row 14 is the generic nested case. A row that differs from WARUDO's actual result fails the run.
-    // Rows that name WARUDO types must be checked again after a WARUDO update; the failure output prints its version.
-    static readonly (string Asm, string Name, bool Expected)[] Cases =
+    // Ops record). A row that differs from WARUDO's actual result fails the run. Rows that name WARUDO types must be
+    // checked again after a WARUDO update; the failure output prints its version. The generic nested rows are not listed
+    // here: they are built from Warudo.Core.dll at run time (GenericNestedCases).
+    static readonly (string Asm, string Name, bool Expected)[] FixedCases =
     {
         ("System", "System.Collections.Generic.Stack`1", true),
         ("System", "System.Collections.Generic.Stack`1+Enumerator", true),
@@ -32,10 +37,6 @@ static class Program
         ("mscorlib", "System.Does.NotExist", false),
         ("System", "System.Does.NotExist", false),
         ("NoSuchAssembly", "System.String", false),
-        // Generic outer and generic inner. Picked from Warudo.Core.dll (the only generic-outer nested types in
-        // Warudo.Core.dll and Warudo.Plugins.Core.dll are compiler-generated closures; this one has a generic inner).
-        ("Warudo.Core", "Warudo.Core.Data.FlowEntity`2+<>c__DisplayClass11_0`1", true),
-        ("Warudo.Core", "Warudo.Core.Data.FlowEntity`2+DoesNotExist`1", false),
     };
 
     static string DefaultStreamingAssets => Path.Combine(
@@ -44,9 +45,11 @@ static class Program
 
     static int Main(string[] args)
     {
-        string streaming = args.Length > 0 ? args[0] : DefaultStreamingAssets;
+        // A trailing separator (shell tab completion adds one) would make GetDirectoryName return StreamingAssets itself.
+        string streaming = Path.GetFullPath(args.Length > 0 ? args[0] : DefaultStreamingAssets)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         WbbWarudoLocator.StreamingAssetsPath = streaming;
-        string managed = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(streaming)), "Managed");
+        string managed = Path.Combine(Path.GetDirectoryName(streaming), "Managed");
         string version = VersionOf(Path.Combine(managed, "Warudo.Core.dll"));
         Console.WriteLine("WARUDO managed: " + managed + " | Warudo.Core.dll version: " + version);
 
@@ -61,9 +64,24 @@ static class Program
             return 2;
         }
 
+        var cases = new List<(string Asm, string Name, bool Expected)>(FixedCases);
+        string generic = GenericNestedName(Path.Combine(managed, "Warudo.Core.dll"));
+        if (generic.Length > 0)
+        {
+            // Generic outer and generic inner, so the check covers backtick arity on both sides of the '+'.
+            cases.Add(("Warudo.Core", generic, true));
+            cases.Add(("Warudo.Core", generic.Substring(0, generic.IndexOf('+')) + "+DoesNotExist`1", false));
+            Console.WriteLine("generic nested case found in Warudo.Core.dll: " + generic);
+        }
+        else
+        {
+            Console.WriteLine("SKIP generic nested cases: Warudo.Core.dll has no generic type nested in a generic type"
+                + " (WARUDO " + version + ")");
+        }
+
         int failures = 0;
         Console.WriteLine("case | expected | actual");
-        foreach (var c in Cases)
+        foreach (var c in cases)
         {
             string path;
             bool actual = catalog.Contains(c.Asm, c.Name, out path);
@@ -76,10 +94,40 @@ static class Program
             }
         }
 
+        string skipped = generic.Length > 0 ? "" : ", generic nested cases skipped";
         Console.WriteLine(failures == 0
-            ? "PASS " + Cases.Length + "/" + Cases.Length + " cases match (WARUDO " + version + ")"
-            : "FAIL " + failures + " of " + Cases.Length + " cases differ (WARUDO " + version + ")");
+            ? "PASS " + cases.Count + "/" + cases.Count + " cases match" + skipped + " (WARUDO " + version + ")"
+            : "FAIL " + failures + " of " + cases.Count + " cases differ" + skipped + " (WARUDO " + version + ")");
         return failures == 0 ? 0 : 1;
+    }
+
+    // The first (by ordinal full name) type in the DLL whose name and whose top-level declaring type both carry a generic
+    // arity, as a metadata name "Namespace.Outer`n+Inner`m". Read from metadata, not hard-coded: such types are
+    // compiler-generated closures whose names change when WARUDO edits its lambdas. "" when there is none.
+    static string GenericNestedName(string dll)
+    {
+        if (!File.Exists(dll)) return "";
+        using (var stream = File.OpenRead(dll))
+        using (var pe = new PEReader(stream))
+        {
+            MetadataReader md = pe.GetMetadataReader();
+            var names = new List<string>();
+            foreach (TypeDefinitionHandle handle in md.TypeDefinitions)
+            {
+                TypeDefinition inner = md.GetTypeDefinition(handle);
+                TypeDefinitionHandle outerHandle = inner.GetDeclaringType();
+                if (outerHandle.IsNil) continue;
+                TypeDefinition outer = md.GetTypeDefinition(outerHandle);
+                if (!outer.GetDeclaringType().IsNil) continue;
+                string innerName = md.GetString(inner.Name);
+                string outerName = md.GetString(outer.Name);
+                if (innerName.IndexOf('`') < 0 || outerName.IndexOf('`') < 0) continue;
+                string ns = md.GetString(outer.Namespace);
+                names.Add((ns.Length > 0 ? ns + "." : "") + outerName + "+" + innerName);
+            }
+
+            return names.OrderBy(n => n, StringComparer.Ordinal).FirstOrDefault() ?? "";
+        }
     }
 
     // WARUDO ships no version string in Warudo.Core.dll (FileVersion is 0.0.0.0), so the identity is the assembly

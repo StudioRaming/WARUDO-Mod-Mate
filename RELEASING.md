@@ -11,7 +11,7 @@ stamp) so a failure can be tied to a WARUDO update.
 Pass the two paths as arguments. Nothing is stored in the repository:
 
 ```
-dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Packages/RoslynCSharp/Plugin" -- "<WARUDO>/Warudo_Data/StreamingAssets"
+dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Packages/UMod-AddOns/UMod-RoslynCSharp/Plugin" -- "<WARUDO>/Warudo_Data/StreamingAssets"
 ```
 
 - `<modtool SDK>` is the `app.warudo.modtool@<hash>` package in a Unity project's `Library/PackageCache`.

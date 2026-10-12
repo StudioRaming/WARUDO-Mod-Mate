@@ -7,11 +7,11 @@
     <Nullable>disable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
-  <!-- WarudoSdkRoslynDir: the RoslynCSharp/Plugin folder of the Unity modtool SDK, e.g.
-       <UnityProject>/Library/PackageCache/app.warudo.modtool@<hash>/Packages/RoslynCSharp/Plugin -->
+  <!-- WarudoSdkRoslynDir: the UMod-RoslynCSharp/Plugin folder of the Unity modtool SDK, e.g.
+       <UnityProject>/Library/PackageCache/app.warudo.modtool@<hash>/Packages/UMod-AddOns/UMod-RoslynCSharp/Plugin -->
   <Target Name="CheckWarudoSdkRoslynDir" BeforeTargets="ResolveAssemblyReferences">
     <Error Condition="'$(WarudoSdkRoslynDir)' == '' OR !Exists('$(WarudoSdkRoslynDir)/Microsoft.CodeAnalysis.dll')"
-           Text="Pass -p:WarudoSdkRoslynDir=&lt;modtool SDK&gt;/Packages/RoslynCSharp/Plugin" />
+           Text="Pass -p:WarudoSdkRoslynDir=&lt;modtool SDK&gt;/Packages/UMod-AddOns/UMod-RoslynCSharp/Plugin" />
   </Target>
   <ItemGroup>
     <Compile Include="Program.cs" />
