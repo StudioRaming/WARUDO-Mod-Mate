@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- A package export fails with a message when an included file changes while it is being packaged, and no package is left behind. A file that grew used to be cut at its old size and a file that shrank was padded with zero bytes, while the export still reported success.
+- Removing a work folder no longer also removes a renamed work folder whose old path now holds the folder being removed.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
