@@ -38,7 +38,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (catalog == null || !string.Equals(catalogRoot, warudoStreamingAssets ?? "", StringComparison.OrdinalIgnoreCase))
             {
                 catalog = WbbWarudoTypeCatalog.Read(warudoStreamingAssets);
-                catalogRoot = warudoStreamingAssets;
+                catalogRoot = warudoStreamingAssets ?? "";
             }
 
             return catalog;

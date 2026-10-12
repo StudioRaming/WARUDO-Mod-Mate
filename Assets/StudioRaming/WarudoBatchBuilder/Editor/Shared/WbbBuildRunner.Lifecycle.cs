@@ -47,6 +47,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private bool PrepareBatch(IList<WbbBuildItem> newItems, WbbJob newJob)
         {
             // A batch decides on the WARUDO folder from what is on disk now, not from what an earlier look found.
+            WbbWarudoLocator.BatchStreamingAssets = "";
             WbbWarudoLocator.Invalidate();
             WbbWarudoManaged.Invalidate();
             WbbRuntimeScriptPlan.ResetCatalog();
@@ -464,7 +465,13 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             if (activeRunner == this)
+            {
                 activeRunner = null;
+                // The batch's WARUDO folder and its type catalog (every WARUDO DLL as Roslyn symbols) end with the batch.
+                WbbWarudoLocator.BatchStreamingAssets = "";
+                WbbRuntimeScriptPlan.ResetCatalog();
+            }
+
             currentModName = "";
             SetStatus(canceled ? L("Runner.Canceled", successCount, failedCount, skippedCount) : L("Runner.Done", successCount, failedCount));
             WbbUtil.Log("Batch build finished. success=" + successCount + " failed=" + failedCount + " skipped=" + skippedCount + " canceled=" + canceled);
@@ -547,7 +554,12 @@ namespace StudioRaming.WarudoBatchBuilder
             DisposeCompileSession();
 
             if (activeRunner == this)
+            {
                 activeRunner = null;
+                WbbWarudoLocator.BatchStreamingAssets = "";
+                WbbRuntimeScriptPlan.ResetCatalog();
+            }
+
             currentModName = "";
             try
             {

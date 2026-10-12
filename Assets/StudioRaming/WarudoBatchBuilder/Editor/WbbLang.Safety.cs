@@ -199,9 +199,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "Safety.WarudoNotFound.hint",
                 new[]
                 {
-                    "Steam 에 설치된 WARUDO 를 찾지 못했습니다. 출력 경로를 WARUDO 설치 폴더의 Warudo_Data/StreamingAssets/Props(또는 Characters)로 지정하거나, [WARUDO 폴더 지정]으로 설치 폴더를 알려주세요.",
-                    "No Steam install of WARUDO was found. Set the output path to Warudo_Data/StreamingAssets/Props (or Characters) inside your WARUDO install folder, or use [Set WARUDO folder] to point to the install folder.",
-                    "Steam にインストールされた WARUDO が見つかりません。出力先を WARUDO のインストールフォルダ内の Warudo_Data/StreamingAssets/Props（または Characters）にするか、[WARUDO フォルダを指定] でインストールフォルダを指定してください。"
+                    "Steam 에 설치된 WARUDO 를 찾지 못했습니다. 출력 경로를 WARUDO 설치 폴더의 Warudo_Data/StreamingAssets/Props(또는 Characters)로 지정하거나, Mod Mate 창(StudioRaming > WARUDO Mod Mate)의 [WARUDO 폴더 지정]으로 설치 폴더를 알려주세요.",
+                    "No Steam install of WARUDO was found. Set the output path to Warudo_Data/StreamingAssets/Props (or Characters) inside your WARUDO install folder, or use [Set WARUDO folder] in the Mod Mate window (StudioRaming > WARUDO Mod Mate) to point to the install folder.",
+                    "Steam にインストールされた WARUDO が見つかりません。出力先を WARUDO のインストールフォルダ内の Warudo_Data/StreamingAssets/Props（または Characters）にするか、Mod Mate ウィンドウ（StudioRaming > WARUDO Mod Mate）の [WARUDO フォルダを指定] でインストールフォルダを指定してください。"
                 }
             },
             {
@@ -757,9 +757,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "Safety.WarudoManagedMissing.hint",
                 new[]
                 {
-                    "자동 스크립트 모드는 WARUDO 의 DLL 과 비교해 스크립트를 확인합니다. [WARUDO 폴더 지정]으로 WARUDO 가 설치된 폴더(Warudo.exe 가 있는 폴더)를 지정하거나, 출력 경로를 그 WARUDO 의 Warudo_Data/StreamingAssets 아래로 지정하세요.",
-                    "Automatic script mode checks the scripts against WARUDO's own DLLs. Use [Set WARUDO folder] to point to the folder where WARUDO is installed (the one with Warudo.exe), or set the output path inside that WARUDO's Warudo_Data/StreamingAssets.",
-                    "自動スクリプトモードは、WARUDO 本体の DLL と照合してスクリプトを検査します。[WARUDO フォルダを指定] で WARUDO のインストールフォルダ（Warudo.exe があるフォルダ）を指定するか、出力先をその WARUDO の Warudo_Data/StreamingAssets 以下にしてください。"
+                    "자동 스크립트 모드는 WARUDO 의 DLL 과 비교해 스크립트를 확인합니다. Mod Mate 창(StudioRaming > WARUDO Mod Mate)의 [WARUDO 폴더 지정]으로 WARUDO 가 설치된 폴더(Warudo.exe 가 있는 폴더)를 지정하거나, 출력 경로를 그 WARUDO 의 Warudo_Data/StreamingAssets 아래로 지정하세요.",
+                    "Automatic script mode checks the scripts against WARUDO's own DLLs. Use [Set WARUDO folder] in the Mod Mate window (StudioRaming > WARUDO Mod Mate) to point to the folder where WARUDO is installed (the one with Warudo.exe), or set the output path inside that WARUDO's Warudo_Data/StreamingAssets.",
+                    "自動スクリプトモードは、WARUDO 本体の DLL と照合してスクリプトを検査します。Mod Mate ウィンドウ（StudioRaming > WARUDO Mod Mate）の [WARUDO フォルダを指定] で WARUDO のインストールフォルダ（Warudo.exe があるフォルダ）を指定するか、出力先をその WARUDO の Warudo_Data/StreamingAssets 以下にしてください。"
                 }
             },
             {

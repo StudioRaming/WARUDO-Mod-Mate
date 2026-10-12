@@ -11,9 +11,13 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string RootPrefKey = WbbUtil.PrefPrefix + "WarudoRoot";
         private const string DataSuffix = "Warudo_Data/StreamingAssets";
         // Tests only: makes the Steam search find nothing, so the output path and the WARUDO folder setting decide. Not shown in the UI.
+        // Public rather than internal because the Unity bridge snippets that set it compile into their own assembly. Not saved:
+        // a domain reload turns it off again.
         public static bool DisableSteamLookupForTests;
         // The root the running batch decided on. Code that has no output path of its own reads it while a batch runs.
         public static string BatchStreamingAssets = "";
+        // The last WARUDO folder setting reported as unusable, so a bad value is reported once and not on every preflight.
+        private static string warnedSetting = "";
         private static bool searched;
         private static string cachedStreamingAssets = "";
         private static readonly List<string> cachedLibraries = new List<string>();
@@ -57,6 +61,8 @@ namespace StudioRaming.WarudoBatchBuilder
 
         public static IList<string> SteamLibraries()
         {
+            if (DisableSteamLookupForTests)
+                return new List<string>().AsReadOnly();
             EnsureSearched();
             return cachedLibraries.AsReadOnly();
         }
@@ -91,7 +97,11 @@ namespace StudioRaming.WarudoBatchBuilder
                     return root;
                 }
 
-                WbbUtil.LogWarning("The WARUDO folder setting '" + configured + "' has no Warudo_Data/Managed folder, so it is ignored.");
+                if (!string.Equals(warnedSetting, configured, System.StringComparison.Ordinal))
+                {
+                    warnedSetting = configured;
+                    WbbUtil.LogWarning("The WARUDO folder setting '" + configured + "' has no Warudo_Data/Managed folder, so it is ignored.");
+                }
             }
 
             root = SteamStreamingAssets();
@@ -100,7 +110,8 @@ namespace StudioRaming.WarudoBatchBuilder
             return root;
         }
 
-        // Accepts the install root, its Warudo_Data folder or its StreamingAssets folder. Returns "" when it is none of them.
+        // Accepts the install root, its Warudo_Data folder, Warudo_Data/Managed or its StreamingAssets folder. Returns "" when it is
+        // none of them.
         public static string NormalizeStreamingAssets(string path)
         {
             string normalized = WbbUtil.NormalizePath(path);
@@ -110,6 +121,8 @@ namespace StudioRaming.WarudoBatchBuilder
             string root;
             if (IsInsideWarudoData(normalized + "/", out root) && Directory.Exists(root))
                 return root;
+            if (normalized.EndsWith("/Warudo_Data/Managed", System.StringComparison.OrdinalIgnoreCase))
+                normalized = normalized.Substring(0, normalized.Length - "/Managed".Length);
             if (normalized.EndsWith("/Warudo_Data", System.StringComparison.OrdinalIgnoreCase))
                 normalized = normalized.Substring(0, normalized.Length - "/Warudo_Data".Length);
             string candidate = normalized + "/" + DataSuffix;
@@ -149,11 +162,21 @@ namespace StudioRaming.WarudoBatchBuilder
             string normalized = WbbUtil.NormalizePath(path);
             if (string.IsNullOrEmpty(normalized))
                 return false;
+            // The match must end at a folder boundary: ".../Warudo_Data/StreamingAssetsX" is not inside StreamingAssets.
             int index = normalized.IndexOf("/" + DataSuffix, System.StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
-                return false;
-            streamingAssetsRoot = normalized.Substring(0, index + 1 + DataSuffix.Length);
-            return true;
+            while (index >= 0)
+            {
+                int end = index + 1 + DataSuffix.Length;
+                if (end == normalized.Length || normalized[end] == '/')
+                {
+                    streamingAssetsRoot = normalized.Substring(0, end);
+                    return true;
+                }
+
+                index = normalized.IndexOf("/" + DataSuffix, index + 1, System.StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
         }
 
         private static string SteamStreamingAssets()
