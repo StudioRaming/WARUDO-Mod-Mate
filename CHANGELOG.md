@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Documentation
+
+- The advanced settings capture in the manual and the READMEs (`02-advanced.png`) no longer shows a folder path from the development PC in the output folder field. The field now shows `Assets/ModMateGuideExamples/Output`, taken from the package capture of the same window; nothing else in the image changed.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
