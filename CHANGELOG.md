@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- The Build tab notices physics added or removed more than one nesting level down. When a nested prefab two or more levels inside another one got or lost a MagicaCloth or SpringBone component, the outer prefab kept its old physics mark, so a prefab that now carries physics, and is not pinned, built or in a work folder, stayed out of the list until a manual refresh, also after Unity was reopened. A change now marks every prefab that holds the changed one, at any depth.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes

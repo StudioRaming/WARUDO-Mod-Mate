@@ -416,23 +416,31 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private static void ApplyDirtyPaths()
         {
-            for (int i = 0; i < entries.Count; i++)
+            // The signals come from every nested level (GetDependencies recursive) but sources lists only the direct nested
+            // prefabs, so a prefab that goes stale makes the prefabs holding it stale too, until no new path is added: in
+            // A > B > C a change to C has to reach A, not only B.
+            bool added = true;
+            while (added)
             {
-                Entry e = entries[i];
-                if (!e.computed)
-                    continue;
-                if (dirtyPaths.Contains(e.path))
+                added = false;
+                for (int i = 0; i < entries.Count; i++)
                 {
-                    e.computed = false;
-                    continue;
-                }
-
-                for (int s = 0; s < e.sources.Count; s++)
-                {
-                    if (dirtyPaths.Contains(e.sources[s]))
+                    Entry e = entries[i];
+                    if (dirtyPaths.Contains(e.path))
                     {
                         e.computed = false;
-                        break;
+                        continue;
+                    }
+
+                    for (int s = 0; s < e.sources.Count; s++)
+                    {
+                        if (dirtyPaths.Contains(e.sources[s]))
+                        {
+                            e.computed = false;
+                            dirtyPaths.Add(e.path);
+                            added = true;
+                            break;
+                        }
                     }
                 }
             }
