@@ -16,6 +16,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)../../Assets/StudioRaming/WarudoBatchBuilder/Editor/Shared/WbbWarudoTypeCatalog.cs" Link="WbbWarudoTypeCatalog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../Assets/StudioRaming/WarudoBatchBuilder/Editor/Shared/WbbReferenceRule.cs" Link="WbbReferenceRule.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(WarudoSdkRoslynDir)/Microsoft.CodeAnalysis.dll</HintPath></Reference>

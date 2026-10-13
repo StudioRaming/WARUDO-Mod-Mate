@@ -20,6 +20,8 @@ namespace StudioRaming.WarudoBatchBuilder
         public string metaGuid = "";
         public string signature = "";
         public string[] sources = new string[0];
+        // Why the references were not compared with WARUDO's assemblies (WARUDO not found); "" when they were.
+        public string hostCheckSkipped = "";
     }
 
     public enum WbbCompileState
@@ -481,7 +483,8 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             byte[] bytes = File.ReadAllBytes(dll);
-            if (!CheckReferences(unit, bytes, out failure))
+            string hostSkipped;
+            if (!CheckReferences(unit, bytes, out hostSkipped, out failure))
                 return null;
             string pdbPath = Path.ChangeExtension(dll, ".pdb");
             var compiled = new WbbCompiledUnit();
@@ -493,6 +496,7 @@ namespace StudioRaming.WarudoBatchBuilder
             compiled.metaGuid = Guid.NewGuid().ToString("N");
             compiled.signature = pendingSignature;
             compiled.sources = unit.sources;
+            compiled.hostCheckSkipped = hostSkipped;
             return compiled;
         }
 
@@ -514,9 +518,10 @@ namespace StudioRaming.WarudoBatchBuilder
 
         // The references the compiler recorded are what the unit really uses. Unity also hands every asmdef the
         // auto-referenced plugins of the project, so the declared list would block mods for DLLs they never touch.
-        private bool CheckReferences(WbbRuntimeUnit unit, byte[] image, out string failure)
+        private bool CheckReferences(WbbRuntimeUnit unit, byte[] image, out string skipped, out string failure)
         {
             failure = "";
+            skipped = "";
             string[] referenced = WbbRuntimeUnitReferences.Read(image);
             if (referenced == null)
             {
@@ -535,21 +540,21 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int i = 0; i < referenced.Length; i++)
             {
                 string name = referenced[i];
-                if (WbbWarudoManaged.IsFramework(name))
-                    continue;
-                if (name == "UnityEditor" || name.StartsWith("UnityEditor.", StringComparison.Ordinal) || name == "Assembly-CSharp" || name.StartsWith("Assembly-CSharp-", StringComparison.Ordinal))
+                string verdict = WbbReferenceRule.Classify(name, known, host == null ? null : host.Keys);
+                if (verdict == WbbReferenceRule.Editor)
                 {
                     failure = WbbLang.T("Asmdef.EditorReference", unit.name, name);
                     return false;
                 }
 
-                if (known.Contains(name))
-                    continue;
-                if (host != null && !host.ContainsKey(name))
+                if (verdict == WbbReferenceRule.Missing)
                 {
                     failure = WbbLang.T("Asmdef.HostMissingRef", unit.name, name);
                     return false;
                 }
+
+                if (verdict == WbbReferenceRule.Unchecked)
+                    skipped = string.IsNullOrEmpty(reason) ? "?" : reason;
             }
 
             return true;

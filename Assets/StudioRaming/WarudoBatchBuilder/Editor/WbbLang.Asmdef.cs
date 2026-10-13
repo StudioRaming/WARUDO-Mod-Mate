@@ -187,6 +187,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Asmdef.HostCheckSkipped",
+                new[]
+                {
+                    "WARUDO를 찾지 못해 런타임 참조를 WARUDO와 대조하지 못했습니다: {0}",
+                    "WARUDO was not found, so the runtime references were not checked against WARUDO: {0}",
+                    "WARUDO が見つからなかったため、ランタイムの参照を WARUDO と照合できませんでした: {0}"
+                }
+            },
+            {
                 "Asmdef.ScriptsNotAllowed",
                 new[]
                 {
