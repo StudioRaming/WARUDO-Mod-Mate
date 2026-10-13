@@ -4,12 +4,13 @@
 // of plain-manual to see that a plain folder builds the same). Changes nothing.
 const string Case = "ok-manual";                                   // PARAMETER, as in 2-build.cs
 const string RunTag = "A";                                         // PARAMETER, as in 2-build.cs
+const string NameOf = "";                                          // PARAMETER, as in 2-build.cs
 const string QaRoot = "";                    // PARAMETER: the QA project root
 const string OutDir = "";                    // PARAMETER: folder for archives and receipts (must exist)
 if (string.IsNullOrEmpty(QaRoot) || string.IsNullOrEmpty(OutDir)) return "ABORT set QaRoot and OutDir (PARAMETER constants at the top) first";
 
 string kind = Case.Substring(0, Case.IndexOf('-'));
-string modName = "WmmFix_" + Case.Replace('-', '_') + "_" + RunTag;
+string modName = "WmmFix_" + (NameOf.Length > 0 ? NameOf : Case).Replace('-', '_') + "_" + RunTag;
 string archive = OutDir + "/" + modName + ".warudo";
 string receiptPath = OutDir + "/" + modName + "-wmm-verify.txt";
 
@@ -36,6 +37,27 @@ string Receipt(string key)
     }
 
     return null;
+}
+
+// An overwrite run (2-build.cs Overwrite = true) is also checked against the file it replaced and the build start.
+bool overwrite = Receipt("overwrite") == "true";
+long buildStartTicks;
+long.TryParse(Receipt("build.startTicks") ?? "", out buildStartTicks);
+string Sha256(string path)
+{
+    using (var stream = System.IO.File.OpenRead(path))
+    using (var sha = System.Security.Cryptography.SHA256.Create())
+        return System.BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
+}
+int NamedSince(string dir)
+{
+    int count = 0;
+    if (!System.IO.Directory.Exists(dir)) return 0;
+    foreach (var info in new System.IO.DirectoryInfo(dir).GetFiles(modName + "_*"))
+    {
+        if (info.CreationTimeUtc.Ticks >= buildStartTicks) count++;
+    }
+    return count;
 }
 
 // The newest record of this mod.
@@ -105,8 +127,26 @@ if (kind == "bad")
         Check("message mentions Process or System.IO", message.IndexOf("Process", System.StringComparison.OrdinalIgnoreCase) >= 0 || message.IndexOf("System.IO", System.StringComparison.OrdinalIgnoreCase) >= 0 || message.IndexOf("File", System.StringComparison.OrdinalIgnoreCase) >= 0, "");
         bool logHasSection = !string.IsNullOrEmpty(record.buildLogPath) && System.IO.File.Exists(record.buildLogPath) && System.IO.File.ReadAllText(record.buildLogPath).Contains("[WarudoBatchBuilder]");
         Check("kept build log holds the full security section", logHasSection, record.buildLogPath);
-        Check("no archive left behind", !archiveExists, "");
+        if (overwrite)
+        {
+            // The same-name failure path: the file this build replaced is back and the failed output is kept aside.
+            Check("overwrite: previous archive put back", archiveExists && Sha256(archive) == Receipt("overwrite.previousSha256"), archiveExists ? Sha256(archive) : "no archive");
+            Check("overwrite: failed output kept in Failed/", NamedSince(StudioRaming.WarudoBatchBuilder.WbbJournal.FailedOutputDirectory) >= 1, StudioRaming.WarudoBatchBuilder.WbbJournal.FailedOutputDirectory);
+        }
+        else
+            Check("no archive left behind", !archiveExists, "");
     }
+}
+
+if (overwrite)
+{
+    if (kind != "bad")
+        Check("overwrite: archive written by this build", archiveExists && System.IO.File.GetLastWriteTimeUtc(archive).Ticks >= buildStartTicks, archiveExists ? System.IO.File.GetLastWriteTimeUtc(archive).ToString("o") : "no archive");
+    string backups = StudioRaming.WarudoBatchBuilder.WbbBuildLog.LibraryDirectory + "/OutputBackups";
+    int backupsLeft = System.IO.Directory.Exists(backups) ? System.IO.Directory.GetFiles(backups, modName + "_*").Length : 0;
+    Check("overwrite: no backup of this name left in OutputBackups", backupsLeft == 0, backupsLeft + " file(s) in " + backups);
+    var journal = StudioRaming.WarudoBatchBuilder.WbbJournal.Current;
+    Check("overwrite: build journal holds no outputs", journal == null || journal.outputs.Count == 0, journal == null ? "" : journal.outputs.Count + " output(s)");
 }
 
 // Whatever the case: settings, temp folders, compile output and the UMod hook must be back to normal.

@@ -1,13 +1,18 @@
 // WMM asmdef runtime support, step 2 of 3 (task_id PHYS-RESUME-20261008). lab_exec_file statement body, QA project only.
 // Starts one WMM build of a fixture through WbbBuildRunner.Start (the call the Build tab makes) and returns QUEUED.
 // The build is a state machine on EditorApplication.update: leave the editor alone (no script edits, no Play Mode),
-// poll with 3-audit.cs until it stops saying RUNNING. Change Case and RunTag for every run; nothing is overwritten.
+// poll with 3-audit.cs until it stops saying RUNNING. Change Case and RunTag for every run; nothing is overwritten
+// unless Overwrite is set.
 //   ok-manual    asmdef runtime in a manual script folder          expect: Success, assemblymodules.dat, links to Wmm.FixtureOk.Runtime
 //   ok-auto      same prefab, automatic script collection          expect: the same as ok-manual (needs WARUDO installed)
 //   bad-manual   asmdef runtime that uses Process/System.IO        expect: Failed with per-API security entries
 //   plain-manual no asmdef; plain scripts compiled by Mod Mate     expect: Success, assemblymodules.dat, history message names WbbRuntimeScripts
+// Overwrite = true builds over the output of an earlier run with the same name (the same-name overwrite path, which the
+// Quick Build always takes). NameOf = another Case builds under that case's name, so bad-manual can fail over ok-manual.
 const string Case = "ok-manual";                                   // PARAMETER
-const string RunTag = "A";                                         // PARAMETER, new for every run
+const string RunTag = "A";                                         // PARAMETER, new for every run unless Overwrite
+const bool Overwrite = false;                                      // PARAMETER: build over an existing output of this name
+const string NameOf = "";                                          // PARAMETER: empty, or the Case whose mod name to use
 const string QaRoot = "";                    // PARAMETER: the QA project root
 const string OutDir = "";                    // PARAMETER: folder for archives and receipts (must exist)
 if (string.IsNullOrEmpty(QaRoot) || string.IsNullOrEmpty(OutDir)) return "ABORT set QaRoot and OutDir (PARAMETER constants at the top) first";
@@ -15,7 +20,7 @@ const string FixtureRoot = "Assets/WmmAsmdefFixture";
 
 string kind = Case.Substring(0, Case.IndexOf('-'));
 bool manual = Case.EndsWith("-manual");
-string modName = "WmmFix_" + Case.Replace('-', '_') + "_" + RunTag;
+string modName = "WmmFix_" + (NameOf.Length > 0 ? NameOf : Case).Replace('-', '_') + "_" + RunTag;
 string archive = OutDir + "/" + modName + ".warudo";
 string receiptPath = OutDir + "/" + modName + "-wmm-verify.txt";
 string buildFolder = kind == "ok" ? FixtureRoot + "/AsmdefOk" : kind == "bad" ? FixtureRoot + "/AsmdefBad" : FixtureRoot + "/Plain";
@@ -25,7 +30,8 @@ string prefabPath = prefabFolder + "/WmmFix" + kind + ".prefab";
 if (UnityEngine.Application.dataPath != QaRoot + "/Assets") return "ABORT not the QA project: " + UnityEngine.Application.dataPath;
 if (UnityEngine.Application.isPlaying || UnityEditor.EditorApplication.isCompiling) return "ABORT editor not ready (playing or compiling)";
 if (StudioRaming.WarudoBatchBuilder.WbbBuildRunner.AnyRunning) return "ABORT a WMM build is already running";
-if (System.IO.File.Exists(archive) || System.IO.File.Exists(receiptPath)) return "ABORT output exists, use a new RunTag: " + modName;
+if (!Overwrite && (System.IO.File.Exists(archive) || System.IO.File.Exists(receiptPath))) return "ABORT output exists, use a new RunTag: " + modName;
+if (Overwrite && !System.IO.File.Exists(archive)) return "ABORT Overwrite needs an earlier output of this name: " + archive;
 if (kind != "ok" && kind != "bad" && kind != "plain") return "ABORT unknown Case " + Case;
 if (!System.IO.Directory.Exists(QaRoot + "/" + buildFolder)) return "ABORT fixture folder missing, run 1-write-fixtures.cs first: " + buildFolder;
 if (kind == "plain")
@@ -106,7 +112,7 @@ var job = new StudioRaming.WarudoBatchBuilder.WbbJob
     outputDirectory = OutDir,
     useFolderNamePrefix = false,
     namePrefix = "",
-    overwriteExisting = false
+    overwriteExisting = Overwrite
 };
 
 // Snapshots the audit compares afterwards: the active build profile, and how many handlers UMod's hook already has.
@@ -136,6 +142,15 @@ var receipt = new System.Text.StringBuilder();
 receipt.AppendLine("task_id=PHYS-RESUME-20261008 step=wmm-asmdef-verify case=" + Case + " modName=" + modName + " utc=" + System.DateTime.UtcNow.ToString("o"));
 receipt.AppendLine("unity=" + UnityEngine.Application.unityVersion + " dataPath=" + UnityEngine.Application.dataPath);
 receipt.AppendLine("hookCount.before=" + hookCount);
+// What 3-audit.cs compares an overwrite against: when this build started and the file it replaces.
+receipt.AppendLine("overwrite=" + (Overwrite ? "true" : "false"));
+receipt.AppendLine("build.startTicks=" + System.DateTime.UtcNow.Ticks);
+if (Overwrite)
+{
+    using (var stream = System.IO.File.OpenRead(archive))
+    using (var sha = System.Security.Cryptography.SHA256.Create())
+        receipt.AppendLine("overwrite.previousSha256=" + System.BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", ""));
+}
 if (before != null)
 {
     receipt.AppendLine("before.modName=" + before.modName);
