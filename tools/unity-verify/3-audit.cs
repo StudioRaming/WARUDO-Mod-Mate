@@ -129,9 +129,10 @@ if (kind == "bad")
         Check("kept build log holds the full security section", logHasSection, record.buildLogPath);
         if (overwrite)
         {
-            // The same-name failure path: the file this build replaced is back and the failed output is kept aside.
+            // The same-name failure path: the file this build replaced is back. The security check fails before UMod writes
+            // the archive, so there is usually no failed output to keep; 5-output-guard.cs checks the Failed/ paths.
             Check("overwrite: previous archive put back", archiveExists && Sha256(archive) == Receipt("overwrite.previousSha256"), archiveExists ? Sha256(archive) : "no archive");
-            Check("overwrite: failed output kept in Failed/", NamedSince(StudioRaming.WarudoBatchBuilder.WbbJournal.FailedOutputDirectory) >= 1, StudioRaming.WarudoBatchBuilder.WbbJournal.FailedOutputDirectory);
+            report.AppendLine("INFO overwrite: failed outputs of this name kept in Failed/: " + NamedSince(StudioRaming.WarudoBatchBuilder.WbbJournal.FailedOutputDirectory) + " (0 when the build failed before writing the archive)");
         }
         else
             Check("no archive left behind", !archiveExists, "");
