@@ -1,4 +1,5 @@
 """Black-box checks for warudo_fingerprint.py against fake Steam trees and logs. Run: python test_warudo_fingerprint.py"""
+import hashlib
 import importlib.util
 import json
 import shutil
@@ -14,9 +15,23 @@ LOAD = "Fallback handler could not load library C:/x/Warudo_Data/Mono/data-0123A
 fails = 0
 
 
-def run(*args):
-    proc = subprocess.run([sys.executable, str(TOOL), *args], capture_output=True, text=True, encoding="utf-8")
+def run(*args, tool=TOOL):
+    proc = subprocess.run([sys.executable, str(tool), *args], capture_output=True, text=True, encoding="utf-8")
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+
+
+def steam_tree(name, installdir, dlls):
+    """A Steam root holding WARUDO itself, with the given DLLs (name -> bytes) under common/<installdir>."""
+    tree = HERE / name
+    (tree / "steamapps").mkdir(parents=True)
+    line = '\t"installdir"\t\t"%s"\n' % installdir if installdir is not None else ""
+    (tree / "steamapps" / "appmanifest_2079120.acf").write_text(
+        '"AppState"\n{\n\t"buildid"\t\t"333"\n%s\t"MountedConfig"\n\t{\n\t\t"BetaKey"\t\t""\n\t}\n}\n' % line, encoding="utf-8")
+    folder = tree / "steamapps" / "common" / (installdir or "Warudo") / "Warudo_Data" / "Managed"
+    folder.mkdir(parents=True)
+    for dll, payload in dlls.items():
+        (folder / dll).write_bytes(payload)
+    return tree, folder
 
 
 def check(name, cond, detail):
@@ -86,8 +101,38 @@ check("partial last line", pd["lines"] == 10 and pd["next"] == token and not pd2
 code, out, err = run("--steam-root", str(root), "--player-log", str(HERE / "A.log"), "--since", "abc")
 check("bad --since", code == 2 and "--since takes N or N:HASH" in err and "Traceback" not in err, err.splitlines()[-1] if err else "")
 
-code, out, _ = run("--steam-root", str(root), "--player-log", str(HERE / "missing.log"))
-check("missing Player.log keeps the record", code == 2 and "Player.log not found" in out and "MagicaClothV2.dll=" in out, out[-60:])
+ALL_DLLS = {name: name.encode() for name in ("MagicaClothV2.dll", "UMod.dll", "UMod-Shared.dll", "Warudo.Core.dll")}
+full, _ = steam_tree("full", None, ALL_DLLS)
+
+code, out, err = run("--steam-root", str(full), "--player-log", str(HERE / "missing.log"))
+check("missing Player.log keeps the record", code == 3 and "Player.log not found" in out and "MISSING" not in out
+      and all(name + "=" in out for name in ALL_DLLS), "exit=%d %s" % (code, out[-80:]))
+
+code, out, err = run("--steam-root", str(full), "--player-log", str(HERE))
+check("unreadable Player.log says why", code == 3 and "Player.log unreadable: " in out and "Traceback" not in err,
+      "exit=%d %s" % (code, out.split("| ")[-1]))
+
+code, out, err = run("--steam-root", str(root), "--player-log", str(HERE / "missing.log"))
+check("missing DLL wins over missing Player.log", code == 2 and "Player.log not found" in out, "exit=%d" % code)
+
+shape = HERE / "shape"
+shape.mkdir()
+shutil.copyfile(TOOL, shape / TOOL.name)
+(shape / "known_builds.json").write_text('{"builds": []}', encoding="utf-8")
+code, out, err = run("--steam-root", str(full), tool=shape / TOOL.name)
+check("unexpected known_builds.json shape", code == 0 and "unexpected shape" in out and "Traceback" not in err,
+      "exit=%d %s" % (code, err.splitlines()[-1] if err else out[:80]))
+
+alt, alt_managed = steam_tree("alt", "WarudoAlt", {name: b"alt " + payload for name, payload in ALL_DLLS.items()})
+decoy = alt / "steamapps" / "common" / "Warudo" / "Warudo_Data" / "Managed"
+decoy.mkdir(parents=True)
+for name, payload in ALL_DLLS.items():
+    (decoy / name).write_bytes(payload)
+code, out, _ = run("--steam-root", str(alt), "--json")
+ra = json.loads(out)
+want = {name: hashlib.sha256(b"alt " + payload).hexdigest() for name, payload in ALL_DLLS.items()}
+check("installdir from the manifest", code == 0 and ra["installdir"] == "WarudoAlt" and ra["sha256"] == want,
+      "exit=%d installdir=%s" % (code, ra.get("installdir")))
 
 # Broken known_builds.json falls back to unknown.
 spec = importlib.util.spec_from_file_location("fp", TOOL)

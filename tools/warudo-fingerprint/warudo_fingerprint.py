@@ -13,10 +13,13 @@ prints since=N:HASH (the line count and a hash of those lines); pass it as --sin
 what the test added. A different hash means WARUDO restarted in between (it starts a new Player.log on every launch), and
 the whole new log is counted.
 
-Exit codes: 0 = recorded, 2 = no install found or a DLL is missing (the line is still printed with MISSING).
+Exit codes: 0 = recorded, 2 = no install found or a DLL is missing (the line is still printed with MISSING),
+3 = --player-log was requested and the log could not be read (the line is still printed, without a script load count).
+A missing DLL wins over an unreadable log.
 """
 import argparse
 import datetime
+import errno
 import hashlib
 import json
 import os
@@ -60,7 +63,9 @@ def read_manifest(library):
     build = re.search(r'"buildid"\s+"(\d+)"', text)
     # BetaKey appears under UserConfig (what the user picked) and MountedConfig (what is installed); both are reported.
     betas = re.findall(r'"BetaKey"\s+"([^"]*)"', text)
-    return (build.group(1) if build else ""), betas
+    # Steam installs into steamapps/common/<installdir>; it is "Warudo" unless the manifest says otherwise.
+    installdir = re.search(r'"installdir"\s+"([^"]*)"', text)
+    return (build.group(1) if build else ""), betas, ((installdir.group(1) if installdir else "") or "Warudo")
 
 
 def branch_of(betas):
@@ -83,6 +88,10 @@ def match_known(build_id, hashes):
         entries = json.loads(KNOWN.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return "unknown (known_builds.json missing or unreadable)"
+    if not isinstance(entries, list) or not all(
+            isinstance(entry, dict) and isinstance(entry.get("buildid"), str) and isinstance(entry.get("label"), str)
+            and isinstance(entry.get("sha256"), dict) for entry in entries):
+        return "unknown (known_builds.json has an unexpected shape)"
     for entry in entries:
         if entry.get("buildid") == build_id and all(entry.get("sha256", {}).get(name) == value for name, value in hashes.items()):
             return entry["label"]
@@ -137,8 +146,8 @@ def main():
     if library is None:
         print("ERROR no %s under the Steam root or its libraryfolders.vdf; pass --steam-root <library>" % MANIFEST, file=sys.stderr)
         return 2
-    build_id, betas = read_manifest(library)
-    managed = library / "steamapps" / "common" / "Warudo" / "Warudo_Data" / "Managed"
+    build_id, betas, installdir = read_manifest(library)
+    managed = library / "steamapps" / "common" / installdir / "Warudo_Data" / "Managed"
     hashes = {}
     missing = []
     for name in DLLS:
@@ -150,6 +159,7 @@ def main():
     record = {
         "observedAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
         "buildid": build_id,
+        "installdir": installdir,
         "betaKey": betas,
         "branch": branch_of(betas),
         "known": match_known(build_id, hashes),
@@ -162,8 +172,12 @@ def main():
             if log is None:
                 raise FileNotFoundError("USERPROFILE is not set")
             record["playerLog"] = count_script_loads(log, since_lines, since_hash)
-        except OSError:
+        except FileNotFoundError:
             record["playerLog"] = {"error": "Player.log not found"}
+        except OSError as e:
+            # WARUDO holding the file open, or no permission: the log exists, so say why it could not be read.
+            name = errno.errorcode.get(e.errno, type(e).__name__) if e.errno else type(e).__name__
+            record["playerLog"] = {"error": "Player.log unreadable: %s" % name}
 
     if args.json:
         out = json.dumps(record, ensure_ascii=False)
@@ -186,6 +200,9 @@ def main():
     if missing:
         print("ERROR missing in Warudo_Data/Managed: %s" % ", ".join(missing), file=sys.stderr)
         return 2
+    if "error" in record.get("playerLog", {}):
+        print("ERROR %s; this receipt has no script load count" % record["playerLog"]["error"], file=sys.stderr)
+        return 3
     return 0
 
 
