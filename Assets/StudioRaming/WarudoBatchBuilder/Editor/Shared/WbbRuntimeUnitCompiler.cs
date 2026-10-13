@@ -62,6 +62,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private CompilerMessage[] messages;
         private double startedAt;
         private bool warnedNoReferenceCheck;
+        private bool warnedNoHostCheck;
         public WbbRuntimeCompileSession()
         {
             root = WbbBuildLog.LibraryDirectory + "/Runtime/" + Guid.NewGuid().ToString("N");
@@ -555,6 +556,12 @@ namespace StudioRaming.WarudoBatchBuilder
 
                 if (verdict == WbbReferenceRule.Unchecked)
                     skipped = string.IsNullOrEmpty(reason) ? "?" : reason;
+            }
+
+            if (skipped.Length > 0 && !warnedNoHostCheck)
+            {
+                warnedNoHostCheck = true;
+                WbbUtil.LogWarning("WARUDO was not found, so the references of the compiled runtime assemblies are not checked against WARUDO: " + skipped);
             }
 
             return true;
