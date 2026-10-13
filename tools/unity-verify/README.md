@@ -67,7 +67,11 @@ Do not edit scripts in `Assets/` during a run. A recompile during a build cancel
 | `ok-manual` `OW` | first build of the name | `PASS` | As `ok-manual`. |
 | `ok-manual` `OW` `Overwrite` | over the first build | `PASS` | As `ok-manual`, and: the archive was written by this build, no backup of this name left in `OutputBackups`, no outputs in the build journal. |
 | `bad-manual` `NameOf = ok-manual` `OW` `Overwrite` | failing build over the second one | `PASS` | As `bad-manual`, except that the archive of the second build is back (same SHA-256); no backup left, no outputs in the journal. The security check fails before UMod writes the archive, so `Failed/` usually gains nothing (an `INFO` line gives the count; `5-output-guard` checks the `Failed/` paths). |
-| `6-quick-build` | two Quick Builds of one name | `PASS` (both audits) | Pass 1: success, archive in `OutDir`. Pass 2: success, the archive written by this build, no backup of this name left, no outputs in the journal, no dirty scene, no `_WBB_Temp` folder, no quick-iteration reload notice (`OutDir` is not the `Props` folder of the WARUDO install). `restore` prints the output folder pref as it was at the start. |
+| `6-quick-build` | two Quick Builds of one name | `PASS` (both audits) | Both passes: no build journal file left. Pass 1: success, archive in `OutDir`. Pass 2: success, the archive written by this build, no backup of this name left, no outputs in the journal, no dirty scene, no `_WBB_Temp` folder, no quick-iteration reload notice (`OutDir` is not the `Props` folder of the WARUDO install). `restore` prints the output folder pref as it was at the start. |
+
+`3-audit.cs` judges only what this build left: the newest history record of the name that started after the build
+did (the receipt's `build.startTicks`), and the fixture audit lines written after it (`audit.startLength`). A run that
+never started its item fails `history record exists` even when an earlier run of the name left one.
 
 `INCONCLUSIVE` means the reload missed the item: the build finished before it, or it stopped the batch before the item
 started (the item is then `Skipped` and has no history record). Rerun with a new `RunTag`. It is not a pass.

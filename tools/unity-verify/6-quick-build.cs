@@ -6,8 +6,8 @@
 //   Phase "build" Pass 1 -> QUEUED       Phase "audit" Pass 1 -> PASS lines
 //   Phase "build" Pass 2 -> QUEUED       Phase "audit" Pass 2 -> PASS lines and VERDICT
 //   Phase "restore"      -> closes the check scene, prints the output folder pref
-// Pass 2 expects: Success, the archive written by this build, no backup of this name left in OutputBackups, no outputs
-// in the build journal, no dirty scene, no _WBB_Temp folder, and no quick-iteration reload notice (OutDir is not the
+// Both passes expect no build journal file left. Pass 2 also expects: Success, the archive written by this build, no
+// backup of this name left in OutputBackups, no outputs in the build journal, no dirty scene, no _WBB_Temp folder, and no quick-iteration reload notice (OutDir is not the
 // Props folder of the WARUDO install). A failed Quick Build opens a result dialog: if an audit keeps saying RUNNING,
 // look for that dialog. The fixture (a cube prefab and a check scene) stays in Assets/WmmQuickBuildCheck_<RunTag>.
 const string Phase = "build";                // PARAMETER: build | audit | restore
@@ -167,6 +167,9 @@ if (Phase == "audit")
     Check("pass " + Pass + " archive written by this build", archiveExists && System.IO.File.GetLastWriteTimeUtc(archive).Ticks >= startTicks,
         archiveExists ? System.IO.File.GetLastWriteTimeUtc(archive).ToString("o") : "no archive");
     if (record != null) Check("pass " + Pass + " record output is OutDir", string.Equals(Norm(record.outputFilePath), Norm(archive), System.StringComparison.OrdinalIgnoreCase), record.outputFilePath);
+    // WbbJournal.Complete forgets the journal in memory before it deletes the file, so a file it could not delete
+    // (a lock) shows only on disk: WbbJournal.Current is null either way.
+    Check("pass " + Pass + " build journal cleared", !StudioRaming.WarudoBatchBuilder.WbbJournal.Exists, StudioRaming.WarudoBatchBuilder.WbbJournal.Exists ? "BuildJournal.json still on disk" : "");
 
     if (Pass == 1)
     {

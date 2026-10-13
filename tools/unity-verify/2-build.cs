@@ -145,6 +145,9 @@ receipt.AppendLine("hookCount.before=" + hookCount);
 // What 3-audit.cs compares an overwrite against: when this build started and the file it replaces.
 receipt.AppendLine("overwrite=" + (Overwrite ? "true" : "false"));
 receipt.AppendLine("build.startTicks=" + System.DateTime.UtcNow.Ticks);
+// The fixture audit file keeps every earlier run; 3-audit.cs reads only what comes after this length.
+string fixtureAuditPath = QaRoot + "/Library/WmmFixtureAudit.txt";
+receipt.AppendLine("audit.startLength=" + (System.IO.File.Exists(fixtureAuditPath) ? System.IO.File.ReadAllText(fixtureAuditPath).Length : 0));
 if (Overwrite)
 {
     using (var stream = System.IO.File.OpenRead(archive))

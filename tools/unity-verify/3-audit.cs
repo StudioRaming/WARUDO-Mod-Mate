@@ -60,13 +60,30 @@ int NamedSince(string dir)
     return count;
 }
 
-// The newest record of this mod.
+// The newest record of this mod that this build made. A run that never started its item leaves no record, and an older
+// record of the same name (an earlier run under this name) must not stand in for it. startedIso is local time to the
+// second; a receipt without build.startTicks (written before this check) accepts every record as before.
+long startSecond = buildStartTicks - buildStartTicks % System.TimeSpan.TicksPerSecond;
+bool StartedThisRun(StudioRaming.WarudoBatchBuilder.WbbRecord candidate)
+{
+    if (buildStartTicks <= 0) return true;
+    System.DateTime started;
+    if (!System.DateTime.TryParseExact(candidate.startedIso, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal, out started)) return false;
+    return started.ToUniversalTime().Ticks >= startSecond;
+}
 StudioRaming.WarudoBatchBuilder.WbbRecord record = null;
+int olderRecords = 0;
 foreach (var candidate in StudioRaming.WarudoBatchBuilder.WbbDatabase.Records)
 {
-    if (candidate.modName == modName && (record == null || string.CompareOrdinal(candidate.startedIso, record.startedIso) > 0)) record = candidate;
+    if (candidate.modName != modName) continue;
+    if (!StartedThisRun(candidate))
+    {
+        olderRecords++;
+        continue;
+    }
+    if (record == null || string.CompareOrdinal(candidate.startedIso, record.startedIso) > 0) record = candidate;
 }
-Check("history record exists", record != null, record == null ? "none" : "status=" + (StudioRaming.WarudoBatchBuilder.WbbBuildStatus)record.status);
+Check("history record exists", record != null, record == null ? "none since this build started (" + olderRecords + " older record(s) of this name)" : "status=" + (StudioRaming.WarudoBatchBuilder.WbbBuildStatus)record.status);
 if (record == null) return string.Join("\n", new[] { report.ToString().TrimEnd(), "VERDICT FAIL (no record)" });
 var status = (StudioRaming.WarudoBatchBuilder.WbbBuildStatus)record.status;
 string message = record.message ?? "";
@@ -91,7 +108,13 @@ if (kind == "ok")
     Check("editor-only asmdefs left out", !message.Contains("Wmm.FixtureOk.Editor") && !message.Contains("Wmm.FixtureOk.Tooling"), "");
     string auditPath = QaRoot + "/Library/WmmFixtureAudit.txt";
     string audit = System.IO.File.Exists(auditPath) ? System.IO.File.ReadAllText(auditPath) : "";
-    int at = audit.LastIndexOf("build=" + modName + " stage=", System.StringComparison.Ordinal);
+    // The file keeps every earlier run: only what was written after 2-build.cs started this build counts. A file shorter
+    // than at the start was replaced since, so all of it is newer.
+    int auditStart;
+    int.TryParse(Receipt("audit.startLength") ?? "", out auditStart);
+    if (auditStart < 0 || auditStart > audit.Length) auditStart = 0;
+    audit = audit.Substring(auditStart);
+    int at =audit.LastIndexOf("build=" + modName + " stage=", System.StringComparison.Ordinal);
     // The SDK links components in the second processor pass; use the last block that has links for this build.
     string block = "";
     int from = 0;
