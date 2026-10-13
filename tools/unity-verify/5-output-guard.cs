@@ -7,9 +7,11 @@
 //   c) A exists, guard, B, verified, commit        -> path holds B, own backup gone
 //   d) no file, guard, B, revert                   -> path gone, Failed/ holds B
 //   e) A exists, guard, nothing written, revert    -> path holds A, Failed/ unchanged
-// RevertOutput keeps only the newest WbbJournal.KeepFailedOutputs entries in Failed/, so older failed outputs of this
-// project can go: run it in the QA project only. Nothing is deleted by the script itself: at the end every file it made
-// in the Library folders (names start with wmmguard_<RunTag>_) is moved into OutDir/wmmguard_<RunTag>/leftovers.
+// RevertOutput keeps only the newest WbbJournal.KeepFailedOutputs entries in Failed/ and deletes the rest, so the entries
+// Failed/ already holds are moved to Library/StudioRaming/WarudoBatchBuilder/FailedHeld_<RunTag> for the run and moved
+// back at the end (if a run dies halfway, they are still there). Run it in the QA project only. Nothing is deleted by the
+// script itself: at the end every file it made in the Library folders (names start with wmmguard_<RunTag>_) is moved
+// into OutDir/wmmguard_<RunTag>/leftovers.
 const string QaRoot = "";                    // PARAMETER: the QA project root
 const string OutDir = "";                    // PARAMETER: an existing folder for test outputs (never the WARUDO install)
 const string RunTag = "A";                   // PARAMETER, new for every run
@@ -85,6 +87,29 @@ string Names(string dir)
 
 report.AppendLine("start Failed/=" + (System.IO.Directory.Exists(failedDir) ? System.IO.Directory.GetFileSystemEntries(failedDir).Length : 0)
     + " OutputBackups/=" + (System.IO.Directory.Exists(backupDir) ? System.IO.Directory.GetFileSystemEntries(backupDir).Length : 0));
+// Hold what Failed/ already has, in the same Library folder (same volume, so a move is a rename even for big archives).
+string held = library + "/FailedHeld_" + RunTag;
+if (System.IO.Directory.Exists(held)) return "ABORT " + held + " exists: move its entries back into Failed/ first";
+string failedAtStart = Names(failedDir);
+void MoveEntry(string from, string to)
+{
+    if (System.IO.Directory.Exists(from)) System.IO.Directory.Move(from, to);
+    else System.IO.File.Move(from, to);
+}
+if (System.IO.Directory.Exists(failedDir))
+{
+    System.IO.Directory.CreateDirectory(held);
+    foreach (string entry in System.IO.Directory.GetFileSystemEntries(failedDir))
+    {
+        try { MoveEntry(entry, held + "/" + System.IO.Path.GetFileName(entry)); }
+        catch (System.Exception e)
+        {
+            foreach (string back in System.IO.Directory.GetFileSystemEntries(held)) MoveEntry(back, failedDir + "/" + System.IO.Path.GetFileName(back));
+            System.IO.Directory.Delete(held); // empty again
+            return "ABORT could not hold " + entry + " aside (" + e.Message + "); Failed/ is as it was";
+        }
+    }
+}
 string error;
 bool problem;
 try
@@ -178,7 +203,17 @@ finally
             catch (System.Exception e) { report.AppendLine("CLEANUP could not move " + file + ": " + e.Message); }
         }
     }
+    if (System.IO.Directory.Exists(held))
+    {
+        foreach (string entry in System.IO.Directory.GetFileSystemEntries(held))
+        {
+            try { MoveEntry(entry, failedDir + "/" + System.IO.Path.GetFileName(entry)); }
+            catch (System.Exception e) { report.AppendLine("CLEANUP could not move " + entry + " back into Failed/: " + e.Message); }
+        }
+        if (System.IO.Directory.GetFileSystemEntries(held).Length == 0) System.IO.Directory.Delete(held); // empty folder only
+    }
 }
+Check("Failed/ holds what it held at the start", Names(failedDir) == failedAtStart, failedAtStart.Length == 0 ? "empty" : failedAtStart);
 
 report.AppendLine("end Failed/=" + (System.IO.Directory.Exists(failedDir) ? System.IO.Directory.GetFileSystemEntries(failedDir).Length : 0)
     + " OutputBackups/=" + (System.IO.Directory.Exists(backupDir) ? System.IO.Directory.GetFileSystemEntries(backupDir).Length : 0) + " leftovers in " + work);
