@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- Rebuilding scene quick-build records of both types opens the loaded ones even when the first selected record's scene is closed. The window used to take its type (Character or Prop) from the first record, so a closed Character first left out every loaded Prop and only said that the Character's scene object was not found. The type now comes from the first record that is found, and the note counts the others as not open or of another type.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
