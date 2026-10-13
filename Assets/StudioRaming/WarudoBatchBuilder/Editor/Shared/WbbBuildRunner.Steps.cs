@@ -506,10 +506,22 @@ namespace StudioRaming.WarudoBatchBuilder
 
         // WARUDO only reloads a changed file from the Props folder of its own install (found through Steam). The Build tab's
         // output folder pref is where Mod Mate writes, not where WARUDO reads, so it does not count. Without a WARUDO install
-        // TypeFolder is "" and nothing is inside it.
+        // TypeFolder is "" and nothing is inside it. Both sides are resolved to full paths first: the output folder is typed by
+        // hand, and ".../Props/../Exports" starts with the Props folder as text while the file lands outside it.
         internal static bool IsInWarudoPropsFolder(string outputFile)
         {
-            return WbbJournal.IsUnder(WbbUtil.ToAbsolutePath(outputFile), WbbWarudoLocator.TypeFolder(WbbExportType.Prop));
+            string props = WbbWarudoLocator.TypeFolder(WbbExportType.Prop);
+            string file = WbbUtil.ToAbsolutePath(outputFile);
+            if (string.IsNullOrEmpty(props) || string.IsNullOrEmpty(file))
+                return false;
+            try
+            {
+                return WbbJournal.IsUnder(Path.GetFullPath(file), Path.GetFullPath(props));
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
         }
 
         private void DoCleanup()
