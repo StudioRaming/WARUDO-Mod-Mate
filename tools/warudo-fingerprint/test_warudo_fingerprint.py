@@ -101,6 +101,10 @@ check("partial last line", pd["lines"] == 10 and pd["next"] == token and not pd2
 code, out, err = run("--steam-root", str(root), "--player-log", str(HERE / "A.log"), "--since", "abc")
 check("bad --since", code == 2 and "--since takes N or N:HASH" in err and "Traceback" not in err, err.splitlines()[-1] if err else "")
 
+# A shortened hash would never equal the 12-character prefix hash and read as a restart; it is refused instead.
+code, out, err = run("--steam-root", str(root), "--player-log", str(HERE / "B.log"), "--since", token[:-1], "--json")
+check("shortened --since hash refused", code == 2 and "--since takes N or N:HASH" in err and out == "", err.splitlines()[-1] if err else out)
+
 ALL_DLLS = {name: name.encode() for name in ("MagicaClothV2.dll", "UMod.dll", "UMod-Shared.dll", "Warudo.Core.dll")}
 full, _ = steam_tree("full", None, ALL_DLLS)
 

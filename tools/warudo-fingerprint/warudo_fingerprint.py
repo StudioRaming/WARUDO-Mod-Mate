@@ -108,8 +108,10 @@ def match_known(build_id, hashes):
 
 def parse_since(token):
     count, _, prefix = token.partition(":")
-    if not count.isdigit() or not re.fullmatch(r"[0-9A-Fa-f]*", prefix):
-        raise argparse.ArgumentTypeError("--since takes N or N:HASH as printed after since=, not %r" % token)
+    # The hash is compared whole, so a shortened one would always read as a restart.
+    if not count.isdigit() or not re.fullmatch(r"(?:[0-9A-Fa-f]{%d})?" % HASH_CHARS, prefix):
+        raise argparse.ArgumentTypeError("--since takes N or N:HASH as printed after since= (HASH is %d hex characters), not %r"
+                                         % (HASH_CHARS, token))
     return int(count), prefix.lower()
 
 
