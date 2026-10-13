@@ -134,6 +134,16 @@ want = {name: hashlib.sha256(b"alt " + payload).hexdigest() for name, payload in
 check("installdir from the manifest", code == 0 and ra["installdir"] == "WarudoAlt" and ra["sha256"] == want,
       "exit=%d installdir=%s" % (code, ra.get("installdir")))
 
+# Beta picked in Steam while the default branch is still installed: MountedConfig has no BetaKey at all.
+picked, _ = steam_tree("picked", None, ALL_DLLS)
+(picked / "steamapps" / "appmanifest_2079120.acf").write_text(
+    '"AppState"\n{\n\t"buildid"\t\t"444"\n\t"UserConfig"\n\t{\n\t\t"language"\t\t"english"\n\t\t"BetaKey"\t\t"beta"\n\t}\n'
+    '\t"MountedConfig"\n\t{\n\t\t"language"\t\t"english"\n\t}\n}\n', encoding="utf-8")
+code, out, _ = run("--steam-root", str(picked), "--json")
+rp = json.loads(out)
+check("beta picked, default still mounted", code == 0 and rp["branch"] == "mismatch" and rp["betaKey"] == ["beta", ""],
+      "branch=%s betaKey=%s" % (rp["branch"], rp["betaKey"]))
+
 # Broken known_builds.json falls back to unknown.
 spec = importlib.util.spec_from_file_location("fp", TOOL)
 fp = importlib.util.module_from_spec(spec)

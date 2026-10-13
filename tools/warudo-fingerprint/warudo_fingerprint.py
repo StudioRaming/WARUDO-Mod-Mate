@@ -61,11 +61,19 @@ def find_library(steam_root):
 def read_manifest(library):
     text = (library / "steamapps" / MANIFEST).read_text(encoding="utf-8", errors="replace")
     build = re.search(r'"buildid"\s+"(\d+)"', text)
-    # BetaKey appears under UserConfig (what the user picked) and MountedConfig (what is installed); both are reported.
-    betas = re.findall(r'"BetaKey"\s+"([^"]*)"', text)
+    # BetaKey appears under UserConfig (what the user picked) and MountedConfig (what is installed); both are reported,
+    # in that order. Steam can leave the key out of a section on the default branch, so each section is read on its own
+    # and a missing key counts as "": picking beta before the download finishes then reads as a mismatch, not as beta.
+    betas = [section_beta(text, "UserConfig"), section_beta(text, "MountedConfig")]
     # Steam installs into steamapps/common/<installdir>; it is "Warudo" unless the manifest says otherwise.
     installdir = re.search(r'"installdir"\s+"([^"]*)"', text)
     return (build.group(1) if build else ""), betas, ((installdir.group(1) if installdir else "") or "Warudo")
+
+
+def section_beta(text, section):
+    block = re.search(r'"%s"\s*\{([^{}]*)\}' % section, text)
+    key = re.search(r'"BetaKey"\s+"([^"]*)"', block.group(1)) if block else None
+    return key.group(1) if key else ""
 
 
 def branch_of(betas):
