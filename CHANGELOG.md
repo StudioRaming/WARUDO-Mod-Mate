@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- Rename prefab on the Build tab renames the prefab before its thumbnail. The thumbnail used to be renamed first, so when the prefab rename then failed (for example because a prefab of the new name was already in the folder) the prefab lost its thumbnail and the other prefab of that name showed it and used it as its mod icon. A failed rename now leaves both files as they were.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes

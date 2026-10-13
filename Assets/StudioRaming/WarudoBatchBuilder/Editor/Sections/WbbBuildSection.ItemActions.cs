@@ -317,19 +317,21 @@ namespace StudioRaming.WarudoBatchBuilder
             string oldName = item.name;
             Texture2D existing = WbbThumbnail.FindExisting(item.path, oldName);
             string thumbPath = existing != null ? AssetDatabase.GetAssetPath(existing) : "";
-            if (!string.IsNullOrEmpty(thumbPath) && thumbPath.EndsWith(oldName + "_thumb.png", System.StringComparison.OrdinalIgnoreCase))
-            {
-                string thumbError = AssetDatabase.RenameAsset(thumbPath, clean + "_thumb");
-                if (!string.IsNullOrEmpty(thumbError))
-                    WbbUtil.LogWarning("Thumbnail rename failed (continuing): " + thumbError);
-            }
-
+            // The prefab goes first: the thumbnail is matched to a prefab by name only, so a thumbnail renamed for a
+            // prefab rename that then fails would leave the prefab without it and hand it to another prefab of that name.
             string error = AssetDatabase.RenameAsset(item.path, clean);
             if (!string.IsNullOrEmpty(error))
             {
                 SetStatus(L("Build.RenamePrefabFailed", error), MessageType.Error);
                 WbbUtil.LogError("Prefab rename failed: " + error);
                 return;
+            }
+
+            if (!string.IsNullOrEmpty(thumbPath) && thumbPath.EndsWith(oldName + "_thumb.png", System.StringComparison.OrdinalIgnoreCase))
+            {
+                string thumbError = AssetDatabase.RenameAsset(thumbPath, clean + "_thumb");
+                if (!string.IsNullOrEmpty(thumbError))
+                    WbbUtil.LogWarning("Thumbnail rename failed (continuing): " + thumbError);
             }
 
             AssetDatabase.SaveAssets();
