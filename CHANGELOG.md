@@ -16,6 +16,7 @@ Fixes
 - The Quick Build button says why it is disabled while another build runs (tooltip and a status line) and turns on by itself when that build ends.
 - The History rebuild confirm says how many selected records are left out because their type, version, author or output folder differ from the largest group.
 - Automatic script mode no longer fails every item when Steam does not list WARUDO. Mod Mate now takes the WARUDO folder from the output path (when it is inside Warudo_Data/StreamingAssets), then from the new per-project "Set WARUDO folder" setting, then from Steam. Without any of them, preflight blocks the batch with one message and a [Set WARUDO folder] button instead of failing each item. Manual script folders and assembly definitions show a warning that the check against WARUDO's DLLs is skipped.
+- The Package tab's list of redistribution-risk files you chose to include again is no longer taken over from 0.1.0. 0.1.0 stored it PC-wide, and since 0.1.1 every project that had no list of its own copied it, so a paid shader or DLL re-included in one project started out included in every other project that imported the same package. This is an exception to the per-project migration described under 0.1.1: the list is now chosen in each project. A project opened with 0.1.1 or 0.1.2 may still hold the copied list; check the rows with the warning chip, or reset it with Clear exclusions in the Package tab (it also clears the re-included risk files).
 
 Changes
 
