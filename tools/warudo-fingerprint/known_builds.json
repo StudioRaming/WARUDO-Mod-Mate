@@ -1,0 +1,12 @@
+[
+  {
+    "label": "0.15.2 beta (Steam beta branch, build 25709634, MagicaCloth2 2.18.2 per the 2026-10-05 notes)",
+    "buildid": "25709634",
+    "sha256": {
+      "MagicaClothV2.dll": "ef53a48abfeb774c37d4d866ec78c4eb74c7146e5f70877ede793dbcae3c62d1",
+      "UMod.dll": "94d02bb4e7947883e6fa5fb4f4e38f79db3d96d007f7c727518fcd61a62046d6",
+      "UMod-Shared.dll": "4470ef0c84e6b8cb9fa7a5739491cf0b081793bb54c448a48896e3a6e536dcac",
+      "Warudo.Core.dll": "80f7b1713537c66966fdd53675fc2bdcb40b2638cc1852e827717204fe0c1d5f"
+    }
+  }
+]
