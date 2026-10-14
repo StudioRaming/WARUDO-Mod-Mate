@@ -130,7 +130,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 - 기본은 **런타임 스크립트 자동 수집**입니다. 프리팹과 참조가 실제로 사용하는 소스를 계산합니다. Editor 전용 코드와 WARUDO가 제공하는 타입은 중복 포함하지 않습니다.
 - **스크립트 폴더 직접 지정**은 필요한 소스를 수동으로 관리할 때 사용하는 고급 옵션입니다. 단순 프리팹 테스트부터 성공시킨 뒤 사용하세요.
-- **런타임 코드 컴파일**: 스크립트 폴더의 일반 스크립트(하위 폴더 포함)와 어셈블리 정의(.asmdef) 중 Unity가 플레이어용으로 컴파일하는 것은 Mod Mate가 직접 DLL로 컴파일해 모드에 넣습니다. UMod 이 느슨한 스크립트를 컴파일하면 Warudo.Core 같은 어셈블리와 타입이 맞지 않아 실패하기 때문입니다. Editor 폴더의 스크립트와 Editor 전용·테스트 어셈블리는 제외합니다. 폴더 밖에 있는 코드를 쓰면 컴파일 오류로 알려 주니 그 스크립트를 폴더 안으로 옮기세요. WARUDO가 제공하지 않는 어셈블리를 참조하면 사전 점검이 막고, 코드 보안 검사가 거부하면 거부된 API 목록을 결과에 보여 줍니다.
+- **런타임 코드 컴파일**: 모드에 들어갈 일반 스크립트와 어셈블리 정의(.asmdef) 중 Unity가 플레이어용으로 컴파일하는 것은 Mod Mate가 직접 DLL로 컴파일해 모드에 넣습니다. 기본인 **런타임 스크립트 자동 수집**은 프리팹이 쓰는 스크립트를 위치와 관계없이 모으고, **스크립트 폴더 직접 지정**을 켜면 그 폴더의 스크립트(하위 폴더 포함)만 씁니다. UMod 이 느슨한 스크립트를 컴파일하면 Warudo.Core 같은 어셈블리와 타입이 맞지 않아 실패하기 때문입니다. Editor 폴더의 스크립트와 Editor 전용·테스트 어셈블리는 제외합니다. 폴더를 직접 지정했을 때 폴더 밖에 있는 코드를 쓰면 컴파일 오류로 알려 주니 그 스크립트를 폴더 안으로 옮기세요. WARUDO가 제공하지 않는 어셈블리를 참조하면 사전 점검이 막고, 코드 보안 검사가 거부하면 거부된 API 목록을 결과에 보여 줍니다.
 - **VRChat 전용 컴포넌트 빼고 굽기**는 빌드용 복사본의 VRChat 전용 요소를 정리하는 옵션입니다. 원본 프리팹은 보존합니다. WARUDO 물리를 자동으로 설정하는 옵션은 아닙니다.
 - 외부 DLL, 동적 로딩, 모든 타사 플러그인이 자동으로 호환되는 것은 아닙니다. 오류가 나면 해당 모듈의 WARUDO 지원을 확인하세요.
 
@@ -216,7 +216,7 @@ SDK가 있는 프로젝트에서도 모드 빌드 설정이 없으면 `.warudo` 
 
 **파일 없음**은 새로고침 시 결과 파일을 찾지 못했다는 표시입니다. 이력의 성공 기록이 있어도 파일이 이동·삭제됐다면 현재 파일은 없을 수 있습니다. 반대로 파일이 있어도 실제 WARUDO에서 정상 동작한다는 확인은 별도로 필요합니다.
 
-**실패 항목 재빌드**는 중복을 줄여 최신 실패 대상을 준비합니다. 기록을 보관하려면 CSV 내보내기를 사용하세요. 이력 기록 삭제와 실제 `.warudo` 파일 삭제는 다른 작업입니다.
+**실패만 재빌드**는 중복을 줄여 최신 실패 대상을 준비합니다. 기록을 보관하려면 CSV 내보내기를 사용하세요. 이력 기록 삭제와 실제 `.warudo` 파일 삭제는 다른 작업입니다.
 
 ## 문제가 생겼을 때
 
@@ -338,7 +338,7 @@ Try a small prefab before a large character to separate installation issues from
 3. Save your intended scene and prefab state.
 4. Open **Build** and choose the prefab folder under **① Folders**.
 5. Tick the cube.
-6. Under **② Build settings**, choose **Warudo mod build** and **Prop**.
+6. Under **② Build settings**, choose **Build Warudo mod** and **Prop**.
 7. Check author, mod version and output folder. A separate test folder makes first results easy to identify.
 8. Inspect the final mod name in the list; folder-name and date options can change it.
 9. Resolve blockers and click the button to build the selected prefab.
@@ -372,7 +372,7 @@ Advanced settings include description, manual script folders and leaving out VRC
 
 - Automatic runtime-script collection follows used sources and references. Editor-only code and WARUDO-provided types are excluded.
 - Manual folders are an advanced source-management option. Start with a simple working prefab.
-- Runtime code compile: the plain scripts of the script folder (subfolders included) and the assembly definitions (.asmdef) that Unity compiles for the player are compiled by Mod Mate into DLLs and packed into the mod. UMod compiling loose scripts fails against assemblies such as Warudo.Core because the Unity types do not match. Scripts in Editor folders and Editor-only or test assemblies stay out. Code outside the folder is reported as a compile error, so move that script into the folder. Preflight blocks references to assemblies that WARUDO does not provide, and when the code security check rejects a mod, the rejected APIs are listed in the result.
+- Runtime code compile: the plain scripts and the assembly definitions (.asmdef) that the mod needs and that Unity compiles for the player are compiled by Mod Mate into DLLs and packed into the mod. With **Automatically collect runtime scripts** (the default) the scripts the prefab uses are gathered wherever they are; with **Specify the script folder manually** only the scripts of that folder (subfolders included) are used. UMod compiling loose scripts fails against assemblies such as Warudo.Core because the Unity types do not match. Scripts in Editor folders and Editor-only or test assemblies stay out. With a manual folder, code outside the folder is reported as a compile error, so move that script into the folder. Preflight blocks references to assemblies that WARUDO does not provide, and when the code security check rejects a mod, the rejected APIs are listed in the result.
 - Leaving out VRChat-only components cleans the build copy and preserves the original; it does not set up WARUDO physics.
 - Arbitrary DLLs, dynamic loading and third-party plugins are not automatically made compatible.
 
@@ -419,7 +419,7 @@ Disabled menu? Check Hierarchy selection, Play Mode and other active builds. A P
 `.warudo` is for WARUDO; `.unitypackage` transfers assets between Unity projects.
 
 1. Select prefabs in the upper list.
-2. Choose **.unitypackage export** in Build settings.
+2. Choose **Export .unitypackage** in Build settings.
 3. Set the output folder.
 4. Inspect materials, textures, models and other dependencies below.
 5. Choose optional gathering into texture/material/FBX/prefab folders, or retain original paths.
@@ -452,7 +452,7 @@ Finding a file and linking it to history are separate. External, copied or moved
 
 Filter records by type, state or search, and group by date, preset or a flat list. Row actions include rebuild preparation, open output folder, copy path and view log. Prepared rebuilds start from the main Build tab; settings differences may create separate groups.
 
-**File missing** means refresh could not locate an old output. Success history does not prove that a file still exists or that it runs correctly in WARUDO.
+**Missing** means refresh could not locate an old output. Success history does not prove that a file still exists or that it runs correctly in WARUDO.
 
 Failed-rebuild preparation reduces duplicates. Use CSV export to retain records. Deleting a history record and deleting a mod file are different actions.
 
@@ -572,7 +572,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 3. 意図したシーンとプリファブの状態を保存します。
 4. Mod Mate の **ビルド** タブで **① フォルダー**を選びます。
 5. 一覧のキューブにチェックを入れます。
-6. **② ビルド設定**で **Warudo MOD ビルド**と **Prop** を選びます。
+6. **② ビルド設定**で **Warudo MODをビルド**と **Prop** を選びます。
 7. 作者・MOD バージョン・出力先を確認します。初回は別のテスト出力フォルダーが便利です。
 8. 一覧に表示された最終 MOD 名を確認します。フォルダー名・日付の設定で名前が変わる場合があります。
 9. 事前確認の停止項目を解決し、選択したプリファブをビルドします。
@@ -608,7 +608,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 
 - 既定のランタイムスクリプト自動収集は使用ソースと参照を調べ、Editor 専用コードと WARUDO 提供型を除外します。
 - 手動フォルダーは高度なソース管理用です。まず単純なプリファブで成功を確認してください。
-- ランタイムコードのコンパイル: スクリプトフォルダーの通常のスクリプト（サブフォルダー含む）と、Unity がプレイヤー用にコンパイルするアセンブリ定義（.asmdef）は、Mod Mate が DLL にコンパイルして MOD に入れます。UMod が個別のスクリプトをコンパイルすると Warudo.Core などのアセンブリと型が合わず失敗するためです。Editor フォルダーのスクリプトと Editor 専用・テスト用アセンブリは除外されます。フォルダー外のコードを使うとコンパイルエラーで知らせるので、そのスクリプトをフォルダー内へ移動してください。WARUDO が提供しないアセンブリへの参照は事前確認でブロックされ、コードセキュリティチェックが拒否した場合は拒否された API が結果に表示されます。
+- ランタイムコードのコンパイル: MOD に入る通常のスクリプトと、Unity がプレイヤー用にコンパイルするアセンブリ定義（.asmdef）は、Mod Mate が DLL にコンパイルして MOD に入れます。既定の**ランタイムスクリプトを自動収集**ではプリファブが使うスクリプトを場所に関係なく集め、**スクリプトフォルダーを手動で指定**をオンにするとそのフォルダーのスクリプト（サブフォルダー含む）だけを使います。UMod が個別のスクリプトをコンパイルすると Warudo.Core などのアセンブリと型が合わず失敗するためです。Editor フォルダーのスクリプトと Editor 専用・テスト用アセンブリは除外されます。フォルダーを手動で指定した場合、フォルダー外のコードを使うとコンパイルエラーで知らせるので、そのスクリプトをフォルダー内へ移動してください。WARUDO が提供しないアセンブリへの参照は事前確認でブロックされ、コードセキュリティチェックが拒否した場合は拒否された API が結果に表示されます。
 - VRChat 専用コンポーネントの除外はビルド用コピーを整理します。原本は保ちますが、WARUDO の物理設定は作りません。
 - 外部 DLL、動的ロード、任意のサードパーティープラグインの互換性は自動保証されません。
 
@@ -655,7 +655,7 @@ SDK があっても MOD のビルド設定が未作成の場合があります�
 `.warudo` は WARUDO 用、`.unitypackage` は Unity プロジェクト間の受け渡し用です。
 
 1. 上の一覧でプリファブを選びます。
-2. **② ビルド設定 → .unitypackage 書き出し**を選びます。
+2. **② ビルド設定 → .unitypackage を書き出す**を選びます。
 3. 保存先を指定します。
 4. 下の一覧でマテリアル・テクスチャ・モデルなどを確認します。
 5. 必要ならテクスチャ/マテリアル/FBX/プリファブをまとめる設定を選び、または元のパス構造を保ちます。

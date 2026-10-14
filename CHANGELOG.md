@@ -28,6 +28,11 @@ Changes
 
 - The Build tab shows WARUDO's render pipeline next to the project badge, read from the URP/NiloToon Enabled option in WARUDO's plugin data. A mismatch between the two shows a warning line and warning badges; the build is not blocked. "Copy environment info for support" in the ? menu includes the WARUDO pipeline as well.
 
+Documentation
+
+- The manual's runtime code section says which rules apply to the default automatic collection and which only to a manual script folder. It told every user to move scripts "into the script folder", which does not exist in the default mode.
+- Six button and status names in the manual now match the window: Build Warudo mod, Export .unitypackage and Missing (English), Warudo MODをビルド and .unitypackage を書き出す (Japanese), 실패만 재빌드 (Korean).
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
