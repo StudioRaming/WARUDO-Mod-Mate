@@ -245,6 +245,22 @@ namespace StudioRaming.WarudoBatchBuilder
                         RequestRepaint();
                     }
                 }
+                else if (ex != null && ex.code == WbbPreflightCodes.JournalRestoreFailed)
+                {
+                    if (WbbStyles.Button(LC("Safety.JournalSetAside"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.RestoreSettingsButton), GUILayout.Height(WbbSize.Control)))
+                    {
+                        pendingSetAsideJournal = true;
+                        RequestRepaint();
+                    }
+                }
+                else if (ex != null && ex.code == WbbPreflightCodes.JournalSetAside)
+                {
+                    if (WbbStyles.Button(LC("Safety.JournalSetAsideAck"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.RestoreSettingsButton), GUILayout.Height(WbbSize.Control)))
+                    {
+                        pendingAckSetAside = true;
+                        RequestRepaint();
+                    }
+                }
                 else if (ex != null && ex.code == WbbPreflightCodes.WarudoNotFound)
                 {
                     if (WbbStyles.Button(LC("Build.OutputPick"), WbbButtonKind.Secondary, GUILayout.Width(WbbSize.Build.OutputPickButton), GUILayout.Height(WbbSize.Control)))

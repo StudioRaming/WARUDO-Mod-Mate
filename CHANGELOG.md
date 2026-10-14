@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Fixes
+
+- A build journal whose settings could not be restored is kept. After an interrupted build, the recovery record used to be deleted even when writing the original ExportSettings profile back failed, so the next build took Mod Mate's temporary values for the originals. The record now stays with only the settings fields and a `recoveryAttempts` count; after 3 failed attempts it is set aside as `BuildJournal.json.unrecovered-<time>`. While such a record is pending, a new build does not start and preflight blocks it. A record that can never be written back (its profile no longer exists) can be moved aside with [Set record aside] in the check results list; nothing is deleted. A set-aside record keeps blocking builds until you press [Checked] after checking ExportSettings, instead of only showing a toast. Restoring ExportSettings from a backup now also retries writing the pending record back. A leftover journal that recovery has already handled no longer blocks a build.
+- Overwriting a package file is atomic. The export is written to a temporary file next to the target and swapped in only when it is complete, so a failed or interrupted export leaves the previous `.unitypackage` unchanged. The Package tab also warns when some assets were skipped.
+
 ## 0.1.2 (2026-10-11)
 
 Fixes
