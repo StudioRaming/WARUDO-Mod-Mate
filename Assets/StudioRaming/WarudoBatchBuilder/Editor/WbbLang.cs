@@ -31,6 +31,7 @@ namespace StudioRaming.WarudoBatchBuilder
             Merge(SafetyTexts);
             Merge(UiTexts);
             Merge(FlowTexts);
+            Merge(QuickIterateTexts);
         }
 
         private static void Merge(Dictionary<string, string[]> source)

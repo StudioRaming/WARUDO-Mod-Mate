@@ -83,6 +83,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 reserved += WbbSize.ControlLarge * 4f;
             if (issuesOpen)
                 reserved += WbbSize.Control * 3f;
+            // The reload notice wraps to two or three lines; its measured height keeps the run button inside the window.
+            if (resultVisible && resultQuickIterate)
+                reserved += (quickIterateNoticeHeight > 0f ? quickIterateNoticeHeight : WbbSize.Control * 2f) + WbbSize.SpaceSmall;
             float available = windowHeight - reserved;
             float minimum = WbbSize.Build.RowHeight * 2f;
             if (IsPackageMode)

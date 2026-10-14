@@ -121,6 +121,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private WbbUModQuietState originalQuiet;
         private bool quietApplied;
         private int successCount;
+        private int quickIterateCount;
         private int failedCount;
         private int skippedCount;
         private string statusMessage = "";
@@ -201,6 +202,15 @@ namespace StudioRaming.WarudoBatchBuilder
             get
             {
                 return successCount;
+            }
+        }
+
+        // Items that overwrote an existing Prop output without runtime scripts: WARUDO reloads those by itself.
+        public int QuickIterateCount
+        {
+            get
+            {
+                return quickIterateCount;
             }
         }
 
@@ -306,6 +316,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!PrepareBatch(newItems, newJob))
                 return false;
             successCount = 0;
+            quickIterateCount = 0;
             failedCount = 0;
             skippedCount = 0;
             index = 0;

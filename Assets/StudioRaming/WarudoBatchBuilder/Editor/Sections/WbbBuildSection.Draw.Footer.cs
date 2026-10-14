@@ -5,6 +5,17 @@ namespace StudioRaming.WarudoBatchBuilder
 {
     public partial class WbbBuildSection
     {
+        private float quickIterateNoticeHeight;
+
+        // Read in Repaint only; a change asks for one more frame so the list height estimate can include the notice.
+        private void ObserveQuickIterateNotice(Rect rect)
+        {
+            if (Event.current.type != EventType.Repaint || rect.height <= 1f || Mathf.Abs(rect.height - quickIterateNoticeHeight) <= 1f)
+                return;
+            quickIterateNoticeHeight = rect.height;
+            RequestRepaint();
+        }
+
         private void EnsureLocalStyles()
         {
             bool dark = EditorGUIUtility.isProSkin;
@@ -203,6 +214,12 @@ namespace StudioRaming.WarudoBatchBuilder
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
+            if (resultQuickIterate)
+            {
+                WbbStyles.Callout(L("QuickIterate.Notice"), WbbTone.Info);
+                ObserveQuickIterateNotice(GUILayoutUtility.GetLastRect());
+            }
+
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (WbbStyles.Button(LC("Build.OpenOutput"), WbbButtonKind.Secondary, GUILayout.Height(WbbSize.ControlSmall)))
