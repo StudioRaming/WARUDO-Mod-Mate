@@ -134,7 +134,14 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!profileWritten && WbbJournal.Current != null)
             {
                 WbbJournal.Current.profileWritten = true;
-                WbbJournal.Save();
+                // Recovery restores the profile only when the file records this write.
+                if (!WbbJournal.Save())
+                {
+                    WbbJournal.Current.profileWritten = false;
+                    Fail(L("Runner.ErrorSettings", "The build journal could not be written."));
+                    step = Step.Cleanup;
+                    return;
+                }
             }
 
             profileWritten = true;

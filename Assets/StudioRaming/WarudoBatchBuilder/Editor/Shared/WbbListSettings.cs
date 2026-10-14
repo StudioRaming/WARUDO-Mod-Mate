@@ -142,8 +142,10 @@ namespace StudioRaming.WarudoBatchBuilder
             int count = Mathf.Min(data.workFolderGuids.Count, data.workFolderPaths.Count);
             for (int i = count - 1; i >= 0; i--)
             {
+                // Match the resolved path only. The stored path is not updated when a folder is renamed, so it can
+                // name a new folder created later at the old path while the GUID points to the renamed one.
                 string resolved = WbbUtil.ResolveFolder(data.workFolderGuids[i], data.workFolderPaths[i]);
-                if (string.Equals(resolved, folderPath, StringComparison.OrdinalIgnoreCase) || string.Equals(data.workFolderPaths[i], folderPath, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(resolved, folderPath, StringComparison.OrdinalIgnoreCase))
                 {
                     data.workFolderGuids.RemoveAt(i);
                     data.workFolderPaths.RemoveAt(i);

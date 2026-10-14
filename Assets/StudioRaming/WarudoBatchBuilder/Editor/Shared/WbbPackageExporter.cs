@@ -86,6 +86,7 @@ namespace StudioRaming.WarudoBatchBuilder
             string tempPath = outputPath + ".tmp-" + Guid.NewGuid().ToString("N");
             int written = 0;
             long totalBytes = 0L;
+            string changedAsset = null;
             bool ok;
             try
             {
@@ -103,9 +104,12 @@ namespace StudioRaming.WarudoBatchBuilder
                             tar.AddDirectory(entry.guid);
                             using (var source = new FileStream(entry.absolutePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileBufferSize))
                             {
-                                if (!tar.AddFile(entry.guid + "/asset", source, length))
+                                // A short read leaves zero bytes in the entry and a file that grew is cut at the old
+                                // length. Either way the package would carry a broken asset, so the export fails.
+                                if (!tar.AddFile(entry.guid + "/asset", source, length) || source.Length != length)
                                 {
-                                    WbbUtil.LogWarning("Package: truncated read on '" + entry.assetPath + "' (file changed while exporting?)");
+                                    changedAsset = entry.assetPath;
+                                    break;
                                 }
                             }
 
@@ -122,8 +126,10 @@ namespace StudioRaming.WarudoBatchBuilder
                     }
                 }
 
-                ok = written > 0;
-                if (!ok)
+                ok = written > 0 && changedAsset == null;
+                if (changedAsset != null)
+                    error = "'" + changedAsset + "' changed while it was being packaged. Nothing was written; export again.";
+                else if (!ok)
                     error = "No asset could be written. (" + skipped + " skipped)";
             }
             catch (Exception e)

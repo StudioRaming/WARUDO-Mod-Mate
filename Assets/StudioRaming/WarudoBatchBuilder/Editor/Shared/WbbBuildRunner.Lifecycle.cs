@@ -215,8 +215,13 @@ namespace StudioRaming.WarudoBatchBuilder
             if (references != null && references.Count > 0)
             {
                 WbbJournal.Current.referencePathsCleared = true;
-                WbbJournal.Save();
-                if (WbbExportSettings.TryWriteReferencePaths(profileIndex, new List<string>(), out error))
+                // Recovery restores the list only when the file records that it was cleared.
+                if (!WbbJournal.Save())
+                {
+                    WbbJournal.Current.referencePathsCleared = false;
+                    WbbUtil.LogWarning("Could not clear referenced mods for this batch: the build journal could not be written.");
+                }
+                else if (WbbExportSettings.TryWriteReferencePaths(profileIndex, new List<string>(), out error))
                 {
                     referencePathsCleared = true;
                     WbbUtil.Log("Referenced mods of the active profile are cleared for this batch (" + references.Count + ") and will be restored afterwards.");
@@ -230,8 +235,12 @@ namespace StudioRaming.WarudoBatchBuilder
             if (quiet.captured)
             {
                 WbbJournal.Current.umodWritten = true;
-                WbbJournal.Save();
-                if (WbbExportSettings.TryWriteQuietState(WbbExportSettings.QuietFor(quiet), out error))
+                if (!WbbJournal.Save())
+                {
+                    WbbJournal.Current.umodWritten = false;
+                    WbbUtil.LogWarning("Could not switch off console clearing / output folder popup: the build journal could not be written.");
+                }
+                else if (WbbExportSettings.TryWriteQuietState(WbbExportSettings.QuietFor(quiet), out error))
                     quietApplied = true;
                 else
                     WbbUtil.LogWarning("Could not switch off console clearing / output folder popup: " + error);

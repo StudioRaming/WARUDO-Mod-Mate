@@ -283,10 +283,11 @@ namespace StudioRaming.WarudoBatchBuilder
             return false;
         }
 
-        public static void Save()
+        // False when the journal file could not be written. Recovery after a crash acts on what the file says, so a
+        // caller that records a change before making it must not make the change when this fails.
+        public static bool Save()
         {
-            if (current != null)
-                Write(current);
+            return current == null || Write(current);
         }
 
         public static void AddFolder(string assetPath)
@@ -389,7 +390,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (current != null)
                 {
                     current.outputs.Add(entry);
-                    Save();
+                    if (!Save())
+                        throw new IOException("The build journal could not be written.");
                 }
 
                 if (entry.backupPath.Length > 0)
@@ -398,7 +400,10 @@ namespace StudioRaming.WarudoBatchBuilder
                     if (new FileInfo(entry.backupPath).Length != entry.originalLength)
                         throw new IOException("The backup copy has a different size.");
                     entry.backupReady = true;
-                    Save();
+                    // Recovery deletes a backup the file does not mark ready, so the build must not overwrite the
+                    // output while the file still says the copy is incomplete.
+                    if (!Save())
+                        throw new IOException("The build journal could not be written.");
                 }
 
                 return entry;
