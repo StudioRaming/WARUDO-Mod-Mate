@@ -192,6 +192,14 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int i = 0; i < itemCompiled.Count; i++)
                 names.Add(itemCompiled[i].name);
             AppendMessage(L("Asmdef.Compiled", itemCompiled.Count, string.Join(", ", names.ToArray())));
+            for (int i = 0; i < itemCompiled.Count; i++)
+            {
+                if (itemCompiled[i].hostCheckSkipped.Length == 0)
+                    continue;
+                AppendMessage(L("Asmdef.HostCheckSkipped", itemCompiled[i].hostCheckSkipped));
+                break;
+            }
+
             WbbUtil.Log("Runtime assemblies for " + currentModName + ": " + string.Join(", ", names.ToArray()));
             step = Step.InvokeBuild;
             Delay(StepDelaySeconds);

@@ -110,11 +110,6 @@ namespace StudioRaming.WarudoBatchBuilder
             cached = null;
             cachedAt = double.MinValue;
         }
-
-        public static bool IsFramework(string name)
-        {
-            return name == "mscorlib" || name == "netstandard" || name == "System" || name.StartsWith("System.", StringComparison.Ordinal) || name == "Microsoft.CSharp" || name.StartsWith("Mono.", StringComparison.Ordinal);
-        }
     }
 
     // Decides which assembly definitions of a mod are runtime code that Mod Mate compiles itself,

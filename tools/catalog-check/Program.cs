@@ -26,6 +26,12 @@ namespace StudioRaming.WarudoBatchBuilder
             Console.WriteLine(message);
         }
     }
+
+    // Stub for the Unity-side locator: SteamBuildId only needs WARUDO's Steam app id.
+    internal static class WbbWarudoLocator
+    {
+        public const string AppId = "2079120";
+    }
 }
 
 static class Program
@@ -49,6 +55,25 @@ static class Program
         ("mscorlib", "System.Does.NotExist", false),
         ("System", "System.Does.NotExist", false),
         ("NoSuchAssembly", "System.String", false),
+    };
+
+    // WbbReferenceRule.Classify rows: reference name, whether another assembly of the mod has that name, whether WARUDO was
+    // not found (host list null), expected verdict. The "missing" rows are DLLs absent from WARUDO's Managed folder and the
+    // "ok" rows ones present in it; a WARUDO update can change them, and the failure output names the build.
+    static readonly (string Name, bool InKnown, bool HostNull, string Expected)[] RefCases =
+    {
+        ("System.Core", false, false, "ok"),
+        ("System", false, false, "ok"),
+        ("mscorlib", false, false, "ok"),
+        ("netstandard", false, false, "ok"),
+        ("System.Memory", false, false, "ok"),
+        ("System.Text.Json", false, false, "missing"),
+        ("System.Numerics.Vectors", false, false, "missing"),
+        ("Mono.Cecil", false, false, "missing"),
+        ("UnityEditor.CoreModule", false, false, "editor"),
+        ("Assembly-CSharp", false, false, "editor"),
+        ("Wmm.FixtureOk.Runtime", true, false, "ok"),
+        ("System.Text.Json", false, true, "unchecked"),
     };
 
     static string DefaultStreamingAssets => Path.Combine(
@@ -105,6 +130,34 @@ static class Program
             }
         }
 
+        // hostNames: what WARUDO ships, by file name without extension, like WbbWarudoManaged.Read builds it.
+        var hostNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string file in Directory.GetFiles(managed, "*.dll"))
+            hostNames.Add(Path.GetFileNameWithoutExtension(file));
+        var knownNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Wmm.FixtureOk.Runtime" };
+        int refFailures = 0;
+        Console.WriteLine("reference | inKnown | hostNull | expected | actual");
+        foreach (var r in RefCases)
+        {
+            string verdict = WbbReferenceRule.Classify(r.Name, r.InKnown ? knownNames : new HashSet<string>(),
+                r.HostNull ? null : hostNames);
+            Console.WriteLine(r.Name + " | " + r.InKnown + " | " + r.HostNull + " | " + r.Expected + " | " + verdict);
+            if (verdict != r.Expected)
+            {
+                refFailures++;
+                Console.WriteLine("MISMATCH reference " + r.Name + " expected " + r.Expected + " got " + verdict);
+            }
+        }
+
+        if (refFailures > 0)
+        {
+            Console.WriteLine("FAIL " + refFailures + " of " + RefCases.Length + " reference cases differ (WARUDO managed: "
+                + managed + ", Steam buildid " + SteamBuildId(streaming) + ")");
+            return 1;
+        }
+
+        Console.WriteLine("PASS " + RefCases.Length + "/" + RefCases.Length + " reference cases match (Steam buildid "
+            + SteamBuildId(streaming) + ")");
         string skipped = generic.Length > 0 ? "" : ", generic nested cases skipped";
         if (failures > 0)
         {
@@ -121,6 +174,22 @@ static class Program
 
         Console.WriteLine("PASS " + cases.Count + "/" + cases.Count + " cases match (WARUDO " + version + ")");
         return 0;
+    }
+
+    // "buildid" of steamapps/appmanifest_2079120.acf, read the way tools/warudo-fingerprint does. The steamapps folder is
+    // the nearest parent of the StreamingAssets argument with that name; a WARUDO that is not under Steam has none.
+    static string SteamBuildId(string streaming)
+    {
+        for (string dir = streaming; !string.IsNullOrEmpty(dir); dir = Path.GetDirectoryName(dir))
+        {
+            if (!string.Equals(Path.GetFileName(dir), "steamapps", StringComparison.OrdinalIgnoreCase)) continue;
+            string manifest = Path.Combine(dir, "appmanifest_" + WbbWarudoLocator.AppId + ".acf");
+            if (!File.Exists(manifest)) return "unknown (no " + Path.GetFileName(manifest) + ")";
+            var match = System.Text.RegularExpressions.Regex.Match(File.ReadAllText(manifest), @"""buildid""\s+""(\d+)""");
+            return match.Success ? match.Groups[1].Value : "unknown (no buildid in the manifest)";
+        }
+
+        return "unknown (not under a steamapps folder)";
     }
 
     // The first (by ordinal full name) type in the DLL whose name and whose top-level declaring type both carry a generic
