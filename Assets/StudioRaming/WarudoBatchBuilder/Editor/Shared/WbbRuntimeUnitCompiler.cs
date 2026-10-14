@@ -569,7 +569,7 @@ namespace StudioRaming.WarudoBatchBuilder
             return (file.Length == 0 ? unit.name : file) + "(" + message.line + "): " + WbbBuildLog.Shorten(message.message);
         }
 
-        private static string ProjectRelative(string absolute)
+        internal static string ProjectRelative(string absolute)
         {
             string normalized = WbbUtil.NormalizePath(absolute);
             string data = WbbUtil.NormalizePath(UnityEngine.Application.dataPath);

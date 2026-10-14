@@ -313,6 +313,114 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Safety.JournalBlocksStart",
+                new[]
+                {
+                    "지난 빌드의 설정을 되돌리지 못해 복구 기록을 남겨 두었고, 새 빌드는 시작하지 않았습니다. 설정 파일의 읽기 전용·잠금을 풀고 에디터를 다시 열면 다시 되돌려 봅니다. 그래도 안 되면 빌드 탭 점검 결과 목록에서 [복구 기록 보관]을 누르세요.",
+                    "The settings of the last build could not be restored, so its recovery record was kept and no new build was started. Clear the read-only flag or lock on the settings file and reopen the editor to try again. If that does not work, press [Set record aside] in the check results list of the Build tab.",
+                    "前回のビルドの設定を戻せなかったため復旧記録を残し、新しいビルドは開始しませんでした。設定ファイルの読み取り専用やロックを解除してエディターを開き直すと、もう一度戻してみます。それでも戻らない場合は、ビルドタブのチェック結果一覧で [復旧記録を退避] を押してください。"
+                }
+            },
+            {
+                "Safety.JournalUnrecovered",
+                new[]
+                {
+                    "빌드 설정을 여러 번 복원하지 못해 복구 기록을 {0} 로 따로 보관했습니다. ExportSettings 값을 확인하거나 백업에서 되돌린 뒤 빌드 탭 점검 결과 목록에서 [확인함]을 누르면 다시 빌드할 수 있습니다.",
+                    "The build settings could not be restored after several attempts, so the recovery record was set aside as {0}. Check the ExportSettings values or restore them from a backup, then press [Checked] in the check results list of the Build tab to build again.",
+                    "ビルド設定を何度も復元できなかったため、復旧記録を {0} として別に保管しました。ExportSettings の値を確認するかバックアップから戻したあと、ビルドタブのチェック結果一覧で [確認済み] を押すと再びビルドできます。"
+                }
+            },
+            {
+                "Safety.JournalRecoveryError",
+                new[]
+                {
+                    "지난 빌드를 정리하다 오류가 나서 새 빌드를 시작하지 않았습니다: {0}. 복구 기록은 그대로 두었습니다. 콘솔을 확인하세요.",
+                    "Cleaning up after the last build failed, so no new build was started: {0}. The recovery record was kept as it is. Check the Console.",
+                    "前回のビルドの片付け中にエラーが起きたため、新しいビルドは開始しませんでした: {0}。復旧記録はそのまま残しました。コンソールを確認してください。"
+                }
+            },
+            {
+                "Safety.JournalSetAsidePending",
+                new[]
+                {
+                    "지난 빌드 전의 빌드 설정을 되돌리지 못한 채 복구 기록을 {0} 로 따로 보관했습니다. 설정을 확인하기 전에는 빌드하지 않습니다.",
+                    "The recovery record was set aside as {0} without restoring the build settings from before the last build. Builds wait until you have checked the settings.",
+                    "前回のビルド前のビルド設定を戻せないまま、復旧記録を {0} として別に保管しました。設定を確認するまでビルドしません。"
+                }
+            },
+            {
+                "Safety.JournalSetAsidePending.hint",
+                new[]
+                {
+                    "UMod ExportSettings의 프로필 값과 참조 경로가 맞는지 확인하거나 백업에서 되돌린 뒤 빌드 탭 점검 결과 목록에서 [확인함]을 누르세요. 보관한 기록은 Library/StudioRaming/WarudoBatchBuilder 폴더에 남아 있습니다.",
+                    "Check that the profile values and reference paths in UMod ExportSettings are right, or restore them from a backup, then press [Checked] in the check results list of the Build tab. The record is kept in the Library/StudioRaming/WarudoBatchBuilder folder.",
+                    "UMod ExportSettings のプロファイル値と参照パスが正しいか確認するか、バックアップから戻したあと、ビルドタブのチェック結果一覧で [確認済み] を押してください。保管した記録は Library/StudioRaming/WarudoBatchBuilder フォルダーに残っています。"
+                }
+            },
+            {
+                "Safety.JournalSetAside",
+                new[]
+                {
+                    "복구 기록 보관",
+                    "Set record aside",
+                    "復旧記録を退避"
+                }
+            },
+            {
+                "Safety.JournalSetAside.tip",
+                new[]
+                {
+                    "되돌릴 수 없는 복구 기록을 지우지 않고 따로 옮겨 다시 빌드할 수 있게 합니다. 지난 빌드 전의 설정은 되돌리지 않습니다.",
+                    "Move the recovery record that cannot be restored aside, without deleting it, so builds can run again. The settings from before the last build are not written back.",
+                    "戻せない復旧記録を削除せずに別の場所へ移し、再びビルドできるようにします。前回のビルド前の設定は戻しません。"
+                }
+            },
+            {
+                "Safety.JournalSetAside.confirm",
+                new[]
+                {
+                    "복구 기록을 따로 보관하면 지난 빌드 전의 빌드 설정을 되돌리지 않은 채로 다음 빌드를 시작할 수 있습니다. 기록 파일은 지우지 않습니다.\n\n보관한 뒤 UMod ExportSettings의 프로필 값과 참조 경로를 확인하세요. 계속할까요?",
+                    "Setting the recovery record aside lets the next build start without writing back the build settings from before the last build. The record file is not deleted.\n\nAfterwards, check the profile values and reference paths in UMod ExportSettings. Continue?",
+                    "復旧記録を退避すると、前回のビルド前のビルド設定を戻さないまま次のビルドを開始できます。記録ファイルは削除しません。\n\n退避したあと、UMod ExportSettings のプロファイル値と参照パスを確認してください。続けますか？"
+                }
+            },
+            {
+                "Safety.JournalSetAside.done",
+                new[]
+                {
+                    "복구 기록을 {0} 로 따로 보관했습니다. UMod ExportSettings 값을 확인한 뒤 빌드하세요.",
+                    "The recovery record was set aside as {0}. Check the UMod ExportSettings values before building.",
+                    "復旧記録を {0} として退避しました。UMod ExportSettings の値を確認してからビルドしてください。"
+                }
+            },
+            {
+                "Safety.JournalSetAside.failed",
+                new[]
+                {
+                    "복구 기록을 옮기지 못했습니다. 아무것도 바꾸지 않았습니다. 콘솔을 확인하세요.",
+                    "The recovery record could not be moved. Nothing was changed. Check the Console.",
+                    "復旧記録を移動できませんでした。何も変更していません。コンソールを確認してください。"
+                }
+            },
+            {
+                "Safety.JournalSetAsideAck",
+                new[]
+                {
+                    "확인함",
+                    "Checked",
+                    "確認済み"
+                }
+            },
+            {
+                "Safety.JournalSetAsideAck.tip",
+                new[]
+                {
+                    "빌드 설정을 확인했으면 눌러서 다시 빌드할 수 있게 합니다.",
+                    "Press after checking the build settings to allow builds again.",
+                    "ビルド設定を確認したら押して、再びビルドできるようにします。"
+                }
+            },
+            {
                 "Safety.DatabaseLoadFailed",
                 new[]
                 {

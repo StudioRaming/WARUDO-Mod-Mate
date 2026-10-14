@@ -1,0 +1,4 @@
+# The root .gitignore ignores *.csproj and *.dll; this project file is the check itself.
+!CatalogCheck.csproj
+bin/
+obj/

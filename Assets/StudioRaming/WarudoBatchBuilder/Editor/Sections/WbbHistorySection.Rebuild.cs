@@ -34,10 +34,9 @@ namespace StudioRaming.WarudoBatchBuilder
             return result;
         }
 
-        private void SendRebuild(List<WbbRecord> targets)
+        // The largest group of targets that share one rebuild token; SendRebuild queues only this group.
+        private List<WbbRecord> PickRebuildGroup(List<WbbRecord> targets)
         {
-            if (host == null || targets == null || targets.Count == 0)
-                return;
             var byGroup = new Dictionary<string, List<WbbRecord>>(System.StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < targets.Count; i++)
             {
@@ -59,14 +58,31 @@ namespace StudioRaming.WarudoBatchBuilder
                     chosen = kv.Value;
             }
 
-            if (chosen == null)
-                chosen = targets;
+            return chosen == null ? targets : chosen;
+        }
+
+        // Extra line for the rebuild confirm: how many targets the single-group rule leaves out of this run.
+        private string RebuildDropNote(List<WbbRecord> targets)
+        {
+            if (host == null || targets == null || targets.Count < 2)
+                return "";
+            int dropped = targets.Count - PickRebuildGroup(targets).Count;
+            return dropped > 0 ? "\n\n" + L("History.RebuildDropNote", dropped) : "";
+        }
+
+        private void SendRebuild(List<WbbRecord> targets)
+        {
+            if (host == null || targets == null || targets.Count == 0)
+                return;
+            if (host.NoticeBuildBusy())
+                return;
+            List<WbbRecord> chosen = PickRebuildGroup(targets);
             for (int i = 0; i < chosen.Count; i++)
-                host.RequestRebuild(chosen[i]);
+                host.RequestRebuild(chosen[i], false);
             int dropped = targets.Count - chosen.Count;
             if (dropped > 0)
             {
-                EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildMultiNotice", chosen.Count, chosen[0].modName, dropped), L("Common.Ok"));
+                ConfirmDialog(L("Common.ProductName"), L("History.RebuildMultiNotice", chosen.Count, chosen[0].modName, dropped), L("Common.Ok"), "");
             }
         }
 
@@ -75,6 +91,8 @@ namespace StudioRaming.WarudoBatchBuilder
             var picked = CollectSelected();
             if (picked.Count == 0)
                 return;
+            if (host != null && host.NoticeBuildBusy())
+                return;
             var targets = DedupeByPrefab(picked);
             if (targets.Count == 0)
                 return;
@@ -82,12 +100,12 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbRecord one = targets[0];
                 string prefab = string.IsNullOrEmpty(one.prefabPath) ? L("Common.None") : one.prefabPath;
-                if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildConfirm", one.modName, prefab), L("History.RebuildSend"), L("Common.Cancel")))
+                if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildConfirm", one.modName, prefab), L("History.RebuildSend"), L("Common.Cancel")))
                     return;
             }
             else
             {
-                if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildSelectedConfirm", targets.Count, targets[0].modName), L("History.RebuildSend"), L("Common.Cancel")))
+                if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildSelectedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
                     return;
             }
 
@@ -110,10 +128,12 @@ namespace StudioRaming.WarudoBatchBuilder
 
             if (failed.Count == 0)
                 return;
+            if (host != null && host.NoticeBuildBusy())
+                return;
             var targets = DedupeByPrefab(failed);
             if (targets.Count == 0)
                 return;
-            if (!EditorUtility.DisplayDialog(L("Common.ProductName"), L("History.RebuildFailedConfirm", targets.Count, targets[0].modName), L("History.RebuildSend"), L("Common.Cancel")))
+            if (!ConfirmDialog(L("Common.ProductName"), L("History.RebuildFailedConfirm", targets.Count, targets[0].modName, RebuildDropNote(targets)), L("History.RebuildSend"), L("Common.Cancel")))
                 return;
             SendRebuild(targets);
         }

@@ -329,6 +329,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             if (host == null)
                 return;
+            if (host.NoticeBuildBusy())
+                return;
             var byGroup = new Dictionary<string, List<WbbRecord>>(System.StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < records.Count; i++)
             {
@@ -357,7 +359,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!EditorUtility.DisplayDialog(L("Library.RebuildTitle"), L("Library.RebuildConfirm", targets.Count, chosen.Count) + extra, L("Library.RebuildSend"), L("Common.Cancel")))
                 return;
             for (int i = 0; i < chosen.Count; i++)
-                host.RequestRebuild(chosen[i]);
+                host.RequestRebuild(chosen[i], false);
         }
     }
 }

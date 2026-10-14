@@ -18,10 +18,11 @@ Import the downloaded package into Unity; no manual source compilation is requir
 4. [Understanding Build settings](#understanding-build-settings)
 5. [Resize the two areas](#resize-the-two-areas)
 6. [Quick-build a scene object](#quick-build-a-scene-object)
-7. [Export a Unity package](#export-a-unity-package)
-8. [Library and History](#library-and-history)
-9. [Troubleshooting](#troubleshooting)
-10. [FAQ, updates and support](#faq-updates-and-support)
+7. [Quick iteration](#quick-iteration)
+8. [Export a Unity package](#export-a-unity-package)
+9. [Library and History](#library-and-history)
+10. [Troubleshooting](#troubleshooting)
+11. [FAQ, updates and support](#faq-updates-and-support)
 
 ## What it does
 
@@ -92,7 +93,7 @@ Choose a folder, narrow the list with search and tick targets. List/grid views, 
 | Output path | Where files are written; paths from another project may remain |
 | Folder name / date options | Affect final names shown in the list |
 | Overwrite same name | Update an existing file, with backup and failed-build restoration |
-| Built-in / URP badge | Current Unity pipeline; match WARUDO's setting |
+| Built-in / URP badge | Current Unity pipeline; match WARUDO's setting. A second badge shows WARUDO's value (its URP/NiloToon Enabled option), and a mismatch is flagged as a warning without blocking the build |
 | Presets | Reuse settings, then recheck paths, author and selection |
 
 ### Advanced settings and scripts
@@ -141,6 +142,23 @@ Use the wheel within a long list. In small windows, the export body also scrolls
 The current object is built through a temporary copy. Source prefabs are not permanently moved or renamed. Shaders, character settings and physics must already be prepared.
 
 Disabled menu? Check Hierarchy selection, Play Mode and other active builds. A Project asset selection is different from a scene-object selection.
+
+## Quick iteration
+
+Edit the same Prop and build it again without closing WARUDO.
+
+1. Set **Mod type** to Prop, turn on **Overwrite same name**, and set **Output path** to `Warudo_Data/StreamingAssets/Props`, then build. Scene-object quick build always overwrites the same name.
+2. In WARUDO, set the scene Prop's Source to that file once.
+3. Edit the prop in Unity and build again.
+4. WARUDO notices the changed file and reloads the Prop by itself. There is nothing to press.
+
+- Timing: usually within 15 seconds after the file is written (3 to 13 seconds measured on WARUDO beta build 25709634, 2026-10-11). For a small Prop, 25 to 30 seconds passed from the start of the Mod Mate build to the reload.
+- Kept: the WARUDO asset, its Source, and WARUDO-side settings such as position, rotation and size.
+- Reset: values changed directly on objects inside the prop while it was running go back to the prefab values.
+- Scope: verified for Props without scripts. Props with scripts and Characters are not verified yet. Environment builds are not supported in 0.1.x.
+- Caution: selecting Source right after replacing the file can cause one extra reload, depending on when WARUDO notices the file.
+
+When such a build succeeds (a Prop without scripts that overwrote the same name), the result area shows a short notice with the same content. It appears only when the output is inside the `Props` folder of the WARUDO install (the location found through Steam).
 
 ## Export a Unity package
 

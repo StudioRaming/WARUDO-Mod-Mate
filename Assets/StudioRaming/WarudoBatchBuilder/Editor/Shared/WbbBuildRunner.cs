@@ -121,6 +121,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private WbbUModQuietState originalQuiet;
         private bool quietApplied;
         private int successCount;
+        private int quickIterateCount;
         private int failedCount;
         private int skippedCount;
         private string statusMessage = "";
@@ -205,6 +206,15 @@ namespace StudioRaming.WarudoBatchBuilder
             }
         }
 
+        // Items that overwrote an existing Prop output without runtime scripts: WARUDO reloads those by itself.
+        public int QuickIterateCount
+        {
+            get
+            {
+                return quickIterateCount;
+            }
+        }
+
         public int FailedCount
         {
             get
@@ -262,13 +272,37 @@ namespace StudioRaming.WarudoBatchBuilder
                 return false;
             }
 
+            string recoveryError = "";
             try
             {
                 WbbJournal.RecoverIfNeeded();
             }
             catch (System.Exception e)
             {
+                recoveryError = e.Message;
                 WbbUtil.LogWarning("Leftover build cleanup failed: " + e.Message);
+            }
+
+            // Begin overwrites the journal file. That is only safe once recovery has read it: a journal whose settings could
+            // not be written back, or one recovery failed on, still holds the only copy of the original settings. A journal
+            // left only because deleting it failed after a full recovery holds nothing that is still needed.
+            if (WbbJournal.SettingsRestorePending)
+            {
+                SetStatus(L("Safety.JournalBlocksStart"));
+                return false;
+            }
+
+            if (recoveryError.Length > 0 && WbbJournal.Exists && WbbJournal.Current == null)
+            {
+                SetStatus(L("Safety.JournalRecoveryError", recoveryError));
+                return false;
+            }
+
+            string setAside = WbbJournal.UnacknowledgedSetAside;
+            if (setAside.Length > 0)
+            {
+                SetStatus(L("Safety.JournalSetAsidePending", setAside) + " " + L("Safety.JournalSetAsidePending.hint"));
+                return false;
             }
 
             WbbRunnerNotice.Clear();
@@ -283,6 +317,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!PrepareBatch(newItems, newJob))
                 return false;
             successCount = 0;
+            quickIterateCount = 0;
             failedCount = 0;
             skippedCount = 0;
             index = 0;

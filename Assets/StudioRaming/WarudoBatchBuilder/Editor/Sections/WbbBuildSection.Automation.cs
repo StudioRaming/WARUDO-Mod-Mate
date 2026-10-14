@@ -50,6 +50,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 names.Add(System.IO.Path.GetFileNameWithoutExtension(path));
             }
 
+            DiscardRebuildBorrow();
             if ((int)type != job.exportType)
                 ChangeType((int)type);
             job.outputMode = (int)WbbOutputMode.WarudoMod;

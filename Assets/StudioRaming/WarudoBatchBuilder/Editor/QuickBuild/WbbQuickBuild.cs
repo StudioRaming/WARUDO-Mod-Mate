@@ -36,6 +36,7 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         private static WbbBuildRunner runner;
+        private static bool quickIterateNotice;
         private static string tempFolder = "";
         private static readonly List<string> tempGuids = new List<string>();
         private static readonly List<WbbRecord> finishedRecords = new List<WbbRecord>();
@@ -444,6 +445,7 @@ namespace StudioRaming.WarudoBatchBuilder
             HookUpdate(false);
             int success = runner != null ? runner.SuccessCount : 0;
             int failed = runner != null ? runner.FailedCount : 0;
+            quickIterateNotice = !canceled && failed == 0 && runner != null && runner.QuickIterateCount > 0;
             DetachRunner();
             CleanupTemp();
             WbbWindow.RepaintOpenWindows();
@@ -471,6 +473,9 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!canceled && failed == 0 && success > 0)
             {
                 string text = success == 1 && finishedRecords.Count > 0 ? L("Quick.DoneOne", finishedRecords[0].modName + WbbUtil.ModExtension) : L("Quick.DoneMany", success, elapsed);
+                // A quick-iteration build keeps the light notification (no dialog in the loop) and adds one short line.
+                if (quickIterateNotice)
+                    text += "\n" + L("QuickIterate.NoticeShort");
                 for (int i = 0; i < finishedRecords.Count; i++)
                     WbbUtil.Log("Built " + finishedRecords[i].outputFilePath);
                 SceneView sceneView = SceneView.lastActiveSceneView;

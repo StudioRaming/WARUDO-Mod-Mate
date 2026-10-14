@@ -123,6 +123,9 @@ namespace StudioRaming.WarudoBatchBuilder
         public string sourceHierarchyPath = "";
         public bool disposableCopy = false;
         public string fixupReport = "";
+        // Set by the runner when the item succeeded: the same-name output existed before and was replaced, and the build packed no runtime sources.
+        public bool replacedExistingOutput = false;
+        public bool packedRuntimeScripts = false;
     }
 
     public class WbbModFile

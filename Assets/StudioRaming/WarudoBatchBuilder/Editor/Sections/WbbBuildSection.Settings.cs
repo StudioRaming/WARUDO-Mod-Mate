@@ -23,6 +23,19 @@ namespace StudioRaming.WarudoBatchBuilder
         private float pipelineBadgeWidth;
         private WbbTone pipelineTone = WbbTone.Info;
         private readonly GUIContent pipelineTip = new GUIContent();
+        private bool pipelineMismatch;
+        private bool warudoBadgeLayout;
+        private bool pipelineMismatchLayout;
+        private WbbUtil.PipelineKind? warudoKind;
+        private string warudoSource = "";
+        private string warudoBadgeText = "";
+        private float warudoBadgeWidth;
+        private float warudoBadgeFullWidth;
+        private WbbTone warudoTone = WbbTone.Info;
+        private readonly GUIContent warudoTip = new GUIContent();
+        private readonly GUIContent mismatchContent = new GUIContent();
+        private GUIStyle mismatchStyle;
+        private string mismatchText = "";
         private float typeLabelWidth, versionLabelWidth, authorLabelWidth, outputLabelWidth;
         private float settingsTitleWidth;
         private float settingsColumnWidth;
@@ -141,6 +154,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 job.outputDirectory = editedOutput;
                 WbbPrefs.SetString(OutputDirKey(CurrentType), editedOutput);
+                NoteOutputDirSeen();
                 namesDirty = true;
                 preflightDirty = true;
             }
@@ -207,6 +221,14 @@ namespace StudioRaming.WarudoBatchBuilder
                 GUILayout.Space(WbbSize.SpaceSmall);
             }
 
+            if (warudoBadgeLayout)
+            {
+                Rect warudoBadge = GUILayoutUtility.GetRect(warudoBadgeWidth, WbbSize.Badge.Height, GUILayout.Width(warudoBadgeWidth), GUILayout.Height(WbbSize.Badge.Height));
+                WbbStyles.Badge(warudoBadge, warudoBadgeText, warudoTone);
+                GUI.Label(warudoBadge, warudoTip, GUIStyle.none);
+                GUILayout.Space(WbbSize.SpaceSmall);
+            }
+
             advancedClicked = WbbStyles.Button(advancedContent, advancedOpen ? UI.SRGlyph.ChevronDown : UI.SRGlyph.ChevronRight, WbbButtonKind.Ghost, GUILayout.Height(WbbSize.ControlMini));
             EditorGUILayout.EndHorizontal();
             GUILayout.FlexibleSpace();
@@ -218,6 +240,13 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             EditorGUILayout.EndHorizontal();
+            if (pipelineMismatchLayout)
+            {
+                mismatchStyle.normal.textColor = WbbStyles.Warning;
+                mismatchContent.text = mismatchText;
+                GUILayout.Label(mismatchContent, mismatchStyle);
+            }
+
             if (!job.useFolderNamePrefix)
             {
                 LabeledText("Build.NamePrefix", job.namePrefix, delegate (string v)
@@ -315,6 +344,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (useFolderShortContent != null && settingsContentsVersion == WbbLang.Version)
                 return;
             settingsContentsVersion = WbbLang.Version;
+            mismatchStyle = new GUIStyle(WbbStyles.MiniInfo);
             useFolderShortContent = new GUIContent(L("Build.UseFolderPrefix"), L("Build.UseFolderPrefix.tip"));
             appendDateShortContent = new GUIContent(L("Build.AppendDate.short"), L("Build.AppendDate.tip"));
             overwriteShortContent = new GUIContent(L("Build.Overwrite.short"), L("Build.Overwrite.tip") + "\n" + L("Build.OverwriteOffHint"));
@@ -354,6 +384,8 @@ namespace StudioRaming.WarudoBatchBuilder
             RectOffset none = GUIStyle.none.margin;
             RefreshPipeline();
             pipelineBadgeLayout = !IsPackageMode;
+            warudoBadgeLayout = pipelineBadgeLayout && warudoKind.HasValue;
+            pipelineMismatchLayout = warudoBadgeLayout && pipelineMismatch;
             settingsMeasure.text = PresetButtonText();
             float preset = Mathf.Min(WbbStyles.ButtonWidth(settingsMeasure, UI.SRGlyph.ChevronDown), WbbSize.Build.PresetButtonMaxWidth);
             float header = WbbSize.Section.HeaderInset + control.left + settingsTitleWidth + WbbStyles.LayoutGap(control, control, WbbSize.SpaceMedium) + modeSegmentWidth + WbbStyles.LayoutGap(control, none) + preset + WbbSize.SpaceSmall;
@@ -367,22 +399,33 @@ namespace StudioRaming.WarudoBatchBuilder
             row3Widths[0] = WbbStyles.ToggleLeftFitWidth(useFolderShortContent);
             row3Widths[1] = WbbStyles.ToggleLeftFitWidth(appendDateShortContent);
             row3Widths[2] = WbbStyles.ToggleLeftFitWidth(overwriteShortContent);
-            row3Widths[3] = WbbStyles.ButtonWidth(advancedContent, UI.SRGlyph.ChevronRight) + (pipelineBadgeLayout ? pipelineBadgeWidth + WbbSize.SpaceSmall : 0f);
+            float row3 = row - control.left - control.right;
+            float advanced = WbbStyles.ButtonWidth(advancedContent, UI.SRGlyph.ChevronRight);
+            float pipelineGroup = pipelineBadgeLayout ? pipelineBadgeWidth + WbbSize.SpaceSmall : 0f;
+            // The WARUDO badge carries the "(WARUDO default)" note, so it keeps its measured width and only shrinks when the
+            // badge group would not fit even on a line of its own.
+            warudoBadgeWidth = warudoBadgeLayout ? Mathf.Clamp(row3 - advanced - pipelineGroup - WbbSize.SpaceSmall, WbbSize.Build.BadgeMinWidth, warudoBadgeFullWidth) : 0f;
+            row3Widths[3] = advanced + pipelineGroup + (warudoBadgeLayout ? warudoBadgeWidth + WbbSize.SpaceSmall : 0f);
             row3Gaps[1] = row3Gaps[2] = WbbStyles.LayoutGap(control, control);
             row3Gaps[3] = WbbStyles.LayoutGap(control, none);
-            WbbStyles.PlanWrap(row3Widths, row3Gaps, row - control.left - control.right, row3BreakLayout);
+            WbbStyles.PlanWrap(row3Widths, row3Gaps, row3, row3BreakLayout);
         }
 
         private void RefreshPipeline()
         {
             string typeName;
             WbbUtil.PipelineKind kind = WbbUtil.CurrentPipeline(out typeName);
+            string sourceNow;
+            WbbUtil.PipelineKind? warudo = WbbWarudoPipeline.Read(out sourceNow);
             int langVersion = WbbLang.Version;
-            if (kind == pipelineKind && langVersion == pipelineLangVersion && string.Equals(typeName, pipelineTypeName, System.StringComparison.Ordinal))
+            if (kind == pipelineKind && langVersion == pipelineLangVersion && string.Equals(typeName, pipelineTypeName, System.StringComparison.Ordinal)
+                && warudo == warudoKind && sourceNow == warudoSource)
                 return;
             pipelineKind = kind;
             pipelineTypeName = typeName;
             pipelineLangVersion = langVersion;
+            warudoKind = warudo;
+            warudoSource = sourceNow;
             pipelineBadgeText = WbbUtil.PipelineName(kind, typeName);
             pipelineBadgeWidth = Mathf.Clamp(WbbStyles.BadgeWidth(pipelineBadgeText), WbbSize.Build.BadgeMinWidth, WbbSize.Build.BadgeMaxWidth);
             string hintKey;
@@ -406,9 +449,34 @@ namespace StudioRaming.WarudoBatchBuilder
                     break;
             }
 
+            // A mismatch only applies to a URP or Built-in project; HDRP and Custom keep their own warning.
+            pipelineMismatch = warudo.HasValue && (kind == WbbUtil.PipelineKind.Urp || kind == WbbUtil.PipelineKind.BuiltIn) && warudo.Value != kind;
+            if (pipelineMismatch)
+                pipelineTone = WbbTone.Warning;
+
             pipelineTip.text = string.Empty;
             pipelineTip.image = null;
             pipelineTip.tooltip = L("Build.Pipeline", pipelineBadgeText) + "\n" + L(hintKey) + "\n\n" + L("Build.Pipeline.tip");
+
+            if (!warudo.HasValue)
+            {
+                warudoBadgeText = "";
+                warudoBadgeFullWidth = 0f;
+                warudoTip.tooltip = "";
+                mismatchText = "";
+                return;
+            }
+
+            string warudoName = WbbUtil.PipelineName(warudo.Value, "");
+            warudoBadgeText = "WARUDO: " + warudoName;
+            if (sourceNow == "default")
+                warudoBadgeText += " " + L("Build.PipelineWarudoDefault");
+            warudoBadgeFullWidth = Mathf.Max(WbbStyles.BadgeWidth(warudoBadgeText), WbbSize.Build.BadgeMinWidth);
+            warudoTone = pipelineMismatch ? WbbTone.Warning : WbbTone.Info;
+            warudoTip.text = string.Empty;
+            warudoTip.image = null;
+            warudoTip.tooltip = warudoBadgeText + "\n" + L("Build.Pipeline.tip");
+            mismatchText = pipelineMismatch ? L("Build.PipelineMismatch", warudoName, pipelineBadgeText) : "";
         }
 
         private void LabeledText(string langKey, string value, System.Action<string> onChange)
@@ -466,6 +534,7 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbPrefs.SetInt(Pfx + "Type", typeIndex);
             var type = (WbbExportType)typeIndex;
             job.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            NoteOutputDirSeen();
             ClearRebuildNameOverrides();
             namesDirty = true;
             preflightDirty = true;
@@ -549,6 +618,7 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbJob stored = WbbDatabase.GetJob(id);
             if (stored == null)
                 return;
+            DiscardRebuildBorrow();
             job.id = stored.id;
             job.name = stored.name;
             job.buildFolderGuid = stored.buildFolderGuid;

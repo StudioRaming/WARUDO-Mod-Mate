@@ -56,6 +56,8 @@ namespace StudioRaming.WarudoBatchBuilder
         public bool clearConsoleOnBuild;
         public bool showOutputDirectory;
         public int logLevel;
+        public int recoveryAttempts;
+        public string recoverySession = "";
     }
 
     public class WbbStrandedOriginal
@@ -72,9 +74,20 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string TempFolderPrefix = "_WBB_Temp_do_not_edit_";
         private const string FileName = "BuildJournal.json";
         private const string StrandReportedKey = WbbUtil.PrefPrefix + "Journal.StrandReported";
+        // File name of the newest set-aside record the user has acknowledged; a newer one blocks builds until acknowledged.
+        private const string SetAsideAckKey = WbbUtil.PrefPrefix + "Journal.SetAsideAcknowledged";
+        private const string SetAsideMarker = ".unrecovered-";
+        public const int MaxRecoveryAttempts = 3;
         private static WbbJournalData current;
         private static string lastRecoverySummary = "";
         private static string lastRecoveryIso = "";
+        private static string sessionId;
+        private static long pendingStamp = -1L;
+        private static bool pendingCached;
+        // Set when a recovery in this domain could not write the settings back. It covers the case where saving the kept
+        // journal failed too, so the file on disk still says recoveryAttempts == 0. A domain reload clears it, and the
+        // recovery that runs after the reload (and before every Start) sets it again while the restore keeps failing.
+        private static bool restorePendingInMemory;
         static WbbJournal()
         {
             EditorApplication.delayCall += OnEditorLoaded;
@@ -116,6 +129,117 @@ namespace StudioRaming.WarudoBatchBuilder
             get
             {
                 return lastRecoverySummary;
+            }
+        }
+
+        // True while a journal is kept because the build settings could not be written back; a new batch must wait for it.
+        // Derived from the file (recoveryAttempts > 0), so it survives domain reloads; cached by the file's write time.
+        public static bool SettingsRestorePending
+        {
+            get
+            {
+                try
+                {
+                    if (!File.Exists(JournalPath))
+                    {
+                        pendingStamp = -1L;
+                        restorePendingInMemory = false;
+                        return false;
+                    }
+
+                    if (restorePendingInMemory)
+                        return true;
+
+                    var info = new FileInfo(JournalPath);
+                    long stamp = info.LastWriteTimeUtc.Ticks ^ info.Length;
+                    if (stamp != pendingStamp)
+                    {
+                        WbbJournalData data = Read();
+                        pendingCached = data != null && data.recoveryAttempts > 0;
+                        pendingStamp = stamp;
+                    }
+
+                    return pendingCached;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // The newest set-aside record (BuildJournal.json.unrecovered-<time>) the user has not acknowledged yet, or "".
+        // It means the settings from before an interrupted build were never written back, so the next build would take
+        // the values left in ExportSettings for the originals; builds wait until the user has checked the settings.
+        public static string UnacknowledgedSetAside
+        {
+            get
+            {
+                try
+                {
+                    string dir = WbbBuildLog.LibraryDirectory;
+                    if (!Directory.Exists(dir))
+                        return "";
+                    string newest = "";
+                    foreach (string path in Directory.GetFiles(dir, FileName + SetAsideMarker + "*"))
+                    {
+                        string name = Path.GetFileName(path);
+                        if (string.CompareOrdinal(name, newest) > 0)
+                            newest = name;
+                    }
+
+                    if (newest.Length == 0 || string.CompareOrdinal(newest, WbbPrefs.GetString(SetAsideAckKey, "", false)) <= 0)
+                        return "";
+                    return newest;
+                }
+                catch (Exception)
+                {
+                    return "";
+                }
+            }
+        }
+
+        public static void AcknowledgeSetAside()
+        {
+            string newest = UnacknowledgedSetAside;
+            if (newest.Length > 0)
+                WbbPrefs.SetString(SetAsideAckKey, newest);
+        }
+
+        // The user's way out of a pending record whose settings cannot be written back (a profile that no longer exists,
+        // a settings asset that was replaced): move it aside like the attempt cap does, nothing is deleted. Choosing this
+        // counts as acknowledging it. Returns the set-aside file name, or "" when the move failed.
+        public static string SetAsidePending(string reason)
+        {
+            if (current != null || WbbBuildRunner.AnyRunning || !SettingsRestorePending)
+                return "";
+            string target = PreserveUnrecovered(reason);
+            if (target.Length == 0)
+                return "";
+            string name = Path.GetFileName(target);
+            WbbPrefs.SetString(SetAsideAckKey, name);
+            return name;
+        }
+
+        // Identifies one editor run: stable across domain reloads, different after the editor is restarted.
+        private static string EditorSessionId
+        {
+            get
+            {
+                if (sessionId == null)
+                {
+                    try
+                    {
+                        var process = System.Diagnostics.Process.GetCurrentProcess();
+                        sessionId = process.Id + "-" + process.StartTime.ToUniversalTime().Ticks;
+                    }
+                    catch (Exception)
+                    {
+                        sessionId = "unknown";
+                    }
+                }
+
+                return sessionId;
             }
         }
 
@@ -505,6 +629,7 @@ namespace StudioRaming.WarudoBatchBuilder
         public static void Complete()
         {
             current = null;
+            restorePendingInMemory = false;
             try
             {
                 if (File.Exists(JournalPath))
@@ -727,9 +852,71 @@ namespace StudioRaming.WarudoBatchBuilder
             lastRecoverySummary = summary;
             lastRecoveryIso = WbbUtil.NowIso();
             WbbUtil.LogWarning("Recovered from an interrupted build: removed " + removedCopies + " temporary copy(ies), " + "reverted " + revertedOutputs + " unconfirmed output file(s), " + "build settings restored=" + settingsRestored + (problems.Count > 0 ? ", left for manual check: " + string.Join(", ", problems.ToArray()) : "") + ".");
-            Notify(summary);
-            Complete();
+            if (settingsRestored)
+            {
+                Notify(summary);
+                Complete();
+                return true;
+            }
+
+            KeepForSettingsRestore(data, summary);
             return true;
+        }
+
+        // Settings could not be written back: the journal is the only record of the original values, so keep it
+        // (settings fields only) and retry later, up to MaxRecoveryAttempts, then set it aside like an unreadable one.
+        private static void KeepForSettingsRestore(WbbJournalData data, string summary)
+        {
+            restorePendingInMemory = true;
+            data.copies.Clear();
+            data.tempFolders.Clear();
+            data.tempRoot = "";
+            data.outputs.Clear();
+            // The cap counts editor sessions, not calls: recovery also runs on every script reload and every Start click,
+            // so counting those would burn the attempts on one locked file in a minute and then discard the only record
+            // of the original settings. A retry inside the same session still restores and still blocks Start, but does not count.
+            string session = EditorSessionId;
+            if (data.recoverySession != session)
+            {
+                data.recoveryAttempts++;
+                data.recoverySession = session;
+            }
+
+            if (data.recoveryAttempts < 1)
+                data.recoveryAttempts = 1;
+            bool saved = Write(data);
+            if (data.recoveryAttempts >= MaxRecoveryAttempts)
+            {
+                string target = PreserveUnrecovered("the build settings could not be restored after " + MaxRecoveryAttempts + " attempts");
+                if (target.Length > 0)
+                {
+                    // Builds stay blocked until the user acknowledges it (UnacknowledgedSetAside); the toast is only the first notice.
+                    Notify(WbbLang.T("Safety.JournalUnrecovered", Path.GetFileName(target)));
+                    return;
+                }
+            }
+
+            if (!saved)
+                WbbUtil.LogError("The recovery attempt count could not be saved; the previous journal file is kept as it was.");
+            Notify(summary);
+        }
+
+        private static string PreserveUnrecovered(string reason)
+        {
+            try
+            {
+                string target = JournalPath + SetAsideMarker + DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                File.Move(JournalPath, target);
+                pendingStamp = -1L;
+                restorePendingInMemory = false;
+                WbbUtil.LogError("The build journal was set aside because " + reason + " (nothing was deleted): " + target + ". The settings from before that build were not written back; check ExportSettings or restore it from a backup.");
+                return target;
+            }
+            catch (Exception e)
+            {
+                WbbUtil.LogError("Could not set aside the unrecovered build journal: " + e.Message);
+                return "";
+            }
         }
 
         private static string ResolveCopyPath(WbbJournalCopy copy, WbbJournalData data)

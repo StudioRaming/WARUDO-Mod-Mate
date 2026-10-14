@@ -31,6 +31,7 @@ namespace StudioRaming.WarudoBatchBuilder
             Merge(SafetyTexts);
             Merge(UiTexts);
             Merge(FlowTexts);
+            Merge(QuickIterateTexts);
         }
 
         private static void Merge(Dictionary<string, string[]> source)
@@ -299,6 +300,24 @@ namespace StudioRaming.WarudoBatchBuilder
                     "전체 선택",
                     "Select All",
                     "全選択"
+                }
+            },
+            {
+                "Common.SelectAll.tip",
+                new[]
+                {
+                    "지금 보이는 항목만 선택합니다.",
+                    "Selects only the items visible right now.",
+                    "今表示されている項目だけを選択します。"
+                }
+            },
+            {
+                "Common.DeselectAll.tip",
+                new[]
+                {
+                    "보이지 않는 항목을 포함해 선택을 모두 해제합니다.",
+                    "Clears every selection, including items hidden by a search or filter.",
+                    "検索・フィルターで隠れている項目を含め、選択をすべて解除します。"
                 }
             },
             {

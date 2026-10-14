@@ -69,6 +69,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private Vector2 scroll;
         private bool validationDirty = true;
         private bool canBuild;
+        private bool otherBuildRunning;
         private bool focusPending = true;
         private bool pendingCapture;
         private bool pendingBuild;
@@ -210,6 +211,15 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void Update()
         {
+            // canBuild only changes in Validate, so a build that starts or ends elsewhere has to mark it dirty here.
+            bool running = WbbBuildRunner.AnyRunning;
+            if (running != otherBuildRunning && !validationDirty)
+            {
+                validationDirty = true;
+                existsCache.Clear();
+                Repaint();
+            }
+
             if (pendingCapture)
             {
                 pendingCapture = false;
@@ -270,7 +280,8 @@ namespace StudioRaming.WarudoBatchBuilder
             if (sceneExample == null)
                 sceneExample = "";
             WbbQuickBuild.NameResult[] results = WbbQuickBuild.ResolveNames(requests, prependScene, appendDate, autoNumber, WbbUtil.DateSuffix(), OutputFileExists);
-            canBuild = rows.Count > 0 && blocking.Length == 0 && !WbbBuildRunner.AnyRunning;
+            otherBuildRunning = WbbBuildRunner.AnyRunning;
+            canBuild = rows.Count > 0 && blocking.Length == 0 && !otherBuildRunning;
             for (int i = 0; i < rows.Count; i++)
             {
                 Row row = rows[i];
@@ -419,6 +430,7 @@ namespace StudioRaming.WarudoBatchBuilder
             DrawNameRules();
             WbbStyles.StatusLine(note, MessageType.Info);
             WbbStyles.StatusLine(blocking, MessageType.Error);
+            WbbStyles.StatusLine(otherBuildRunning ? L("Quick.BuildBusy") : "", MessageType.Info);
             scroll = EditorGUILayout.BeginScrollView(scroll);
             for (int i = 0; i < rows.Count; i++)
                 DrawRow(rows[i]);
@@ -634,7 +646,7 @@ namespace StudioRaming.WarudoBatchBuilder
             using (new EditorGUI.DisabledScope(!canBuild || buildDelayRepaints > 0 || pendingBuild))
             {
                 string label = rows.Count > 1 ? L("Quick.BuildMany", rows.Count) : L("Quick.Build");
-                if (WbbStyles.PrimaryButton(new GUIContent(label, L("Quick.Build.tip")), GUILayout.Width(WbbSize.Quick.BuildButton), GUILayout.Height(WbbSize.ActionButton)))
+                if (WbbStyles.PrimaryButton(new GUIContent(label, otherBuildRunning ? L("Quick.BuildBusy") : L("Quick.Build.tip")), GUILayout.Width(WbbSize.Quick.BuildButton), GUILayout.Height(WbbSize.ActionButton)))
                     RequestBuild();
             }
 

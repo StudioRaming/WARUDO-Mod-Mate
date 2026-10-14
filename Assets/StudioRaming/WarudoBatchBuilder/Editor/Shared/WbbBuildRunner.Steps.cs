@@ -492,8 +492,36 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             MarkCurrent(WbbBuildStatus.Success, "");
+            var done = CurrentItem();
+            if (done != null)
+            {
+                done.replacedExistingOutput = outputGuard != null && outputGuard.backupPath.Length > 0 && IsInWarudoPropsFolder(outputFilePath);
+                // expectScripts is batch-wide in the manual script-folder path, so this errs toward hiding the notice.
+                done.packedRuntimeScripts = expectScripts || itemCompiled.Count > 0;
+            }
+
             WbbJournal.MarkOutputVerified(outputGuard);
             step = Step.Cleanup;
+        }
+
+        // WARUDO only reloads a changed file from the Props folder of its own install (found through Steam). The Build tab's
+        // output folder pref is where Mod Mate writes, not where WARUDO reads, so it does not count. Without a WARUDO install
+        // TypeFolder is "" and nothing is inside it. Both sides are resolved to full paths first: the output folder is typed by
+        // hand, and ".../Props/../Exports" starts with the Props folder as text while the file lands outside it.
+        internal static bool IsInWarudoPropsFolder(string outputFile)
+        {
+            string props = WbbWarudoLocator.TypeFolder(WbbExportType.Prop);
+            string file = WbbUtil.ToAbsolutePath(outputFile);
+            if (string.IsNullOrEmpty(props) || string.IsNullOrEmpty(file))
+                return false;
+            try
+            {
+                return WbbJournal.IsUnder(Path.GetFullPath(file), Path.GetFullPath(props));
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
         }
 
         private void DoCleanup()

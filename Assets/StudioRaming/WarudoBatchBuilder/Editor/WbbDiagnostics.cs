@@ -60,6 +60,9 @@ namespace StudioRaming.WarudoBatchBuilder
             sb.AppendLine("Unity: " + Application.unityVersion + " (required " + WbbProduct.RequiredUnity + ")");
             RenderPipelineAsset pipeline = GraphicsSettings.currentRenderPipeline;
             sb.AppendLine("Render pipeline: " + (pipeline == null ? "Built-in" : pipeline.GetType().Name));
+            string warudoSource;
+            WbbUtil.PipelineKind? warudoKind = WbbWarudoPipeline.Read(out warudoSource);
+            sb.AppendLine("WARUDO pipeline: " + (warudoKind.HasValue ? WbbUtil.PipelineName(warudoKind.Value, "") : "unknown") + " (" + warudoSource + ")");
             sb.AppendLine("Color space: " + PlayerSettings.colorSpace);
             sb.AppendLine("Warudo Mod Tool: " + ModToolVersion());
             sb.AppendLine("OS: " + SystemInfo.operatingSystem);

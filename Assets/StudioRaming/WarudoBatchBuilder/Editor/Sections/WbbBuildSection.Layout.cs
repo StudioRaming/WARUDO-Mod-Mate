@@ -83,6 +83,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 reserved += WbbSize.ControlLarge * 4f;
             if (issuesOpen)
                 reserved += WbbSize.Control * 3f;
+            // The reload notice wraps to two or three lines; its measured height keeps the run button inside the window.
+            if (resultVisible && resultQuickIterate)
+                reserved += (quickIterateNoticeHeight > 0f ? quickIterateNoticeHeight : WbbSize.Control * 2f) + WbbSize.SpaceSmall;
             float available = windowHeight - reserved;
             float minimum = WbbSize.Build.RowHeight * 2f;
             if (IsPackageMode)
@@ -295,6 +298,8 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 selected.Clear();
                 lastClickedGuid = "";
+                if (otherScopeCount > 0 && !busyLayout)
+                    itemsDirty = true;
             }
 
             int applied = 0;
@@ -354,13 +359,18 @@ namespace StudioRaming.WarudoBatchBuilder
 
             if (rebuildQueuedCount == 1 && missing == 0)
             {
-                SetStatus(L("Build.RebuildQueued", string.IsNullOrEmpty(firstName) ? L("Common.None") : firstName), MessageType.Info);
+                string one = L("Build.RebuildQueued", string.IsNullOrEmpty(firstName) ? L("Common.None") : firstName);
+                if (rebuildUnhiddenCount > 0)
+                    one += " " + L("Build.RebuildUnhid", rebuildUnhiddenCount);
+                SetStatus(one, MessageType.Info);
                 return;
             }
 
             string message = L("Build.RebuildQueuedMany", rebuildQueuedCount);
             if (missing > 0)
                 message += " " + L("Build.RebuildNotFound", missingName);
+            if (rebuildUnhiddenCount > 0)
+                message += " " + L("Build.RebuildUnhid", rebuildUnhiddenCount);
             SetStatus(message, missing > 0 ? MessageType.Warning : MessageType.Info);
         }
 

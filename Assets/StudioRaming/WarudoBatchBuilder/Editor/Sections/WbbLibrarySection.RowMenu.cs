@@ -25,11 +25,14 @@ namespace StudioRaming.WarudoBatchBuilder
                 {
                     PingPrefab(target);
                 });
-                menu.AddItem(LC("Common.Rebuild"), false, delegate
-                {
-                    if (host != null)
-                        host.RequestRebuild(target.record);
-                });
+                if (host != null && host.BuildBusy)
+                    menu.AddDisabledItem(LC("Common.Rebuild"));
+                else
+                    menu.AddItem(LC("Common.Rebuild"), false, delegate
+                    {
+                        if (host != null)
+                            host.RequestRebuild(target.record);
+                    });
             }
             else
             {

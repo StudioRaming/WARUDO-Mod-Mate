@@ -64,6 +64,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private class Item
         {
             public bool isScene;
+            // A selected prefab outside the scope folder, kept in items so it still builds but never listed.
+            public bool otherScope;
             public string guid = "";
             public string path = "";
             public string folder = "";
@@ -190,6 +192,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private string statusMessage = "";
         private MessageType statusType = MessageType.Info;
         private int selectedCount;
+        private int otherScopeCount;
         private int blockingCount;
         private int warningCount;
         private int rawCount;
@@ -251,6 +254,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private readonly Dictionary<string, string> pendingRebuildModNames = new Dictionary<string, string>();
         private readonly Dictionary<string, string> rebuildModNames = new Dictionary<string, string>();
         private bool pendingSelectReplace;
+        private bool pendingRebuildRestore;
         private string rebuildToken = "";
         private int rebuildQueuedCount;
         private string dbFingerprint = "";
@@ -264,6 +268,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private int resultFailed;
         private int resultCanceledItems;
         private int resultSkipped;
+        private bool resultQuickIterate;
         private string resultOutputDir = "";
         private bool resultVisible;
         private string resultLabel = "";

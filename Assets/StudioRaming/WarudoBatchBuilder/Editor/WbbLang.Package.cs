@@ -772,6 +772,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Package.ResultSkipped",
+                new[]
+                {
+                    "일부 에셋 {0}개는 읽지 못해 패키지에서 빠졌습니다. 콘솔을 확인하세요.",
+                    "{0} asset(s) could not be read and are missing from the package. Check the Console.",
+                    "一部のアセット {0} 件は読み込めずパッケージに含まれていません。コンソールを確認してください。"
+                }
+            },
+            {
                 "Package.ResultOk",
                 new[]
                 {

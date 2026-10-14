@@ -22,8 +22,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private string RebuildSettings(WbbRecord record, out string version, out string author, out string outputDir)
         {
             int type = Mathf.Clamp(record.exportType, 0, TypeCount - 1);
-            version = string.IsNullOrEmpty(record.modVersion) ? job.modVersion : record.modVersion;
-            author = string.IsNullOrEmpty(record.modAuthor) ? job.modAuthor : record.modAuthor;
+            version = string.IsNullOrEmpty(record.modVersion) ? (rebuildBorrow != null ? rebuildBorrow.modVersion : job.modVersion) : record.modVersion;
+            author = string.IsNullOrEmpty(record.modAuthor) ? (rebuildBorrow != null ? rebuildBorrow.modAuthor : job.modAuthor) : record.modAuthor;
             outputDir = string.IsNullOrEmpty(record.outputDirectory) ? WbbPrefs.GetString(OutputDirKey((WbbExportType)type), WbbUtil.DefaultOutputPath((WbbExportType)type)) : WbbUtil.NormalizePath(record.outputDirectory);
             return type + "|" + version + "|" + author + "|" + outputDir;
         }
@@ -58,15 +58,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 pendingRebuildModNames.Clear();
                 pendingSelectReplace = true;
                 rebuildQueuedCount = 0;
+                rebuildUnhiddenCount = 0;
             }
 
             rebuildToken = token;
-            job.exportType = type;
-            job.modVersion = version;
-            job.modAuthor = author;
-            job.outputDirectory = outputDir;
-            job.outputMode = (int)WbbOutputMode.WarudoMod;
-            SavePrefs();
+            // The record's settings are borrowed for this run only; the saved Build tab settings come back afterwards.
+            BorrowForRebuild(type, version, author, outputDir);
             string guid = record.prefabGuid;
             if (string.IsNullOrEmpty(guid) && !string.IsNullOrEmpty(path))
                 guid = AssetDatabase.AssetPathToGUID(path);
@@ -77,7 +74,11 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (!string.IsNullOrEmpty(record.modName))
                     pendingRebuildModNames[guid] = record.modName;
                 if (WbbListSettings.IsHidden(guid))
+                {
                     WbbListSettings.SetHidden(guid, false);
+                    rebuildUnhiddenCount++;
+                }
+
                 if (!string.IsNullOrEmpty(path) && !WbbListSettings.IsUnder(path, scopeFolder))
                     pendingScope = "Assets";
             }
@@ -135,6 +136,7 @@ namespace StudioRaming.WarudoBatchBuilder
             hoverIndex = -1;
             rawCount = 0;
             userHiddenCount = 0;
+            otherScopeCount = 0;
             bool wholeProject = string.Equals(scopeFolder, "Assets", System.StringComparison.OrdinalIgnoreCase);
             IList<WbbPrefabIndex.Entry> entries = WbbPrefabIndex.Entries;
             for (int i = 0; i < entries.Count; i++)
@@ -142,7 +144,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 WbbPrefabIndex.Entry e = entries[i];
                 if (e == null || e.inCode)
                     continue;
-                if (!wholeProject && !WbbListSettings.IsUnder(e.path, scopeFolder))
+                // A selection made in another folder stays and builds; the scope only decides what the list shows.
+                bool otherScope = !wholeProject && !WbbListSettings.IsUnder(e.path, scopeFolder);
+                if (otherScope && !selected.Contains(e.guid))
                     continue;
                 WbbRecord record;
                 latest.TryGetValue(e.guid, out record);
@@ -159,14 +163,17 @@ namespace StudioRaming.WarudoBatchBuilder
                     reason = ShowReason.Physics;
                 else
                     reason = ShowReason.Raw;
-                if (reason == ShowReason.Raw)
+                if (!otherScope && reason == ShowReason.Raw)
                     rawCount++;
-                else if (reason == ShowReason.Hidden)
+                else if (!otherScope && reason == ShowReason.Hidden)
                     userHiddenCount++;
                 bool dimmed = reason == ShowReason.Raw || reason == ShowReason.Hidden;
-                if (dimmed && !showHidden && !IsAutomationTarget(e.guid))
+                if (dimmed && !otherScope && !showHidden && !IsAutomationTarget(e.guid))
                     continue;
+                if (otherScope)
+                    otherScopeCount++;
                 var item = new Item();
+                item.otherScope = otherScope;
                 item.guid = e.guid;
                 item.path = e.path;
                 item.folder = e.folder;

@@ -43,6 +43,24 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.PipelineMismatch",
+                new[]
+                {
+                    "WARUDO는 {0}, 이 프로젝트는 {1}입니다. 이대로 빌드하면 WARUDO에서 모드가 안 보이거나 분홍색(마젠타)으로 보입니다. WARUDO 설정 → URP/NiloToon 탭 → 활성화됨을 맞추거나, WARUDO와 같은 파이프라인 프로젝트에서 다시 빌드하세요.",
+                    "WARUDO uses {0}, this project uses {1}. Built as it is, the mod will be invisible or magenta in WARUDO. Match WARUDO settings → URP/NiloToon tab → Enabled, or rebuild in a project that uses the same pipeline as WARUDO.",
+                    "WARUDO は {0}、このプロジェクトは {1} です。このままビルドすると WARUDO で MOD が表示されないか、マゼンタで表示されます。WARUDO の設定 → URP/NiloToon タブ → 有効化を合わせるか、WARUDO と同じパイプラインのプロジェクトでビルドし直してください。"
+                }
+            },
+            {
+                "Build.PipelineWarudoDefault",
+                new[]
+                {
+                    "(WARUDO 기본값)",
+                    "(WARUDO default)",
+                    "(WARUDO 初期値)"
+                }
+            },
+            {
                 "Build.PipelineUrp",
                 new[]
                 {
@@ -547,6 +565,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.CountOtherScope",
+                new[]
+                {
+                    "다른 폴더 {0}개 포함",
+                    "{0} from other folders included",
+                    "他のフォルダの {0}件を含む"
+                }
+            },
+            {
                 "Build.CountLine",
                 new[]
                 {
@@ -943,6 +970,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.ConfirmOtherScope",
+                new[]
+                {
+                    "다른 폴더 {0}개 포함: {1}",
+                    "{0} from other folders included: {1}",
+                    "他のフォルダの {0}件を含む: {1}"
+                }
+            },
+            {
                 "Build.ConfirmBody",
                 new[]
                 {
@@ -1093,6 +1129,33 @@ namespace StudioRaming.WarudoBatchBuilder
                     "빌드 이력 탭으로 이동해서 방금 결과를 확인합니다.",
                     "Switch to the History tab to inspect what just happened.",
                     "ビルド履歴タブに移動して結果を確認します。"
+                }
+            },
+            {
+                "Build.RebuildBorrowNote",
+                new[]
+                {
+                    "재빌드: 기록 설정 사용 중 (종류 {0}, v{1}, 제작자 {2}, 출력 폴더 {3}, mod 모드). 이번 빌드에만 적용되고 저장된 빌드 설정은 그대로입니다.",
+                    "Rebuild: using the record's settings (type {0}, v{1}, author {2}, output folder {3}, mod mode). They apply to this build only; your saved Build settings are unchanged.",
+                    "再ビルド: 記録の設定を使用中（種類 {0}、v{1}、作成者 {2}、出力フォルダ {3}、modモード）。今回のビルドのみに適用され、保存済みのビルド設定は変わりません。"
+                }
+            },
+            {
+                "Build.RebuildBorrowRestore",
+                new[]
+                {
+                    "내 설정으로",
+                    "Use my settings",
+                    "元の設定に戻す"
+                }
+            },
+            {
+                "Build.RebuildUnhid",
+                new[]
+                {
+                    "숨겨 둔 프리팹 {0}개를 다시 보이게 했습니다.",
+                    "{0} hidden prefab(s) were shown again.",
+                    "非表示にしていたプレハブ {0}件を再表示しました。"
                 }
             },
             {
