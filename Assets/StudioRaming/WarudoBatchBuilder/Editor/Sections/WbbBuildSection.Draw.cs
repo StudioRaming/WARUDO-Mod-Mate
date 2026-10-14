@@ -112,7 +112,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 DrawBanners();
                 DrawList();
                 DrawHeightSplitter();
-                using (new EditorGUI.DisabledScope(busyLayout))
+                DrawRebuildBorrowNote();
+                using (new EditorGUI.DisabledScope(busyLayout || rebuildBorrow != null))
                 {
                     DrawSettingsCard();
                 }

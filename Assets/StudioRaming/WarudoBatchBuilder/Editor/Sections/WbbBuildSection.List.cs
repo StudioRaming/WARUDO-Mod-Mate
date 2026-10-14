@@ -371,6 +371,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void MarkSelectionChanged()
         {
+            DiscardRebuildBorrow();
             namesDirty = true;
             summaryDirty = true;
             preflightDirty = true;

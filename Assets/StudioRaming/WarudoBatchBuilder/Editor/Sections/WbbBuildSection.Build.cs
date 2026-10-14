@@ -165,6 +165,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
         private void OnBuildFinished(bool canceled)
         {
+            DiscardRebuildBorrow();
             resultCanceled = canceled;
             resultSuccess = runner != null ? runner.SuccessCount : 0;
             resultFailed = runner != null ? runner.FailedCount : 0;

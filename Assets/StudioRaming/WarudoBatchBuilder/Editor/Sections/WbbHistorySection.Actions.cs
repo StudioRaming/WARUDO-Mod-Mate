@@ -47,9 +47,10 @@ namespace StudioRaming.WarudoBatchBuilder
                 EditorGUILayout.BeginHorizontal();
             }
 
-            using (new EditorGUI.DisabledScope(selectionCount == 0))
+            bool buildBusy = host != null && host.BuildBusy;
+            using (new EditorGUI.DisabledScope(selectionCount == 0 || buildBusy))
             {
-                if (WbbStyles.PlainButton(rebuildSelectedContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.History.RebuildSelectedButton)))
+                if (WbbStyles.PlainButton(buildBusy ? host.RebuildButtonContent(rebuildSelectedContent) : rebuildSelectedContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.History.RebuildSelectedButton)))
                 {
                     pendingRebuildSelected = true;
                     if (host != null)
@@ -57,9 +58,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             }
 
-            using (new EditorGUI.DisabledScope(failedInView == 0))
+            using (new EditorGUI.DisabledScope(failedInView == 0 || buildBusy))
             {
-                if (WbbStyles.PlainButton(rebuildFailedContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.History.RebuildFailedButton)))
+                if (WbbStyles.PlainButton(buildBusy ? host.RebuildButtonContent(rebuildFailedContent) : rebuildFailedContent, GUILayout.Height(WbbSize.Control), GUILayout.Width(WbbSize.History.RebuildFailedButton)))
                 {
                     pendingRebuildFailed = true;
                     if (host != null)
@@ -134,11 +135,14 @@ namespace StudioRaming.WarudoBatchBuilder
             var menu = new GenericMenu();
             Row target = row;
             WbbRecord record = row.record;
-            menu.AddItem(LC("Common.Rebuild"), false, delegate
-            {
-                if (host != null)
-                    host.RequestRebuild(record);
-            });
+            if (host != null && host.BuildBusy)
+                menu.AddDisabledItem(LC("Common.Rebuild"));
+            else
+                menu.AddItem(LC("Common.Rebuild"), false, delegate
+                {
+                    if (host != null)
+                        host.RequestRebuild(record);
+                });
             menu.AddSeparator("");
             if (target.fileState == 1)
             {

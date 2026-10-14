@@ -250,6 +250,7 @@ namespace StudioRaming.WarudoBatchBuilder
         private readonly Dictionary<string, string> pendingRebuildModNames = new Dictionary<string, string>();
         private readonly Dictionary<string, string> rebuildModNames = new Dictionary<string, string>();
         private bool pendingSelectReplace;
+        private bool pendingRebuildRestore;
         private string rebuildToken = "";
         private int rebuildQueuedCount;
         private string dbFingerprint = "";

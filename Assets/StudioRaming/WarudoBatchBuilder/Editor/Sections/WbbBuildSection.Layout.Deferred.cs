@@ -104,6 +104,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 pendingOutputMode = -1;
                 if (mode != job.outputMode)
                 {
+                    DiscardRebuildBorrow();
                     job.outputMode = Mathf.Clamp(mode, 0, OutputModeCount - 1);
                     WbbPrefs.SetInt(Pfx + "OutputMode", job.outputMode);
                     preflightDirty = true;
@@ -130,6 +131,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 SaveManualNames();
                 namesDirty = true;
                 RequestRepaint();
+            }
+
+            if (pendingRebuildRestore)
+            {
+                pendingRebuildRestore = false;
+                DiscardRebuildBorrow();
             }
 
             if (pendingSavePreset)

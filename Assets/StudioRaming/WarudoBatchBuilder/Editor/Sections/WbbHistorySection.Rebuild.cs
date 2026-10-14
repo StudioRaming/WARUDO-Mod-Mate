@@ -38,6 +38,8 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (host == null || targets == null || targets.Count == 0)
                 return;
+            if (host.NoticeBuildBusy())
+                return;
             var byGroup = new Dictionary<string, List<WbbRecord>>(System.StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < targets.Count; i++)
             {
@@ -62,7 +64,7 @@ namespace StudioRaming.WarudoBatchBuilder
             if (chosen == null)
                 chosen = targets;
             for (int i = 0; i < chosen.Count; i++)
-                host.RequestRebuild(chosen[i]);
+                host.RequestRebuild(chosen[i], false);
             int dropped = targets.Count - chosen.Count;
             if (dropped > 0)
             {
@@ -74,6 +76,8 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             var picked = CollectSelected();
             if (picked.Count == 0)
+                return;
+            if (host != null && host.NoticeBuildBusy())
                 return;
             var targets = DedupeByPrefab(picked);
             if (targets.Count == 0)
@@ -109,6 +113,8 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             if (failed.Count == 0)
+                return;
+            if (host != null && host.NoticeBuildBusy())
                 return;
             var targets = DedupeByPrefab(failed);
             if (targets.Count == 0)

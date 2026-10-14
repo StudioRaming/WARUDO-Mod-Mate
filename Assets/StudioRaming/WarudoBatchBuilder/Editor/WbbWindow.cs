@@ -103,7 +103,12 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             WbbLang.OnWindowFocus();
             if (tab == TabLibrary && library != null)
+            {
+                library.ReloadPathsFromPrefs();
                 library.Refresh();
+            }
+            else if (tab == TabBuild && build != null)
+                build.ReloadOutputDirFromPref();
         }
 
         public void RequestRepaint()
@@ -149,6 +154,10 @@ namespace StudioRaming.WarudoBatchBuilder
             tabError = "";
             tabErrorTab = -1;
             EditorPrefs.SetInt(WinPfx + "tab", tab);
+            if (tab == TabLibrary && library != null)
+                library.ReloadPathsFromPrefs();
+            else if (tab == TabBuild && build != null)
+                build.ReloadOutputDirFromPref();
             GUI.FocusControl(null);
             Repaint();
         }
@@ -187,7 +196,41 @@ namespace StudioRaming.WarudoBatchBuilder
             return build != null ? "prefab|" + build.RebuildToken(record) : "prefab";
         }
 
+        // The modal that says a build is running. Internal so a verification script can count it without a click.
+        internal static System.Func<string, string, string, bool> BusyDialog = EditorUtility.DisplayDialog;
+
+        public bool BuildBusy
+        {
+            get
+            {
+                return build != null && build.IsBusy;
+            }
+        }
+
+        // A multi-item rebuild asks once before its loop and stops when a build is running.
+        public bool NoticeBuildBusy()
+        {
+            if (!BuildBusy)
+                return false;
+            BusyDialog(L("Common.ProductName"), L("Win.BusyRebuild"), L("Common.Ok"));
+            return true;
+        }
+
+        // A rebuild button while a build runs: same label, the reason as its tooltip (the caller disables it).
+        public GUIContent RebuildButtonContent(GUIContent normal)
+        {
+            if (normal == null || !BuildBusy)
+                return normal;
+            return new GUIContent(normal.text, L("Win.BusyRebuild"));
+        }
+
         public void RequestRebuild(WbbRecord record)
+        {
+            RequestRebuild(record, true);
+        }
+
+        // notifyBusy is false inside a loop that already checked once with NoticeBuildBusy.
+        public void RequestRebuild(WbbRecord record, bool notifyBusy)
         {
             if (record == null)
                 return;
@@ -201,7 +244,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             if (build.IsBusy)
             {
-                EditorUtility.DisplayDialog(L("Common.ProductName"), L("Win.BusyRebuild"), L("Common.Ok"));
+                if (notifyBusy)
+                    BusyDialog(L("Common.ProductName"), L("Win.BusyRebuild"), L("Common.Ok"));
                 return;
             }
 
