@@ -93,8 +93,8 @@ namespace StudioRaming.WarudoBatchBuilder
             string configured = WbbPrefs.GetString(RootPrefKey, "");
             if (!string.IsNullOrEmpty(configured))
             {
-                root = NormalizeStreamingAssets(configured);
-                if (!string.IsNullOrEmpty(root) && ManagedExists(root))
+                root = SettingRoot(configured);
+                if (root.Length > 0)
                 {
                     source = "b";
                     return root;
@@ -111,6 +111,15 @@ namespace StudioRaming.WarudoBatchBuilder
             if (!string.IsNullOrEmpty(root))
                 source = "c";
             return root;
+        }
+
+        // The WARUDO folder setting's StreamingAssets folder, or "" when the setting is empty or has no Managed folder next to it.
+        private static string SettingRoot(string configured)
+        {
+            if (string.IsNullOrEmpty(configured))
+                return "";
+            string root = NormalizeStreamingAssets(configured);
+            return !string.IsNullOrEmpty(root) && ManagedExists(root) ? root : "";
         }
 
         // Accepts the install root, its Warudo_Data folder, Warudo_Data/Managed or its StreamingAssets folder. Returns "" when it is
@@ -157,6 +166,44 @@ namespace StudioRaming.WarudoBatchBuilder
                 string source;
                 return ResolveForOutput("", out source);
             }
+        }
+
+        // What AmbientStreamingAssets decides from, taken without checking a folder: the running batch's root, the WARUDO
+        // folder setting and the Steam install (searched once and kept). Main thread only (EditorPrefs and the batch state).
+        public sealed class AmbientInputs
+        {
+            public readonly string batch;
+            public readonly string setting;
+            public readonly string steam;
+
+            public AmbientInputs(string batch, string setting, string steam)
+            {
+                this.batch = batch ?? "";
+                this.setting = setting ?? "";
+                this.steam = steam ?? "";
+            }
+
+            public bool SameAs(AmbientInputs other)
+            {
+                return other != null && string.Equals(batch, other.batch, System.StringComparison.Ordinal)
+                    && string.Equals(setting, other.setting, System.StringComparison.Ordinal)
+                    && string.Equals(steam, other.steam, System.StringComparison.Ordinal);
+            }
+        }
+
+        public static AmbientInputs CaptureAmbient()
+        {
+            return new AmbientInputs(WbbBuildRunner.AnyRunning ? BatchStreamingAssets : "", WbbPrefs.GetString(RootPrefKey, ""), StreamingAssetsPath);
+        }
+
+        // The folder half of AmbientStreamingAssets, in the same order. Safe off the main thread: it checks folders and reads
+        // nothing shared. It does not report an unusable setting; the preflight does, through ResolveForOutput.
+        public static string ResolveAmbient(AmbientInputs inputs)
+        {
+            if (inputs.batch.Length > 0)
+                return inputs.batch;
+            string root = SettingRoot(inputs.setting);
+            return root.Length > 0 ? root : inputs.steam;
         }
 
         public static bool IsInsideWarudoData(string path, out string streamingAssetsRoot)

@@ -55,7 +55,7 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (IsBusy || rebuildBorrow != null)
                 return;
-            string stored = WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType));
+            string stored = WbbUtil.StoredOutputPath(OutputDirKey(CurrentType), CurrentType);
             if (string.Equals(stored, job.outputDirectory, System.StringComparison.Ordinal))
             {
                 NoteOutputDirSeen();
@@ -102,7 +102,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.modVersion = saved.modVersion;
             job.modAuthor = saved.modAuthor;
             job.outputMode = saved.outputMode;
-            job.outputDirectory = WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType));
+            job.outputDirectory = WbbUtil.StoredOutputPath(OutputDirKey(CurrentType), CurrentType);
             NoteOutputDirSeen();
             ClearRebuildNameOverrides();
             namesDirty = true;

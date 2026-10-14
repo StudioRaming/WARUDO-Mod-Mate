@@ -365,6 +365,8 @@ namespace StudioRaming.WarudoBatchBuilder
             EnsureSubscribed();
             if (WbbPrefabIndex.Tick(IndexBudgetSeconds) || WbbPrefabIndex.Busy)
                 RequestRepaint();
+            if (WbbWarudoPipeline.Poll())
+                RequestRepaint();
             ProcessDeferredWork();
         }
 

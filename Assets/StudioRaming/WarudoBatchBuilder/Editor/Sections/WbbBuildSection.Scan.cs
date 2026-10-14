@@ -24,7 +24,7 @@ namespace StudioRaming.WarudoBatchBuilder
             int type = Mathf.Clamp(record.exportType, 0, TypeCount - 1);
             version = string.IsNullOrEmpty(record.modVersion) ? (rebuildBorrow != null ? rebuildBorrow.modVersion : job.modVersion) : record.modVersion;
             author = string.IsNullOrEmpty(record.modAuthor) ? (rebuildBorrow != null ? rebuildBorrow.modAuthor : job.modAuthor) : record.modAuthor;
-            outputDir = string.IsNullOrEmpty(record.outputDirectory) ? WbbPrefs.GetString(OutputDirKey((WbbExportType)type), WbbUtil.DefaultOutputPath((WbbExportType)type)) : WbbUtil.NormalizePath(record.outputDirectory);
+            outputDir = string.IsNullOrEmpty(record.outputDirectory) ? WbbUtil.StoredOutputPath(OutputDirKey((WbbExportType)type), (WbbExportType)type) : WbbUtil.NormalizePath(record.outputDirectory);
             return type + "|" + version + "|" + author + "|" + outputDir;
         }
 

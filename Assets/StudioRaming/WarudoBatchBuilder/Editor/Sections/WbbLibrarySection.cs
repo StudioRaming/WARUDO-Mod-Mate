@@ -138,7 +138,7 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int t = 0; t < TypeCount; t++)
             {
                 var type = (WbbExportType)t;
-                paths[t] = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+                paths[t] = WbbUtil.StoredOutputPath(OutputDirKey(type), type);
                 typeEnabled[t] = WbbPrefs.GetBool(Pfx + "Type" + t, true);
                 pathErrors[t] = "";
             }
@@ -163,7 +163,7 @@ namespace StudioRaming.WarudoBatchBuilder
             for (int t = 0; t < TypeCount; t++)
             {
                 var type = (WbbExportType)t;
-                string stored = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+                string stored = WbbUtil.StoredOutputPath(OutputDirKey(type), type);
                 if (string.Equals(stored, paths[t], System.StringComparison.Ordinal))
                     continue;
                 paths[t] = stored;
