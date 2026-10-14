@@ -93,7 +93,7 @@ Choose a folder, narrow the list with search and tick targets. List/grid views, 
 | Output path | Where files are written; paths from another project may remain |
 | Folder name / date options | Affect final names shown in the list |
 | Overwrite same name | Update an existing file, with backup and failed-build restoration |
-| Built-in / URP badge | Current Unity pipeline; match WARUDO's setting |
+| Built-in / URP badge | Current Unity pipeline; match WARUDO's setting. A second badge shows WARUDO's value (its URP/NiloToon Enabled option), and a mismatch is flagged as a warning without blocking the build |
 | Presets | Reuse settings, then recheck paths, author and selection |
 
 ### Advanced settings and scripts

@@ -15,6 +15,9 @@ Fixes
 - The History tab re-checks which output files still exist when it is entered or the window is focused (at most every 3 seconds), so a file moved to the Recycle Bin shows as missing. Entering the Mod list tab refreshes it too.
 - The Quick Build button says why it is disabled while another build runs (tooltip and a status line) and turns on by itself when that build ends.
 - The History rebuild confirm says how many selected records are left out because their type, version, author or output folder differ from the largest group.
+Changes
+
+- The Build tab shows WARUDO's render pipeline next to the project badge, read from the URP/NiloToon Enabled option in WARUDO's plugin data. A mismatch between the two shows a warning line and warning badges; the build is not blocked. "Copy environment info for support" in the ? menu includes the WARUDO pipeline as well.
 
 ## 0.1.2 (2026-10-11)
 
