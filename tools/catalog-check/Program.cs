@@ -9,10 +9,22 @@ using StudioRaming.WarudoBatchBuilder;
 
 namespace StudioRaming.WarudoBatchBuilder
 {
-    // Stub for the Unity-side locator, which is not compiled here. Only the path is needed by WbbWarudoTypeCatalog.
-    internal static class WbbWarudoLocator
+    // Stubs for the Unity-side helpers WbbWarudoTypeCatalog calls, which are not compiled here. The message key is
+    // enough to tell the two read errors apart; the log line goes to the console.
+    internal static class WbbLang
     {
-        public static string StreamingAssetsPath;
+        public static string T(string key, params object[] args)
+        {
+            return args.Length == 0 ? key : key + ": " + string.Join(", ", args);
+        }
+    }
+
+    internal static class WbbUtil
+    {
+        public static void Log(string message)
+        {
+            Console.WriteLine(message);
+        }
     }
 }
 
@@ -48,7 +60,6 @@ static class Program
         // A trailing separator (shell tab completion adds one) would make GetDirectoryName return StreamingAssets itself.
         string streaming = Path.GetFullPath(args.Length > 0 ? args[0] : DefaultStreamingAssets)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        WbbWarudoLocator.StreamingAssetsPath = streaming;
         string managed = Path.Combine(Path.GetDirectoryName(streaming), "Managed");
         string version = VersionOf(Path.Combine(managed, "Warudo.Core.dll"));
         Console.WriteLine("WARUDO managed: " + managed + " | Warudo.Core.dll version: " + version);
@@ -56,7 +67,7 @@ static class Program
         WbbWarudoTypeCatalog catalog;
         try
         {
-            catalog = WbbWarudoTypeCatalog.Read();
+            catalog = WbbWarudoTypeCatalog.Read(streaming);
         }
         catch (Exception e)
         {
