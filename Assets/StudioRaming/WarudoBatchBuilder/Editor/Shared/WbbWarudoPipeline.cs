@@ -50,17 +50,24 @@ namespace StudioRaming.WarudoBatchBuilder
         private static WbbWarudoLocator.AmbientInputs startedInputs;
         private static double lastStartTime = double.NegativeInfinity;
         private static string lastWarning = "";
-        // Read wanted a new read (the inputs changed) while one was still running.
+        // A read was started and its result not taken yet. Only the main thread sets and clears it, so a read that finished
+        // is never still "running" when the next one is due.
+        private static bool started;
+        // Read wanted a new read (the inputs changed) while one was still out.
         private static bool deferred;
 
-        // Handed from the worker to the main thread. The worker sets `finished` before it clears `running`.
+        // The one thing the worker writes: its result, taken by the main thread.
         private static Snapshot finished;
-        private static int running;
 
-        // True while a read runs on the worker thread.
-        public static bool Busy
+        // For tools/pipeline-check: a read is out, and whether its result is ready to be taken.
+        internal static bool Busy
         {
-            get { return Volatile.Read(ref running) != 0; }
+            get { return started; }
+        }
+
+        internal static bool Ready
+        {
+            get { return Volatile.Read(ref finished) != null; }
         }
 
         public static WbbUtil.PipelineKind? Read(out string source)
@@ -71,7 +78,7 @@ namespace StudioRaming.WarudoBatchBuilder
             double now = EditorApplication.timeSinceStartup;
             if (changed || now - lastStartTime >= RecheckSeconds)
             {
-                if (!Busy)
+                if (!started)
                     Start(inputs, now);
                 else if (changed)
                     deferred = true;
@@ -82,7 +89,7 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         // Main thread, from the window's Update. Takes a finished read; true when the tab has to lay out again, because the
-        // result changed or because Read wanted a new read while the last one was still running.
+        // result changed or because Read wanted a new read while the last one was still out.
         public static bool Poll()
         {
             return Take();
@@ -102,8 +109,8 @@ namespace StudioRaming.WarudoBatchBuilder
             startedInputs = inputs;
             lastStartTime = now;
             deferred = false;
+            started = true;
             Snapshot last = current;
-            Volatile.Write(ref running, 1);
             ThreadPool.QueueUserWorkItem(_ => Run(last, inputs));
         }
 
@@ -120,7 +127,6 @@ namespace StudioRaming.WarudoBatchBuilder
             }
 
             Interlocked.Exchange(ref finished, next);
-            Volatile.Write(ref running, 0);
         }
 
         private static bool Take()
@@ -128,6 +134,7 @@ namespace StudioRaming.WarudoBatchBuilder
             Snapshot done = Interlocked.Exchange(ref finished, null);
             if (done == null)
                 return false;
+            started = false;
             bool changed = done.kind != current.kind || !string.Equals(done.source, current.source, StringComparison.Ordinal);
             current = done;
             // Retried every few seconds while it fails, so the same message is logged once.
@@ -139,7 +146,8 @@ namespace StudioRaming.WarudoBatchBuilder
             return changed || again;
         }
 
-        // Runs on the worker thread (or on the caller's for ReadNow): it reads the disk and its arguments, nothing shared.
+        // Runs on the worker thread (or on the caller's for ReadNow): it reads the disk and its arguments; the only shared state
+        // it touches is the Steam search, which ResolveAmbient swaps in whole.
         private static Snapshot Resolve(Snapshot last, WbbWarudoLocator.AmbientInputs inputs)
         {
             // The WARUDO the builds use (the WARUDO folder setting before Steam), not only a Steam install.

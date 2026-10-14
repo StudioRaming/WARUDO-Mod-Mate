@@ -114,6 +114,10 @@ static class Program
             WbbWarudoPipeline.Read(out source);
             watch.Stop();
             CheckText("(h1) Read returns while the folder check hangs", "under 500 ms", watch.ElapsedMilliseconds < 500 ? "under 500 ms" : watch.ElapsedMilliseconds + " ms");
+            // The worker may not have run yet; wait for its check to start before counting.
+            var started = Stopwatch.StartNew();
+            while (WbbWarudoLocator.FolderChecks == checks && started.ElapsedMilliseconds < 5000)
+                Thread.Sleep(5);
             CheckText("(h2) it keeps the last result and starts one check", "URP/file 1", Show(kind) + "/" + source + " " + (WbbWarudoLocator.FolderChecks - checks));
             WbbWarudoLocator.FolderCheck.Set();
             Settle();
@@ -154,11 +158,12 @@ static class Program
         return WbbWarudoPipeline.Read(out source);
     }
 
-    // A local read takes milliseconds; 5 s only keeps a broken worker from hanging the check.
+    // Waits until the read that is out has its result ready (Busy stays true until Read or Poll takes it). A local read
+    // takes milliseconds; 5 s only keeps a broken worker from hanging the check.
     static void Settle()
     {
         var watch = Stopwatch.StartNew();
-        while (WbbWarudoPipeline.Busy && watch.ElapsedMilliseconds < 5000)
+        while (WbbWarudoPipeline.Busy && !WbbWarudoPipeline.Ready && watch.ElapsedMilliseconds < 5000)
             Thread.Sleep(5);
     }
 

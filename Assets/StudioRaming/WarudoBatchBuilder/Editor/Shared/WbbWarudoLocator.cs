@@ -18,9 +18,11 @@ namespace StudioRaming.WarudoBatchBuilder
         public static string BatchStreamingAssets = "";
         // The last WARUDO folder setting reported as unusable, so a bad value is reported once and not on every preflight.
         private static string warnedSetting = "";
-        private static bool searched;
-        private static string cachedStreamingAssets = "";
-        private static readonly List<string> cachedLibraries = new List<string>();
+        // The last Steam search and the generation it was made for. Invalidate moves the generation on instead of clearing the
+        // result, so the pipeline badge's worker thread and the main thread can both search: each search builds its own result
+        // and only swaps the reference in, and a result made for an older generation is searched again.
+        private static SteamSearch steamSearch;
+        private static int searchGeneration;
         private static readonly Regex PathEntry = new Regex("\"path\"\\s+\"([^\"]+)\"", RegexOptions.IgnoreCase);
         private static readonly Regex LegacyEntry = new Regex("^\\s*\"\\d+\"\\s+\"([^\"]+)\"\\s*$", RegexOptions.Multiline);
         private static readonly Regex InstallDirEntry = new Regex("\"installdir\"\\s+\"([^\"]+)\"", RegexOptions.IgnoreCase);
@@ -30,8 +32,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 if (DisableSteamLookupForTests)
                     return "";
-                EnsureSearched();
-                return cachedStreamingAssets;
+                return Searched().streamingAssets;
             }
         }
 
@@ -66,15 +67,12 @@ namespace StudioRaming.WarudoBatchBuilder
         {
             if (DisableSteamLookupForTests)
                 return new List<string>().AsReadOnly();
-            EnsureSearched();
-            return cachedLibraries.AsReadOnly();
+            return Searched().libraries;
         }
 
         public static void Invalidate()
         {
-            searched = false;
-            cachedStreamingAssets = "";
-            cachedLibraries.Clear();
+            System.Threading.Interlocked.Increment(ref searchGeneration);
         }
 
         // The one place that decides which WARUDO a build is checked against: (a) the WARUDO the output path is inside,
@@ -168,42 +166,48 @@ namespace StudioRaming.WarudoBatchBuilder
             }
         }
 
-        // What AmbientStreamingAssets decides from, taken without checking a folder: the running batch's root, the WARUDO
-        // folder setting and the Steam install (searched once and kept). Main thread only (EditorPrefs and the batch state).
+        // What AmbientStreamingAssets decides from, taken without touching the disk: the running batch's root, the WARUDO
+        // folder setting, and whether and which Steam search applies. Main thread only (EditorPrefs and the batch state).
         public sealed class AmbientInputs
         {
             public readonly string batch;
             public readonly string setting;
-            public readonly string steam;
+            public readonly bool steamDisabled;
+            public readonly int steamGeneration;
 
-            public AmbientInputs(string batch, string setting, string steam)
+            public AmbientInputs(string batch, string setting, bool steamDisabled, int steamGeneration)
             {
                 this.batch = batch ?? "";
                 this.setting = setting ?? "";
-                this.steam = steam ?? "";
+                this.steamDisabled = steamDisabled;
+                this.steamGeneration = steamGeneration;
             }
 
             public bool SameAs(AmbientInputs other)
             {
                 return other != null && string.Equals(batch, other.batch, System.StringComparison.Ordinal)
                     && string.Equals(setting, other.setting, System.StringComparison.Ordinal)
-                    && string.Equals(steam, other.steam, System.StringComparison.Ordinal);
+                    && steamDisabled == other.steamDisabled && steamGeneration == other.steamGeneration;
             }
         }
 
         public static AmbientInputs CaptureAmbient()
         {
-            return new AmbientInputs(WbbBuildRunner.AnyRunning ? BatchStreamingAssets : "", WbbPrefs.GetString(RootPrefKey, ""), StreamingAssetsPath);
+            return new AmbientInputs(WbbBuildRunner.AnyRunning ? BatchStreamingAssets : "", WbbPrefs.GetString(RootPrefKey, ""),
+                DisableSteamLookupForTests, System.Threading.Volatile.Read(ref searchGeneration));
         }
 
-        // The folder half of AmbientStreamingAssets, in the same order. Safe off the main thread: it checks folders and reads
-        // nothing shared. It does not report an unusable setting; the preflight does, through ResolveForOutput.
+        // The disk half of AmbientStreamingAssets, in the same order: Steam is searched only when the batch root and the setting
+        // give nothing. Safe off the main thread: it checks folders, and the Steam search it may run swaps its result in whole.
+        // It does not report an unusable setting; the preflight does, through ResolveForOutput.
         public static string ResolveAmbient(AmbientInputs inputs)
         {
             if (inputs.batch.Length > 0)
                 return inputs.batch;
             string root = SettingRoot(inputs.setting);
-            return root.Length > 0 ? root : inputs.steam;
+            if (root.Length > 0)
+                return root;
+            return inputs.steamDisabled ? "" : Searched().streamingAssets;
         }
 
         public static bool IsInsideWarudoData(string path, out string streamingAssetsRoot)
@@ -234,29 +238,53 @@ namespace StudioRaming.WarudoBatchBuilder
             return StreamingAssetsPath;
         }
 
-        private static void EnsureSearched()
+        // One finished Steam search. Never changed after it is made.
+        private sealed class SteamSearch
         {
-            if (searched)
-                return;
-            searched = true;
-            cachedStreamingAssets = "";
-            cachedLibraries.Clear();
+            public readonly int generation;
+            public readonly string streamingAssets;
+            public readonly IList<string> libraries;
+
+            public SteamSearch(int generation, string streamingAssets, List<string> libraries)
+            {
+                this.generation = generation;
+                this.streamingAssets = streamingAssets;
+                this.libraries = libraries.AsReadOnly();
+            }
+        }
+
+        private static SteamSearch Searched()
+        {
+            int generation = System.Threading.Volatile.Read(ref searchGeneration);
+            SteamSearch search = System.Threading.Volatile.Read(ref steamSearch);
+            if (search != null && search.generation == generation)
+                return search;
+            search = Search(generation);
+            System.Threading.Volatile.Write(ref steamSearch, search);
+            return search;
+        }
+
+        private static SteamSearch Search(int generation)
+        {
+            string found = "";
+            var libraries = new List<string>();
             try
             {
                 string steam = SteamRoot();
-                if (string.IsNullOrEmpty(steam))
-                    return;
-                AddLibrary(steam);
-                string vdf = steam + "/steamapps/libraryfolders.vdf";
-                if (File.Exists(vdf))
-                    ParseLibraryFolders(File.ReadAllText(vdf));
-                for (int i = 0; i < cachedLibraries.Count; i++)
+                if (!string.IsNullOrEmpty(steam))
                 {
-                    string candidate = CandidateFor(cachedLibraries[i]);
-                    if (!string.IsNullOrEmpty(candidate) && Directory.Exists(candidate))
+                    AddLibrary(libraries, steam);
+                    string vdf = steam + "/steamapps/libraryfolders.vdf";
+                    if (File.Exists(vdf))
+                        ParseLibraryFolders(libraries, File.ReadAllText(vdf));
+                    for (int i = 0; i < libraries.Count; i++)
                     {
-                        cachedStreamingAssets = candidate;
-                        return;
+                        string candidate = CandidateFor(libraries[i]);
+                        if (!string.IsNullOrEmpty(candidate) && Directory.Exists(candidate))
+                        {
+                            found = candidate;
+                            break;
+                        }
                     }
                 }
             }
@@ -264,6 +292,8 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 WbbUtil.LogWarning("WARUDO install lookup failed: " + e.Message);
             }
+
+            return new SteamSearch(generation, found, libraries);
         }
 
         private static string SteamRoot()
@@ -289,17 +319,17 @@ namespace StudioRaming.WarudoBatchBuilder
             }
         }
 
-        private static void ParseLibraryFolders(string text)
+        private static void ParseLibraryFolders(List<string> libraries, string text)
         {
             if (string.IsNullOrEmpty(text))
                 return;
             foreach (Match match in PathEntry.Matches(text))
-                AddLibrary(Unescape(match.Groups[1].Value));
+                AddLibrary(libraries, Unescape(match.Groups[1].Value));
             foreach (Match match in LegacyEntry.Matches(text))
             {
                 string value = Unescape(match.Groups[1].Value);
                 if (value.IndexOf(':') > 0 || value.StartsWith("/"))
-                    AddLibrary(value);
+                    AddLibrary(libraries, value);
             }
         }
 
@@ -308,18 +338,18 @@ namespace StudioRaming.WarudoBatchBuilder
             return vdfValue == null ? "" : vdfValue.Replace("\\\\", "\\");
         }
 
-        private static void AddLibrary(string path)
+        private static void AddLibrary(List<string> libraries, string path)
         {
             string normalized = WbbUtil.NormalizePath(path);
             if (string.IsNullOrEmpty(normalized))
                 return;
-            for (int i = 0; i < cachedLibraries.Count; i++)
+            for (int i = 0; i < libraries.Count; i++)
             {
-                if (string.Equals(cachedLibraries[i], normalized, System.StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(libraries[i], normalized, System.StringComparison.OrdinalIgnoreCase))
                     return;
             }
 
-            cachedLibraries.Add(normalized);
+            libraries.Add(normalized);
         }
 
         private static string CandidateFor(string library)
