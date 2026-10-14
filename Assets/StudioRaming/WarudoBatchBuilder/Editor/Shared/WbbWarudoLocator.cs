@@ -43,9 +43,12 @@ namespace StudioRaming.WarudoBatchBuilder
             }
         }
 
+        // The type folder of the WARUDO that code without an output path works with (AmbientStreamingAssets): the running
+        // batch's, otherwise the WARUDO folder setting, otherwise Steam. With Steam alone, a WARUDO outside Steam that the
+        // setting names would get no default output folder, and the Props reload notice would never match it.
         public static string TypeFolder(WbbExportType type)
         {
-            string root = StreamingAssetsPath;
+            string root = AmbientStreamingAssets;
             if (string.IsNullOrEmpty(root))
                 return "";
             switch (type)

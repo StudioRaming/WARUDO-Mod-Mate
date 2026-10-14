@@ -14,6 +14,12 @@ namespace StudioRaming.WarudoBatchBuilder
     {
         public static bool Found;
         public static string StreamingAssetsPath = "";
+
+        // The product reads the WARUDO the builds use; here that is the folder set above, or none when Found is false.
+        public static string AmbientStreamingAssets
+        {
+            get { return Found ? StreamingAssetsPath : ""; }
+        }
     }
 
     public static class WbbUtil

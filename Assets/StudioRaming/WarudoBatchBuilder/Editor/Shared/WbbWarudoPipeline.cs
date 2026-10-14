@@ -24,13 +24,15 @@ namespace StudioRaming.WarudoBatchBuilder
 
         public static WbbUtil.PipelineKind? Read(out string source)
         {
-            if (!WbbWarudoLocator.Found)
+            // The WARUDO the builds use (the WARUDO folder setting before Steam), not only a Steam install.
+            string root = WbbWarudoLocator.AmbientStreamingAssets;
+            if (string.IsNullOrEmpty(root))
             {
                 source = "not-found";
                 return null;
             }
 
-            string path = Path.Combine(WbbWarudoLocator.StreamingAssetsPath, "Plugins", "Data", OptionFileName);
+            string path = Path.Combine(root, "Plugins", "Data", OptionFileName);
             double now = EditorApplication.timeSinceStartup;
             if (path == cachedPath && now - lastCheckTime < RecheckSeconds)
             {
