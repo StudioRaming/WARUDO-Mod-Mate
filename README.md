@@ -158,7 +158,7 @@ Edit the same Prop and build it again without closing WARUDO.
 - Scope: verified for Props without scripts. Props with scripts and Characters are not verified yet. Environment builds are not supported in 0.1.x.
 - Caution: selecting Source right after replacing the file can cause one extra reload, depending on when WARUDO notices the file.
 
-When such a build succeeds (a Prop without scripts that overwrote the same name), the result area shows a short notice with the same content. It appears only when the output is inside the `Props` folder of the WARUDO install (the location found through Steam).
+When such a build succeeds (a Prop without scripts that overwrote the same name), the result area shows a short notice with the same content. It appears only when the output is inside the `Props` folder of the WARUDO install the build uses (the WARUDO the output path is in, the set WARUDO folder, or the location found through Steam).
 
 ## Export a Unity package
 

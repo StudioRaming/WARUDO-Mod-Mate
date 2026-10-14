@@ -519,7 +519,8 @@ namespace StudioRaming.WarudoBatchBuilder
             step = Step.Cleanup;
         }
 
-        // WARUDO only reloads a changed file from the Props folder of its own install (found through Steam). The Build tab's
+        // WARUDO only reloads a changed file from the Props folder of its own install: the one this batch resolved (TypeFolder
+        // reads the batch's WARUDO while it runs, so an install outside Steam counts too). The Build tab's
         // output folder pref is where Mod Mate writes, not where WARUDO reads, so it does not count. Without a WARUDO install
         // TypeFolder is "" and nothing is inside it. Both sides are resolved to full paths first: the output folder is typed by
         // hand, and ".../Props/../Exports" starts with the Props folder as text while the file lands outside it.
