@@ -434,6 +434,14 @@ namespace StudioRaming.WarudoBatchBuilder
             return WbbWarudoLocator.TypeFolder(type);
         }
 
+        // The output folder stored under `key`, or the type's default when none is stored. The default is worked out only
+        // then: it checks the WARUDO folder setting's folders, and a share that does not answer blocks that check for about
+        // 20 seconds, on every window focus and tab entry that reads the stored folder.
+        public static string StoredOutputPath(string key, WbbExportType type)
+        {
+            return WbbPrefs.HasKey(key) ? WbbPrefs.GetString(key, "") : DefaultOutputPath(type);
+        }
+
         public static void RevealFolder(string absolutePath)
         {
             try

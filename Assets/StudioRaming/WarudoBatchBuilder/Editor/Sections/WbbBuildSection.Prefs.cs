@@ -39,7 +39,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.modVersion = WbbPrefs.GetString(Pfx + "Version", "1.0.0");
             job.modAuthor = WbbPrefs.GetString(Pfx + "Author", "");
             job.modDescription = WbbPrefs.GetString(Pfx + "Description", "");
-            job.outputDirectory = WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType));
+            job.outputDirectory = WbbUtil.StoredOutputPath(OutputDirKey(CurrentType), CurrentType);
             job.appendDateSuffix = WbbPrefs.GetBool(Pfx + "AppendDate", false);
             job.overwriteExisting = WbbPrefs.GetBool(Pfx + "Overwrite", true);
             job.outputMode = Mathf.Clamp(WbbPrefs.GetInt(Pfx + "OutputMode", 0), 0, OutputModeCount - 1);
@@ -124,7 +124,7 @@ namespace StudioRaming.WarudoBatchBuilder
             saved.modVersion = WbbPrefs.GetString(Pfx + "Version", "1.0.0");
             saved.modAuthor = WbbPrefs.GetString(Pfx + "Author", "");
             saved.modDescription = WbbPrefs.GetString(Pfx + "Description", "");
-            saved.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            saved.outputDirectory = WbbUtil.StoredOutputPath(OutputDirKey(type), type);
             saved.stripVrcComponents = WbbPrefs.GetBool(Pfx + "StripVrc", true);
             saved.manualScriptFolder = WbbListSettings.ManualScriptFolder;
             LoadScriptFolders(saved);

@@ -533,7 +533,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.exportType = typeIndex;
             WbbPrefs.SetInt(Pfx + "Type", typeIndex);
             var type = (WbbExportType)typeIndex;
-            job.outputDirectory = WbbPrefs.GetString(OutputDirKey(type), WbbUtil.DefaultOutputPath(type));
+            job.outputDirectory = WbbUtil.StoredOutputPath(OutputDirKey(type), type);
             NoteOutputDirSeen();
             ClearRebuildNameOverrides();
             namesDirty = true;
@@ -639,7 +639,7 @@ namespace StudioRaming.WarudoBatchBuilder
             job.manualNameGuids = stored.manualNameGuids != null ? new List<string>(stored.manualNameGuids) : new List<string>();
             job.manualNames = stored.manualNames != null ? new List<string>(stored.manualNames) : new List<string>();
             SaveManualNames();
-            job.outputDirectory = string.IsNullOrEmpty(stored.outputDirectory) ? WbbPrefs.GetString(OutputDirKey(CurrentType), WbbUtil.DefaultOutputPath(CurrentType)) : stored.outputDirectory;
+            job.outputDirectory = string.IsNullOrEmpty(stored.outputDirectory) ? WbbUtil.StoredOutputPath(OutputDirKey(CurrentType), CurrentType) : stored.outputDirectory;
             WbbListSettings.AddHidden(stored.excludedPrefabGuids);
             string scope = WbbUtil.ResolveFolder(stored.prefabFolderGuid, stored.prefabFolderPath);
             if (WbbUtil.IsValidProjectFolder(scope))
