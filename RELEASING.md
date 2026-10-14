@@ -25,6 +25,8 @@ dotnet run --project tools/catalog-check -p:WarudoSdkRoslynDir="<modtool SDK>/Pa
 Run the four build cases and the reload check (`4-abort-by-reload.cs`) in `tools/unity-verify/README.md` in an empty
 Unity 2021.3.45f2 project with SDK 0.14.3.10.
 Record the `VERDICT` line of each case. Every case must match its expected row in that README. INCONCLUSIVE is not a pass.
+Before a release also run the same-name overwrite checks there: `5-output-guard.cs`, the three overwrite runs of
+`2-build.cs`, and `6-quick-build.cs`.
 
 ## 3. Package
 
