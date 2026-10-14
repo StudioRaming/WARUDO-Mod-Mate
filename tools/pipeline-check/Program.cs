@@ -3,7 +3,7 @@
 //
 // Run from the repo root:  dotnet run --project tools/pipeline-check [path-to-Warudo.NiloToon.json]
 // Without an argument the default WARUDO install path is read in place (the file is never copied into the repo).
-// A missing WARUDO file is SKIP for case (a), not a failure. Exit code 1 on any mismatch.
+// A missing or unreadable WARUDO file is SKIP for case (a), not a failure. Exit code 1 on any mismatch.
 using System;
 using System.IO;
 using StudioRaming.WarudoBatchBuilder;
@@ -22,10 +22,25 @@ static class Program
 
         string path = args.Length > 0 ? args[0] : DefaultPath;
         // The real file holds whichever pipeline WARUDO is set to right now, so (a) only requires a readable value.
+        // WARUDO holds the file open while it saves it; that is SKIP like a missing file, so cases (b) to (g) still run.
+        string text = null;
+        string skip = "file not found";
         if (File.Exists(path))
-            CheckReadable("(a) WARUDO file " + path, WbbWarudoPipeline.ParseNiloToonEnabled(File.ReadAllText(path)));
+        {
+            try
+            {
+                text = File.ReadAllText(path);
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                skip = "could not read the file (" + e.Message + ")";
+            }
+        }
+
+        if (text != null)
+            CheckReadable("(a) WARUDO file " + path, WbbWarudoPipeline.ParseNiloToonEnabled(text));
         else
-            Console.WriteLine("(a) WARUDO file " + path + " | SKIP | file not found");
+            Console.WriteLine("(a) WARUDO file " + path + " | SKIP | " + skip);
 
         Check("(b) value false", false, WbbWarudoPipeline.ParseNiloToonEnabled("{\"dataInputs\":{\"Enabled\":{\"type\":\"bool\",\"typeKind\":\"Value\",\"defaultValue\":\"true\",\"value\":\"false\"}}}"));
         Check("(c1) Parse(null)", null, WbbWarudoPipeline.ParseNiloToonEnabled(null));
