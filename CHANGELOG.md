@@ -23,6 +23,7 @@ Fixes
 - The magnifier icon in search fields follows an Editor Theme switch and a move to a monitor with another display scale. It kept the first theme's icon, which is hard to see after switching from Dark to Light.
 - Script reloads no longer leave the window's card textures behind in memory when only Quick Build or the folder browser is open.
 - When the build journal cannot be written (for example while another program holds the file), the item fails before it overwrites an existing mod file or writes the build profile, and the referenced mods list and console options are left as they are. Before, a Unity crash right after such a failed write made the next start delete the finished backup of the old mod file, and could leave the build profile, the referenced mods list or the console options changed.
+- Rebuilding scene quick-build records of both types opens the loaded ones even when the first selected record's scene is closed. The window used to take its type (Character or Prop) from the first record, so a closed Character first left out every loaded Prop and only said that the Character's scene object was not found. The type now comes from the first record that is found, and the note counts the others as not open or of another type.
 
 Changes
 

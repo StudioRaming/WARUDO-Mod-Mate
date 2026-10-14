@@ -170,22 +170,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 return;
             }
 
-            WbbExportType type = records[0].ExportType == WbbExportType.Character ? WbbExportType.Character : WbbExportType.Prop;
-            var objects = new List<GameObject>();
-            var names = new Dictionary<GameObject, string>();
+            // The type comes from the first record whose scene object is found: taking it from records[0] let a record whose
+            // scene is closed turn away the loaded records of the other type, and nothing opened.
+            var found = new List<WbbRecord>();
+            var sources = new List<GameObject>();
             int notLoaded = 0;
-            int otherType = 0;
             string firstMissing = "";
             for (int i = 0; i < records.Count; i++)
             {
                 WbbRecord record = records[i];
-                WbbExportType recordType = record.ExportType == WbbExportType.Character ? WbbExportType.Character : WbbExportType.Prop;
-                if (recordType != type)
-                {
-                    otherType++;
-                    continue;
-                }
-
                 GameObject go = ResolveSource(record.sourceObjectId, record.sourceScenePath, record.sourceHierarchyPath);
                 if (go == null)
                 {
@@ -195,16 +188,34 @@ namespace StudioRaming.WarudoBatchBuilder
                     continue;
                 }
 
-                if (names.ContainsKey(go))
-                    continue;
-                objects.Add(go);
-                names[go] = record.modName;
+                found.Add(record);
+                sources.Add(go);
             }
 
-            if (objects.Count == 0)
+            if (found.Count == 0)
             {
                 EditorUtility.DisplayDialog(L("Common.ProductName"), L("Quick.SourceNotLoaded", firstMissing), L("Common.Ok"));
                 return;
+            }
+
+            WbbExportType type = found[0].ExportType == WbbExportType.Character ? WbbExportType.Character : WbbExportType.Prop;
+            var objects = new List<GameObject>();
+            var names = new Dictionary<GameObject, string>();
+            int otherType = 0;
+            for (int i = 0; i < found.Count; i++)
+            {
+                WbbExportType recordType = found[i].ExportType == WbbExportType.Character ? WbbExportType.Character : WbbExportType.Prop;
+                if (recordType != type)
+                {
+                    otherType++;
+                    continue;
+                }
+
+                GameObject go = sources[i];
+                if (names.ContainsKey(go))
+                    continue;
+                objects.Add(go);
+                names[go] = found[i].modName;
             }
 
             string note = notLoaded > 0 || otherType > 0 ? L("Quick.RebuildSkipped", notLoaded, otherType) : "";
