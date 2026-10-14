@@ -32,6 +32,7 @@ Documentation
 
 - The manual's runtime code section says which rules apply to the default automatic collection and which only to a manual script folder. It told every user to move scripts "into the script folder", which does not exist in the default mode.
 - Six button and status names in the manual now match the window: Build Warudo mod, Export .unitypackage and Missing (English), Warudo MODをビルド and .unitypackage を書き出す (Japanese), 실패만 재빌드 (Korean).
+- The advanced settings capture in the manual and the READMEs (`02-advanced.png`) no longer shows a folder path from the development PC in the output folder field. The field now shows `Assets/ModMateGuideExamples/Output`, taken from the package capture of the same window; nothing else in the image changed.
 
 ## 0.1.2 (2026-10-11)
 
