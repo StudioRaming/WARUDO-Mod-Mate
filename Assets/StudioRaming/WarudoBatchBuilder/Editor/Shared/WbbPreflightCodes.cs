@@ -14,6 +14,8 @@ namespace StudioRaming.WarudoBatchBuilder
     public static class WbbPreflightCodes
     {
         public const string WarudoNotFound = "warudo-not-found";
+        public const string WarudoManagedMissing = "warudo-managed-missing";
+        public const string WarudoManagedSkipped = "warudo-managed-skipped";
         public const string UntitledScene = "untitled-scene";
         public const string PrefabStageDirty = "prefab-stage-dirty";
         public const string SettingsBroken = "settings-broken";

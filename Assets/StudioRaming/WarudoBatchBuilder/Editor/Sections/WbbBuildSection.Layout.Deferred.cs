@@ -86,6 +86,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 AfterFocusRelease(PickOutputFolder);
             }
 
+            if (pendingPickWarudoRoot)
+            {
+                pendingPickWarudoRoot = false;
+                AfterFocusRelease(PickWarudoFolder);
+            }
+
             if (pendingPickStaging)
             {
                 pendingPickStaging = false;

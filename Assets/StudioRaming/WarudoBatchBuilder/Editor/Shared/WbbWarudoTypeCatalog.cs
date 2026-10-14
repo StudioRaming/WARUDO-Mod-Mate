@@ -12,14 +12,14 @@ namespace StudioRaming.WarudoBatchBuilder
     {
         private readonly Dictionary<string, IAssemblySymbol> symbols = new Dictionary<string, IAssemblySymbol>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> paths = new Dictionary<string, string>(StringComparer.Ordinal);
-        public static WbbWarudoTypeCatalog Read()
+        // `streaming` is the Warudo_Data/StreamingAssets folder WbbWarudoLocator.ResolveForOutput decided on.
+        public static WbbWarudoTypeCatalog Read(string streaming)
         {
-            string streaming = WbbWarudoLocator.StreamingAssetsPath;
             if (string.IsNullOrEmpty(streaming))
-                throw new InvalidOperationException("WARUDO installation is required to identify provided runtime types.");
+                throw new InvalidOperationException(WbbLang.T("Safety.WarudoManagedMissing"));
             string directory = Path.Combine(Path.GetDirectoryName(streaming), "Managed");
             if (!Directory.Exists(directory))
-                throw new DirectoryNotFoundException("WARUDO managed assemblies are missing: " + directory);
+                throw new DirectoryNotFoundException(WbbLang.T("Safety.WarudoManagedFolder", directory));
             var result = new WbbWarudoTypeCatalog();
             var refs = new List<MetadataReference>();
             foreach (var file in Directory.GetFiles(directory, "*.dll").OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
@@ -43,6 +43,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 result.paths[assembly.Identity.Name] = reference.Display;
             }
 
+            WbbUtil.Log("WARUDO type catalog read: " + result.symbols.Count + " assemblies from " + directory);
             return result;
         }
 

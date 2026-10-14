@@ -50,11 +50,20 @@ namespace StudioRaming.WarudoBatchBuilder
         private const double CacheSeconds = 20d;
         private static Dictionary<string, string> cached;
         private static string cachedReason = "";
+        private static string cachedRoot = "";
         private static double cachedAt = double.MinValue;
+        // For code without an output path: the running batch's WARUDO folder, otherwise the setting or Steam.
         public static Dictionary<string, string> Read(out string reason)
         {
+            return Read(WbbWarudoLocator.AmbientStreamingAssets, out reason);
+        }
+
+        // `streaming` is the Warudo_Data/StreamingAssets folder WbbWarudoLocator.ResolveForOutput decided on.
+        public static Dictionary<string, string> Read(string streaming, out string reason)
+        {
+            streaming = streaming ?? "";
             double now = EditorApplication.timeSinceStartup;
-            if (cached != null && now - cachedAt < CacheSeconds && now >= cachedAt)
+            if (cached != null && string.Equals(cachedRoot, streaming, StringComparison.OrdinalIgnoreCase) && now - cachedAt < CacheSeconds && now >= cachedAt)
             {
                 reason = cachedReason;
                 return cached;
@@ -64,17 +73,16 @@ namespace StudioRaming.WarudoBatchBuilder
             Dictionary<string, string> found = null;
             try
             {
-                string streaming = WbbWarudoLocator.StreamingAssetsPath;
                 if (string.IsNullOrEmpty(streaming))
                 {
-                    reason = "WARUDO installation not found.";
+                    reason = WbbLang.T("Safety.WarudoManagedMissing");
                 }
                 else
                 {
                     string directory = Path.Combine(Path.GetDirectoryName(streaming), "Managed");
                     if (!Directory.Exists(directory))
                     {
-                        reason = "WARUDO managed assemblies are missing: " + directory;
+                        reason = WbbLang.T("Safety.WarudoManagedFolder", directory);
                     }
                     else
                     {
@@ -92,6 +100,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
             cached = found;
             cachedReason = reason;
+            cachedRoot = streaming;
             cachedAt = now;
             return found;
         }
@@ -155,12 +164,12 @@ namespace StudioRaming.WarudoBatchBuilder
         // Manual script folder: the folder is the whole mod, so every dependency has to be in it or in WARUDO.
         // Assemblies defined in the folder become units of their own; the plain scripts of the folder become one more unit
         // that is compiled last, so it can use the types of the others.
-        public static WbbAsmdefAnalysis ForFolder(WbbScriptFolderScan scan)
+        public static WbbAsmdefAnalysis ForFolder(WbbScriptFolderScan scan, string warudoStreamingAssets = null)
         {
             var names = new List<string>();
             if (scan != null)
                 names.AddRange(scan.asmdefAssemblies.Keys);
-            WbbAsmdefAnalysis result = names.Count > 0 ? Analyze(names, false) : new WbbAsmdefAnalysis();
+            WbbAsmdefAnalysis result = names.Count > 0 ? Analyze(names, false, warudoStreamingAssets) : new WbbAsmdefAnalysis();
             if (scan == null || scan.plainScriptAssets.Count == 0)
                 return result;
             string reason;
@@ -247,9 +256,9 @@ namespace StudioRaming.WarudoBatchBuilder
         }
 
         // Automatic mode: the prefab names the assemblies, their asmdef dependencies come along.
-        public static WbbAsmdefAnalysis ForAssemblies(IEnumerable<string> names)
+        public static WbbAsmdefAnalysis ForAssemblies(IEnumerable<string> names, string warudoStreamingAssets = null)
         {
-            return Analyze(names, true);
+            return Analyze(names, true, warudoStreamingAssets);
         }
 
         public static Dictionary<string, PlayerAssembly> PlayerAssemblies()
@@ -319,12 +328,13 @@ namespace StudioRaming.WarudoBatchBuilder
             return defines.Where(d => !string.IsNullOrEmpty(d) && d != "UNITY_EDITOR" && !d.StartsWith("UNITY_EDITOR_", StringComparison.Ordinal)).Distinct(StringComparer.Ordinal).ToArray();
         }
 
-        private static WbbAsmdefAnalysis Analyze(IEnumerable<string> requested, bool expand)
+        // `warudoStreamingAssets` null: the root of the running batch (see WbbWarudoManaged.Read).
+        private static WbbAsmdefAnalysis Analyze(IEnumerable<string> requested, bool expand, string warudoStreamingAssets)
         {
             var result = new WbbAsmdefAnalysis();
             var players = PlayerAssemblies();
             string hostReason;
-            Dictionary<string, string> host = WbbWarudoManaged.Read(out hostReason);
+            Dictionary<string, string> host = warudoStreamingAssets == null ? WbbWarudoManaged.Read(out hostReason) : WbbWarudoManaged.Read(warudoStreamingAssets, out hostReason);
             var chosen = new Dictionary<string, PlayerAssembly>(StringComparer.Ordinal);
             var queue = new Queue<string>(requested.Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal));
             while (queue.Count > 0)

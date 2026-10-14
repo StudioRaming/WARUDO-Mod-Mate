@@ -50,6 +50,13 @@ namespace StudioRaming.WarudoBatchBuilder
                 issues.Add(new WbbPreflightIssue(false, L("Runner.OutputFolderMissing", outputDirectory), L("Runner.OutputFolderMissing.hint")));
             }
 
+            string warudoSource;
+            string warudoStreaming = WbbWarudoLocator.ResolveForOutput(outputDirectory, out warudoSource);
+#if WBB_WARUDO_SDK
+            // Automatic script mode checks every type against WARUDO's own assemblies; without them each item would fail.
+            if (!job.manualScriptFolder && outputUsable && warudoStreaming.Length == 0)
+                issues.Add(Coded(true, L("Safety.WarudoManagedMissing"), L("Safety.WarudoManagedMissing.hint"), WbbPreflightCodes.WarudoManagedMissing));
+#endif
             string error;
             if (!WbbExportSettings.ValidateAvailable(out error))
                 issues.Add(new WbbPreflightIssue(true, L("Runner.NoUMod"), L("Runner.NoUMod.hint")));
@@ -105,9 +112,12 @@ namespace StudioRaming.WarudoBatchBuilder
                 {
                     // Runtime code of the folder (assembly definitions and plain scripts) is compiled by Mod Mate itself;
                     // what stands in the way is reported here.
-                    WbbAsmdefAnalysis asmdef = WbbAsmdefAnalysis.ForFolder(scan);
+                    WbbAsmdefAnalysis asmdef = WbbAsmdefAnalysis.ForFolder(scan, warudoStreaming);
                     for (int i = 0; i < asmdef.issues.Count; i++)
                         issues.Add(Coded(asmdef.issues[i].blocking, asmdef.issues[i].message, asmdef.issues[i].detail, asmdef.issues[i].code));
+                    // Without WARUDO's assemblies the names and references of this code are not compared with them.
+                    if (warudoStreaming.Length == 0)
+                        issues.Add(Coded(false, L("Safety.WarudoManagedSkipped"), L("Safety.WarudoManagedSkipped.hint"), WbbPreflightCodes.WarudoManagedSkipped));
                 }
 
                 if (scan.dlls.Count > 0)

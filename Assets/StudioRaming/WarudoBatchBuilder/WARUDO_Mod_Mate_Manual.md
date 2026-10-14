@@ -50,7 +50,7 @@ Live Test, 아바타 리깅, 자동 셰이더 변환, 물리 세팅은 포함하
 | Windows PC와 Unity **2021.3.45f2** | 검증된 사용 환경입니다. 비슷한 버전 번호 대신 정확한 `f2`를 확인하세요. |
 | WARUDO Mod Tool SDK | `.warudo`를 만들 때 필요합니다. 도구 패키지에 SDK는 들어 있지 않습니다. |
 | WARUDO와 호환되는 프리팹·머티리얼·셰이더 | 실제 모드의 내용입니다. |
-| WARUDO | 만든 모드를 실제로 불러와 확인할 때 필요합니다. |
+| WARUDO | 만든 모드를 실제로 불러와 확인할 때 필요합니다. 자동 스크립트 모드로 빌드할 때도 같은 PC에 WARUDO가 있어야 합니다(Steam 자동 감지, 출력 경로, 또는 지정한 WARUDO 폴더). |
 
 `.unitypackage` 내보내기만 사용한다면 WARUDO SDK 없이 도구를 설치할 수 있습니다.
 
@@ -308,7 +308,7 @@ Live Test, avatar rigging, automatic shader conversion and physics setup are not
 
 ## Requirements and installation
 
-Use a Windows PC and Unity **2021.3.45f2**. Building `.warudo` requires the separately installed WARUDO Mod Tool SDK and compatible content. WARUDO is needed to load and test outputs. Unity package export works without the SDK.
+Use a Windows PC and Unity **2021.3.45f2**. Building `.warudo` requires the separately installed WARUDO Mod Tool SDK and compatible content. WARUDO is needed to load and test outputs. Auto script mode builds also need WARUDO on the same PC (Steam auto-detect, the output path, or a set WARUDO folder). Unity package export works without the SDK.
 
 The tested SDK baseline is **0.14.3.10**. Other versions should be tried in a separate project. See the [official SDK installation guide](https://docs.warudo.app/docs/modding/sdk-installation). In **Player → Other Settings**, select **.NET Framework** API Compatibility Level and disable **Assembly Version Validation**. Wait until SDK import finishes without red Console errors.
 
@@ -542,7 +542,7 @@ Live Test、自動リギング、シェーダーの自動変換、物理設定�
 
 ## 準備とインストール
 
-Windows PC と Unity **2021.3.45f2** が検証済み環境です。`.warudo` の作成には別途 WARUDO Mod Tool SDK と対応アセットが必要です。出力の動作確認には WARUDO を使用します。Unity パッケージの書き出しだけなら SDK は不要です。
+Windows PC と Unity **2021.3.45f2** が検証済み環境です。`.warudo` の作成には別途 WARUDO Mod Tool SDK と対応アセットが必要です。出力の動作確認には WARUDO を使用します。自動スクリプトモードのビルドにも同じ PC 上の WARUDO が必要です（Steam の自動検出、出力先、または指定した WARUDO フォルダ）。Unity パッケージの書き出しだけなら SDK は不要です。
 
 SDK の検証基準は **0.14.3.10** です。別バージョンは別のプロジェクトで先に試してください。[公式 SDK インストール手順](https://docs.warudo.app/docs/modding/sdk-installation)を参照し、**Player → Other Settings** の API Compatibility Level を **.NET Framework**、Assembly Version Validation を **オフ**にします。SDK のインポート後、赤いコンパイルエラーがないことを確認してください。
 

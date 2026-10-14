@@ -212,7 +212,7 @@ namespace StudioRaming.WarudoBatchBuilder
 
             try
             {
-                autoPlan = WbbRuntimeScriptPlan.Collect(copyPath);
+                autoPlan = WbbRuntimeScriptPlan.Collect(copyPath, warudoStreaming);
             }
             catch (System.Exception e)
             {
@@ -226,7 +226,7 @@ namespace StudioRaming.WarudoBatchBuilder
             // one. Everything else (assembly definitions, or an SDK without the adapter) is compiled here.
             if (autoPlan.asmdefAssemblies.Length == 0 && WbbRuntimeScriptPlan.AdapterAvailable)
                 return true;
-            WbbAsmdefAnalysis analysis = autoPlan.asmdefAssemblies.Length > 0 ? WbbAsmdefAnalysis.ForAssemblies(autoPlan.asmdefAssemblies) : new WbbAsmdefAnalysis();
+            WbbAsmdefAnalysis analysis = autoPlan.asmdefAssemblies.Length > 0 ? WbbAsmdefAnalysis.ForAssemblies(autoPlan.asmdefAssemblies, warudoStreaming) : new WbbAsmdefAnalysis();
             if (analysis.HasBlocking)
             {
                 Fail(analysis.FirstBlockingMessage);
@@ -302,7 +302,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 {
                     if (autoPlanError.Length > 0)
                         throw new System.InvalidOperationException(autoPlanError);
-                    var scripts = autoPlan ?? WbbRuntimeScriptPlan.Collect(copyPath);
+                    var scripts = autoPlan ?? WbbRuntimeScriptPlan.Collect(copyPath, warudoStreaming);
                     expectScripts = scripts.sources.Length > 0 || scripts.asmdefAssemblies.Length > 0;
                     WbbUtil.Log("Automatic runtime sources: " + scripts.sources.Length + "; WARUDO-provided types: " + scripts.providedTypes.Count);
                     AppendMessage(L("Runner.AutoScripts", scripts.sources.Length, scripts.providedTypes.Count));

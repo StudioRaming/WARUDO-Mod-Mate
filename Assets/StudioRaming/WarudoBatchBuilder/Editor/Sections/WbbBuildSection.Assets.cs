@@ -147,6 +147,28 @@ namespace StudioRaming.WarudoBatchBuilder
             RequestRepaint();
         }
 
+        // The "WARUDO folder" setting: the install root, Warudo_Data or its StreamingAssets. It is stored as the StreamingAssets folder.
+        private void PickWarudoFolder()
+        {
+            string start = WbbPrefs.GetString(WbbWarudoLocator.RootPrefKey, "");
+            if (string.IsNullOrEmpty(start))
+                start = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles);
+            string picked = EditorUtility.OpenFolderPanel(L("Safety.PickWarudoFolder"), start, "");
+            if (string.IsNullOrEmpty(picked))
+                return;
+            string streaming = WbbWarudoLocator.NormalizeStreamingAssets(picked);
+            if (string.IsNullOrEmpty(streaming) || !WbbWarudoLocator.ManagedExists(streaming))
+            {
+                SetStatus(L("Safety.WarudoFolderInvalid", picked), MessageType.Warning);
+                RequestRepaint();
+                return;
+            }
+
+            WbbPrefs.SetString(WbbWarudoLocator.RootPrefKey, streaming);
+            preflightDirty = true;
+            RequestRepaint();
+        }
+
         private void OpenThumbnail(string guid)
         {
             int index = IndexOfGuid(guid);

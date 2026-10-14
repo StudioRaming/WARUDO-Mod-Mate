@@ -40,7 +40,7 @@ Live Test, avatar rigging, automatic shader conversion and physics setup are not
 
 ## Requirements and installation
 
-Use a Windows PC and Unity **2021.3.45f2**. Building `.warudo` requires the separately installed WARUDO Mod Tool SDK and compatible content. WARUDO is needed to load and test outputs. Unity package export works without the SDK.
+Use a Windows PC and Unity **2021.3.45f2**. Building `.warudo` requires the separately installed WARUDO Mod Tool SDK and compatible content. WARUDO is needed to load and test outputs. Auto script mode builds also need WARUDO on the same PC (Steam auto-detect, the output path, or a set WARUDO folder). Unity package export works without the SDK.
 
 The tested SDK baseline is **0.14.3.10**. Other versions should be tried in a separate project. See the [official SDK installation guide](https://docs.warudo.app/docs/modding/sdk-installation). In **Player → Other Settings**, select **.NET Framework** API Compatibility Level and disable **Assembly Version Validation**. Wait until SDK import finishes without red Console errors.
 
