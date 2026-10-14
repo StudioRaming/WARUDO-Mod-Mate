@@ -15,6 +15,8 @@ namespace StudioRaming.WarudoBatchBuilder
         private const int GroupByJob = 1;
         private const int GroupFlat = 2;
         private const string Pfx = WbbUtil.PrefPrefix + "History.";
+        // The confirm dialogs of delete and rebuild. Internal so a verification script can read the text without a click.
+        internal static System.Func<string, string, string, string, bool> ConfirmDialog = EditorUtility.DisplayDialog;
         private static string L(string key)
         {
             return WbbLang.T(key);
@@ -118,6 +120,9 @@ namespace StudioRaming.WarudoBatchBuilder
         private string pendingStatusLineText = "";
         private WbbTone pendingStatusLineTone = WbbTone.Info;
         private bool pendingForceRefresh;
+        private int hiddenSelectedCount;
+        private const double RefreshMinSec = 3.0;
+        private double lastRefreshTime = -999d;
         private bool pendingExportCsv;
         private bool pendingRebuildSelected;
         private bool pendingRebuildFailed;
@@ -193,8 +198,11 @@ namespace StudioRaming.WarudoBatchBuilder
             WbbPrefs.SetInt(Pfx + "Group", groupMode);
         }
 
+        // Re-checks the output files on tab entry and focus; the minimum gap keeps a big history from rescanning on every click.
         public void Refresh()
         {
+            if (EditorApplication.timeSinceStartup - lastRefreshTime < RefreshMinSec)
+                return;
             pendingForceRefresh = true;
             if (host != null)
                 host.RequestRepaint();

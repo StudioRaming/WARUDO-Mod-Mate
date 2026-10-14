@@ -547,6 +547,15 @@ namespace StudioRaming.WarudoBatchBuilder
                 }
             },
             {
+                "Build.CountOtherScope",
+                new[]
+                {
+                    "다른 폴더 {0}개 포함",
+                    "{0} from other folders included",
+                    "他のフォルダの {0}件を含む"
+                }
+            },
+            {
                 "Build.CountLine",
                 new[]
                 {
@@ -940,6 +949,15 @@ namespace StudioRaming.WarudoBatchBuilder
                     "빌드 시작 확인",
                     "Confirm build",
                     "ビルド開始の確認"
+                }
+            },
+            {
+                "Build.ConfirmOtherScope",
+                new[]
+                {
+                    "다른 폴더 {0}개 포함: {1}",
+                    "{0} from other folders included: {1}",
+                    "他のフォルダの {0}件を含む: {1}"
                 }
             },
             {

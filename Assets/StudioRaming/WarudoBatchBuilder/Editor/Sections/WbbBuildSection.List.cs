@@ -104,10 +104,10 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 emptyKind = EmptyNone;
             }
-            else if (items.Count > 0)
+            else if (items.Count - otherScopeCount > 0)
             {
                 emptyKind = EmptyNoMatch;
-                emptyMessage = L("Common.NoMatch", items.Count);
+                emptyMessage = L("Common.NoMatch", items.Count - otherScopeCount);
             }
             else if (indexBusyLayout)
             {
@@ -377,6 +377,9 @@ namespace StudioRaming.WarudoBatchBuilder
             preflightDirty = true;
             rebuildQueuedCount = 0;
             rebuildToken = "";
+            // An other-folder item lives in the list only while it is selected, so a selection change rescans to drop it and recount.
+            if (otherScopeCount > 0 && !busyLayout)
+                itemsDirty = true;
         }
 
         private void ClearRebuildNameOverrides()
@@ -456,6 +459,14 @@ namespace StudioRaming.WarudoBatchBuilder
                     selected.Remove(it.guid);
             }
 
+            MarkSelectionChanged();
+            RequestRepaint();
+        }
+
+        // Clear Selection drops every selected prefab, including ones a search, filter or other folder scope hides.
+        private void ClearAllSelection()
+        {
+            selected.Clear();
             MarkSelectionChanged();
             RequestRepaint();
         }

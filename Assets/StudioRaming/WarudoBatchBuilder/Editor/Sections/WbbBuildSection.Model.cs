@@ -226,7 +226,7 @@ namespace StudioRaming.WarudoBatchBuilder
             var perFolder = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].isScene)
+                if (items[i].isScene || items[i].otherScope)
                     continue;
                 int n;
                 perFolder.TryGetValue(items[i].folder, out n);
@@ -238,7 +238,7 @@ namespace StudioRaming.WarudoBatchBuilder
             {
                 Item item = items[i];
                 item.keyName = (item.modName + "\n" + item.name + "\n" + item.folder + "\n" + item.sceneLabel).ToLowerInvariant();
-                if (!MatchesSearch(item, words))
+                if (item.otherScope || !MatchesSearch(item, words))
                 {
                     item.group = -1;
                     continue;
@@ -419,6 +419,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 if (!items[filtered[i]].isScene)
                     visiblePrefabs++;
             countLine = L("Build.CountLine", visiblePrefabs, count);
+            if (otherScopeCount > 0)
+                countLine += " · " + L("Build.CountOtherScope", otherScopeCount);
             int hiddenTotal = rawCount + userHiddenCount;
             hiddenChipText = showHidden ? L("Build.HiddenChipOn", hiddenTotal) : L("Build.HiddenChip", hiddenTotal);
             hiddenChipTip = L("Build.HiddenChip.tip", rawCount, userHiddenCount);

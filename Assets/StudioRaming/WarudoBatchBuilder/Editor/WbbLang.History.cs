@@ -577,9 +577,18 @@ namespace StudioRaming.WarudoBatchBuilder
                 "History.RebuildFailedConfirm",
                 new[]
                 {
-                    "실패 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}\n\n계속할까요?",
-                    "Found {0} rebuild target(s) among failed records (newest per prefab).\nFirst target: {1}\n\nContinue?",
-                    "失敗記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}\n\n続行しますか？"
+                    "실패 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}{2}\n\n계속할까요?",
+                    "Found {0} rebuild target(s) among failed records (newest per prefab).\nFirst target: {1}{2}\n\nContinue?",
+                    "失敗記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}{2}\n\n続行しますか？"
+                }
+            },
+            {
+                "History.RebuildDropNote",
+                new[]
+                {
+                    "설정이 다른 {0}건은 이번에 빠집니다. (타입 · 버전 · 제작자 · 출력 폴더가 다름)",
+                    "{0} item(s) with different settings are left out this time (type, version, author or output folder differ).",
+                    "設定が異なる {0}件は今回は含まれません。（タイプ・バージョン・作者・出力フォルダが異なる）"
                 }
             },
             {
@@ -616,6 +625,15 @@ namespace StudioRaming.WarudoBatchBuilder
                     "선택한 기록 {0}건을 이력에서 삭제합니다.\n(첫 항목: {1})\n\n산출물 파일은 지워지지 않고 기록만 사라집니다. 되돌릴 수 없습니다.",
                     "Delete {0} selected record(s) from the history.\n(first: {1})\n\nOutput files are kept. Only the log entries are removed. This cannot be undone.",
                     "選択した記録 {0}件を履歴から削除します。\n(最初: {1})\n\n出力ファイルは残り、記録のみ削除されます。元に戻せません。"
+                }
+            },
+            {
+                "History.DeleteHiddenWarn",
+                new[]
+                {
+                    "이 중 {0}건은 현재 검색·필터나 접힌 묶음 때문에 화면에 보이지 않는 기록입니다.",
+                    "{0} of these are not visible on screen right now because of the current search/filter or a folded group.",
+                    "このうち {0}件は現在の検索・フィルターまたは折りたたまれたグループにより画面に表示されていない記録です。"
                 }
             },
             {
@@ -793,9 +811,9 @@ namespace StudioRaming.WarudoBatchBuilder
                 "History.RebuildSelectedConfirm",
                 new[]
                 {
-                    "선택한 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}\n\n계속할까요?",
-                    "Found {0} rebuild target(s) in the selection (newest per prefab).\nFirst target: {1}\n\nContinue?",
-                    "選択した記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}\n\n続行しますか？"
+                    "선택한 기록에서 재빌드 대상 {0}건을 찾았습니다. (같은 프리팹은 최신 1건으로 합침)\n첫 대상: {1}{2}\n\n계속할까요?",
+                    "Found {0} rebuild target(s) in the selection (newest per prefab).\nFirst target: {1}{2}\n\nContinue?",
+                    "選択した記録から再ビルド対象 {0}件を見つけました。（同じプレハブは最新1件）\n最初の対象: {1}{2}\n\n続行しますか？"
                 }
             },
         };

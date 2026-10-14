@@ -366,7 +366,7 @@ namespace StudioRaming.WarudoBatchBuilder
             });
             menu.AddItem(LC("Common.DeselectAll"), false, delegate
             {
-                SetSelectionForFiltered(false);
+                ClearAllSelection();
             });
             menu.AddSeparator("");
             for (int s = SortName; s <= SortState; s++)
@@ -405,7 +405,7 @@ namespace StudioRaming.WarudoBatchBuilder
                 });
             else
                 menu.AddDisabledItem(LC("Build.ExportPackage"));
-            if (items.Count > 0)
+            if (items.Count - otherScopeCount > 0)
                 menu.AddItem(LC("Build.GenerateThumbs"), false, delegate
                 {
                     pendingThumbBatch = true;

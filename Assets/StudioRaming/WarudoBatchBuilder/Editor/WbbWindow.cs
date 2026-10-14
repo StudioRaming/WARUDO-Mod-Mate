@@ -107,6 +107,8 @@ namespace StudioRaming.WarudoBatchBuilder
                 library.ReloadPathsFromPrefs();
                 library.Refresh();
             }
+            else if (tab == TabHistory && history != null)
+                history.Refresh();
             else if (tab == TabBuild && build != null)
                 build.ReloadOutputDirFromPref();
         }
@@ -155,7 +157,12 @@ namespace StudioRaming.WarudoBatchBuilder
             tabErrorTab = -1;
             EditorPrefs.SetInt(WinPfx + "tab", tab);
             if (tab == TabLibrary && library != null)
+            {
                 library.ReloadPathsFromPrefs();
+                library.Refresh();
+            }
+            else if (tab == TabHistory && history != null)
+                history.Refresh();
             else if (tab == TabBuild && build != null)
                 build.ReloadOutputDirFromPref();
             GUI.FocusControl(null);
