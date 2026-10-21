@@ -33,6 +33,8 @@ Changes
 
 - The Build tab shows WARUDO's render pipeline next to the project badge, read from the URP/NiloToon Enabled option in WARUDO's plugin data. A mismatch between the two shows a warning line and warning badges; the build is not blocked. "Copy environment info for support" in the ? menu includes the WARUDO pipeline as well.
 
+- `WbbBuildFixups.BeforeRules` is an extension point: an `Action<GameObject>` that tools can set to process each guarded build copy before the build rules run; an exception from it fails that item.
+
 Documentation
 
 - The manual's runtime code section says which rules apply to the default automatic collection and which only to a manual script folder. It told every user to move scripts "into the script folder", which does not exist in the default mode.

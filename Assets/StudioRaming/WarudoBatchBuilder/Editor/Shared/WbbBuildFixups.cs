@@ -103,6 +103,10 @@ namespace StudioRaming.WarudoBatchBuilder
         public const string RuleModularAvatar = "modular-avatar-ndmf";
         public const string RuleEditorAssembly = "editor-only-assembly";
         public const string RuleEditorOnlyTag = "editor-only-tag";
+        // Extension point for tools that process the guarded copy before the build rules.
+        // Receives the copy (a temporary object in a preview scene, never an asset). Runs on every
+        // copy before the rule loop and outside its try/catch, so an exception fails the item.
+        public static Action<GameObject> BeforeRules;
         private static readonly List<WbbFixupRule> rules = new List<WbbFixupRule>
         {
             new MissingScriptsRule(),
@@ -141,6 +145,9 @@ namespace StudioRaming.WarudoBatchBuilder
             if (copyRoot == null)
                 return report;
             GuardCopy(copyRoot);
+            Action<GameObject> before = BeforeRules;
+            if (before != null)
+                before(copyRoot);
             if (options == null)
                 options = new WbbFixupOptions();
             for (int i = 0; i < rules.Count; i++)
