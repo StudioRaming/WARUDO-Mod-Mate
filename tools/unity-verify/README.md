@@ -16,6 +16,7 @@ restores the right file. They run in the Unity Editor (2021.3.45f2, SDK 0.14.3.1
 | `4-abort-by-reload.cs` | check | Waits for a running build's item to start staging, forces a script reload then (`Phase = "reload"`), then checks the cancel path (`Phase = "check"`). |
 | `5-output-guard.cs` | check | No build. Calls the same-name overwrite guard (`WbbJournal.GuardOutput`, then `CommitOutput` or `RevertOutput`) on small files under `OutDir` for five cases. Takes a few seconds. |
 | `6-quick-build.cs` | build + check | Two Quick Builds of one scene object under the same name (`Phase = "build"` / `"audit"`, `Pass = 1` then `2`), then `Phase = "restore"`. |
+| `8-before-rules.cs` | check (stub setup first) | Tests W-1..W-3 of `WbbBuildFixups.BeforeRules`: the hook runs before `ModularAvatarRule` on a preview-scene copy, a throwing hook fails the save and writes no prefab, and with no hook the report equals a no-op hook's. Needs only `QaRoot`. The first run writes `Assets/WmmBeforeRules/WmmBeforeRulesStub.cs` (a `nadena.dev` stub) and returns `STUB WRITTEN`; run again after the reload with a new `RunTag`. |
 
 ## Parameters
 
@@ -47,6 +48,8 @@ set them in a copy of the script outside the repository for each run. Never comm
    3. `Case = "bad-manual"`, `NameOf = "ok-manual"`, `RunTag = "OW"`, `Overwrite = true`.
 7. `6-quick-build.cs`: `Phase = "build"`, `Pass = 1`; `Phase = "audit"`, `Pass = 1`; the same with `Pass = 2`; then
    `Phase = "restore"`. Keep one `RunTag` for the four calls.
+8. `8-before-rules.cs` in the QA project: run it (`STUB WRITTEN`), wait until the editor is ready (`lab_wait_ready`), then
+   run it again with a new `RunTag`. No build; the verdict is `PASS` with W-1, W-2 and W-3 checks.
 
 `5-output-guard.cs` lets `RevertOutput` prune `Library/StudioRaming/WarudoBatchBuilder/Failed` to its newest entries,
 and `6-quick-build.cs` points the saved Prop output folder at `OutDir` for the length of each Start call: run both in
@@ -67,6 +70,7 @@ Do not edit scripts in `Assets/` during a run. A recompile during a build cancel
 | `ok-manual` `OW` | first build of the name | `PASS` | As `ok-manual`. |
 | `ok-manual` `OW` `Overwrite` | over the first build | `PASS` | As `ok-manual`, and: the archive was written by this build, no backup of this name left in `OutputBackups`, no outputs in the build journal. |
 | `bad-manual` `NameOf = ok-manual` `OW` `Overwrite` | failing build over the second one | `PASS` | As `bad-manual`, except that the archive of the second build is back (same SHA-256); no backup left, no outputs in the journal. The security check fails before UMod writes the archive, so `Failed/` usually gains nothing (an `INFO` line gives the count; `5-output-guard` checks the `Failed/` paths). |
+| `8-before-rules` | none | `PASS` | W-1: the stub is on the copy when the hook runs and gone from the saved prefab; the copy is a preview-scene object, not an asset. W-2: `SaveFromSceneObject` returns false, the error carries the hook's message, no prefab. W-3: report text with no hook equals the no-op hook's. `BeforeRules` is null again at the end. |
 | `6-quick-build` | two Quick Builds of one name | `PASS` (both audits) | Both passes: no build journal file left. Pass 1: success, archive in `OutDir`. Pass 2: success, the archive written by this build, no backup of this name left, no outputs in the journal, no dirty scene, no `_WBB_Temp` folder, no quick-iteration reload notice (`OutDir` is not the `Props` folder of the WARUDO install). `restore` prints the output folder pref as it was at the start. |
 
 `3-audit.cs` judges only what this build left: the newest history record of the name that started after the build
